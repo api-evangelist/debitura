@@ -10,7 +10,7 @@ description: >-
   Referral Partner API exposes OAuth operations for minting them. Webhooks appear in all three, each
   with a paired test surface for exercising events before going live. Debitura publishes its own
   APIs.json at docs.debitura.com, which is how this profile was built.
-url: https://debitura.apievangelist.com/apis.yml
+url: https://raw.githubusercontent.com/api-evangelist/debitura/refs/heads/main/apis.yml
 created: '2026-08-01'
 modified: '2026-08-01'
 specificationVersion: '0.21'
