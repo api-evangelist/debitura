@@ -13,7 +13,7 @@ description: >-
 url: https://raw.githubusercontent.com/api-evangelist/debitura/refs/heads/main/apis.yml
 created: '2026-08-01'
 modified: '2026-08-01'
-specificationVersion: '0.21'
+specificationVersion: '0.23'
 tags:
   - Debt Collection
   - Accounts Receivable
