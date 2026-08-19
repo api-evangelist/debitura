@@ -1,0 +1,666 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Debitura Referral Partner API",
+    "version": "v1"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "XApiKey",
+      "value": "{{XApiKey}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Cases",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List cases for referral partner clients",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/cases",
+            "params": [
+              {
+                "name": "FromDate",
+                "value": "",
+                "type": "query",
+                "description": "Filter cases from this date (inclusive, based on case creation date). ISO 8601 format."
+              },
+              {
+                "name": "ToDate",
+                "value": "",
+                "type": "query",
+                "description": "Filter cases to this date (inclusive, based on case creation date). ISO 8601 format."
+              },
+              {
+                "name": "ExternalTenantId",
+                "value": "",
+                "type": "query",
+                "description": "Filter by specific client's external tenant ID"
+              },
+              {
+                "name": "Statuses",
+                "value": "",
+                "type": "query",
+                "description": "Filter by case lifecycle status(es). Multiple values can be provided.\nAccepts enum names (e.g. \"Active\", \"Closed\") or descriptions (e.g. \"More Info Required\")."
+              },
+              {
+                "name": "Query",
+                "value": "",
+                "type": "query",
+                "description": "Search query across case reference, creditor reference, and debtor name"
+              },
+              {
+                "name": "Page",
+                "value": "",
+                "type": "query",
+                "description": "Page number (1-indexed)"
+              },
+              {
+                "name": "PageSize",
+                "value": "",
+                "type": "query",
+                "description": "Number of results per page (default: 10, max: 100)"
+              },
+              {
+                "name": "CountryIds",
+                "value": "",
+                "type": "query",
+                "description": "Filter by debtor country ID(s). Multiple values can be provided.\nOnly cases where the debtor's country matches one of the specified IDs are returned."
+              },
+              {
+                "name": "CollectionPartnerIds",
+                "value": "",
+                "type": "query",
+                "description": "Filter by collection partner ID(s). Multiple values can be provided.\nOnly cases assigned to one of the specified collection partners are returned."
+              },
+              {
+                "name": "Sort",
+                "value": "",
+                "type": "query",
+                "description": "Sort field and direction. Format: \"field[:asc|desc]\"\nSupported fields: DateCreated, GrossAmount, DueDate\nExamples: \"DateCreated:desc\", \"GrossAmount:asc\"\nDefault: DateCreated:desc"
+              }
+            ]
+          },
+          "docs": "Retrieves a paginated list of debt collection cases for all clients linked to the authenticated referral partner.\n\nCase Lifecycle Stages\nCases progress through a defined lifecycle:\n• **Pending contract signing** - Client hasn't signed debt collection agreement yet\n• **Pending Verification Internal** - Case awaiting internal Debitura review\n• **Pending Verification** - Case awaiting partner verification\n• **More Info Required** - More information required from creditor\n• **Collecting Quotes** - A"
+        },
+        {
+          "info": {
+            "name": "Get case detail with potential revenue breakdown",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/cases/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Retrieves a single case with all standard fields plus a potential revenue breakdown showing what the referral partner would earn if the full amount is collected."
+        },
+        {
+          "info": {
+            "name": "Upload a file to a case. Optionally posts a system chat message to notify the collection partner.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://referral-api.debitura.com/cases/:caseId/files",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "caseId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "sendChatNotification",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "body": {
+              "type": "multipart-form",
+              "data": [
+                {
+                  "name": "file",
+                  "type": "text",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "docs": "Uploads a file and associates it with a case owned by one of the referral partner's clients.\n\nFile requirements:\n- Maximum file size: 25 MB\n- Allowed types: PDF, Excel (.xls, .xlsx), CSV, Text (.txt), Images (.jpg, .jpeg, .png, .gif)\n\nWhen sendChatNotification is true (default), a system message is posted on the case chat\nto notify the collection partner that a new file was uploaded."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Clients",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List all linked clients",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/clients",
+            "params": [
+              {
+                "name": "Page",
+                "value": "",
+                "type": "query",
+                "description": "Page number (default: 1)"
+              },
+              {
+                "name": "PageSize",
+                "value": "",
+                "type": "query",
+                "description": "Results per page (default: 50, max: 100)"
+              },
+              {
+                "name": "Query",
+                "value": "",
+                "type": "query",
+                "description": "Search query across CompanyName, OfficeEmail, and CompanyRegistrationNumber"
+              },
+              {
+                "name": "ExternalTenantId",
+                "value": "",
+                "type": "query",
+                "description": "Filter by exact external tenant ID"
+              },
+              {
+                "name": "IsAttributedClient",
+                "value": "",
+                "type": "query",
+                "description": "Filter by attribution status (true = attributed client, false = linked but not attributed)"
+              },
+              {
+                "name": "DateCreatedFrom",
+                "value": "",
+                "type": "query",
+                "description": "Filter by link creation date (from)"
+              },
+              {
+                "name": "DateCreatedTo",
+                "value": "",
+                "type": "query",
+                "description": "Filter by link creation date (to)"
+              },
+              {
+                "name": "OnboardingDone",
+                "value": "",
+                "type": "query",
+                "description": "Filter by onboarding status (true = completed, false = pending)"
+              },
+              {
+                "name": "Sort",
+                "value": "",
+                "type": "query",
+                "description": "Sort field and direction. Format: \"field[:asc|desc]\"\nSupported fields: dateCreated, name\nExamples: \"dateCreated:desc\", \"name:asc\"\nDefault: dateCreated:desc"
+              }
+            ]
+          },
+          "docs": "Retrieves a paginated list of all clients (creditors) linked to the authenticated referral partner.\n\nResponse Data\nFor each client, the response includes:\n- **ExternalTenantId** - Your unique identifier for this client\n- **OnboardingDone** - Whether the client has completed onboarding (signed debt collection agreements)\n- **OnboardingLinks** - If onboarding incomplete, contains URL to complete the process\n- **Client** - Complete client information (ID, company name, registration number, country,"
+        },
+        {
+          "info": {
+            "name": "Create and onboard a new client",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://referral-api.debitura.com/clients",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a new client (creditor) in the Debitura platform and links them to the authenticated referral partner.\n\nRequest Structure\n- **ExternalTenantId** (required) - Your unique identifier for this client (for correlation and future lookups)\n- **Client** (required) - Company information (name, registration number, country, address, contact details)\n- **Users** (required, 1-N) - At least one user with email and name. For multiple users, exactly one must have IsOnboardingUser=true. Single-user req"
+        },
+        {
+          "info": {
+            "name": "Get client by external tenant ID",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/clients/:externalTenantId",
+            "params": [
+              {
+                "name": "externalTenantId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Retrieves detailed information for a specific client using your unique identifier (External Tenant ID).\n\nPath Parameter\n- **externalTenantId** - Your unique identifier for this client (the same value used during client creation)\n\nResponse Data\nThe response includes complete client information:\n- **ExternalTenantId** - Your unique identifier for this client\n- **OnboardingDone** - Whether the client has completed onboarding (signed debt collection agreements)\n- **OnboardingLinks** - If onboarding "
+        },
+        {
+          "info": {
+            "name": "Reset a client (test environment only)",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://referral-api.debitura.com/clients/:externalTenantId",
+            "params": [
+              {
+                "name": "externalTenantId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Deletes a client and all associated data, allowing you to re-create the client from scratch.\n\n⚠️ **TEST ENVIRONMENT ONLY** - This endpoint is only available on the test environment (testreferral-api.debitura.com).\nCalling this endpoint on production will return 403 Forbidden.\n\nUse Cases\n- Testing the full onboarding flow multiple times\n- Resetting after changing your internal tenant structure during development\n- Cleaning up test data without manual intervention\n\nWhat Gets Deleted (cascade)\n- Al"
+        },
+        {
+          "info": {
+            "name": "Check if a client can be deleted (test environment only)",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/clients/:externalTenantId/is-deletable",
+            "params": [
+              {
+                "name": "externalTenantId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Checks whether a client can be safely deleted for testing purposes.\n\n⚠️ **TEST ENVIRONMENT ONLY** - This endpoint is only available on the test environment.\n\nUse this endpoint before calling DELETE to verify the client can be removed.\n\nA client can be deleted if:\n- They have no active collection cases (only pending cases are allowed)\n- They have no leads with active quotes\n\nReturns\n- **isDeletable**: true if the client can be deleted\n- **blockers**: list of reasons why deletion is blocked (if an"
+        },
+        {
+          "info": {
+            "name": "Withdraw an attributed client",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://referral-api.debitura.com/clients/:externalTenantId/withdraw",
+            "params": [
+              {
+                "name": "externalTenantId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Withdraws a client that never completed onboarding. Archives the referral partner link and closes all pending cases with close code CaseNeverStartedInternal.\n\nThe same externalTenantId can be re-submitted via POST /clients after withdrawal.\n\nPath Parameter\n- **externalTenantId** - Your internal identifier for the client\n\nBusiness Rules\n- Only attributed clients (IsAttributedClient = true) can be withdrawn\n- All cases for this client must be in PendingContractSigning status\n\nWhat Happens\n- The re"
+        },
+        {
+          "info": {
+            "name": "Submit KYC verification for a client",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://referral-api.debitura.com/clients/:externalTenantId/kyc-verification",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "externalTenantId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "sendChatNotification",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Submits KYC/AML director verification data for an existing client. Multiple submissions are allowed; the latest record is used for verification checks. When sendChatNotification is true (default), a system message is posted on all active cases for this client to notify the collection partner."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Coverage",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List all jurisdiction coverage",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/coverage"
+          },
+          "docs": "Returns all jurisdictions where Debitura operates, with the assigned collection partner(s) and conditions for each.\n\nUse this to show potential clients which countries and regions are supported before they register."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "FilterOptions",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get available filter options for cases and earnings",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/referral-partner/filter-options"
+          },
+          "docs": "Returns distinct filter options available for the authenticated referral partner's cases and earnings pages.\n\n**Countries** — Distinct debtor countries from the referral partner's case history, sorted alphabetically.\n\n**CarveoutPartners** — Collection partners from the referral partner's active JurisdictionPricingZone records (DateDeleted == null and DateDeactivated == null), sorted alphabetically.\n\nUse the returned IDs as values for the CountryIds and CollectionPartnerIds query parameters on th"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "OAuth",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get OAuth access token",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://referral-api.debitura.com/oauth/token",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Generates a short-lived JWT bearer token for accessing the Customer API on behalf of a specific client.\n\n**How It Works:**\n1. Authenticate with your referral partner API key (XApiKey header)\n2. Provide the externalTenantId of the client you want to access\n3. Receive a Bearer token valid for 30 minutes\n4. Use the token in the Customer API: `Authorization: Bearer {access_token}`\n\n**Requirements:**\n- The externalTenantId must match an active ReferralPartnerClientLink for your partner account\n- The "
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "PreviewCases",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Preview case pricing",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://referral-api.debitura.com/cases/preview",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Preview the success fee pricing for a potential case without creating it.\n\n**What This Endpoint Returns:**\n- IsEligible - Whether the case can be submitted (partner available in this jurisdiction)\n- PricingPreview - Estimated success fee with base rate and any age-based surcharges\n- Jurisdiction - Geographic details for the matched jurisdiction\n\n**Use This To:**\n1. Show your clients the Debitura success fee before they onboard\n2. Check if a jurisdiction is supported before starting the onboardin"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "ReferralPartners",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get authenticated partner information",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/me"
+          },
+          "docs": "Retrieves complete configuration and styling information for the authenticated referral partner.\n\nAuthentication\n- Requires a valid API key in the XApiKey header\n- The API key uniquely identifies the referral partner\n\nResponse Data\n- Partner identification (ID, system name, display name)\n- Branding configuration (logo URLs, colors, fonts)\n- Revenue sharing percentage\n- Partner status and settings\n\nUse Cases\n- Configure white-label branding for client onboarding pages\n- Display partner-specific s"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Reporting",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get transaction-level revenue data",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/reporting/transactions",
+            "params": [
+              {
+                "name": "FromDate",
+                "value": "",
+                "type": "query",
+                "description": "Filter transactions from this date (inclusive). ISO 8601 format."
+              },
+              {
+                "name": "ToDate",
+                "value": "",
+                "type": "query",
+                "description": "Filter transactions to this date (inclusive). ISO 8601 format."
+              },
+              {
+                "name": "ExternalTenantId",
+                "value": "",
+                "type": "query",
+                "description": "Filter by specific client's external tenant ID"
+              },
+              {
+                "name": "HasRecognizedRevenue",
+                "value": "",
+                "type": "query",
+                "description": "When true, only show transactions where revenue has been recognized (collection partner has paid Debitura).\nWhen false, only show unrecognized transactions."
+              },
+              {
+                "name": "CommissionPaymentStatuses",
+                "value": "",
+                "type": "query",
+                "description": "Filter by commission payment status (Unpaid = 0, Paid = 1, Credited = 2).\nTracks whether Debitura has received the collection partner's commission."
+              },
+              {
+                "name": "PlatformInvoicingStatuses",
+                "value": "",
+                "type": "query",
+                "description": "Filter by platform invoicing status (NotInvoiced = 0, InvoiceIssued = 1, PaymentReceived = 2, InvoiceCredited = 3).\nTracks Debitura's invoicing lifecycle with the collection partner."
+              },
+              {
+                "name": "ReferralInvoicingStatuses",
+                "value": "",
+                "type": "query",
+                "description": "Filter by referral invoicing status (Pending = 0, Invoiced = 1, Paid = 2)"
+              },
+              {
+                "name": "RevenueStages",
+                "value": "",
+                "type": "query",
+                "description": "Filter by revenue-lifecycle stage (see Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionRevenueStage). Use this instead of\ncombining CommissionPaymentStatuses/PlatformInvoicingStatuses/ReferralInvoicingStatuses when you need\na row list for one specific \"Ready to Invoice\" tab bucket — it applies the same ConfirmedPipeline\nfold the summary already uses, so the row list matches the badge count exactly for partners in\nConfirmedPipeline mode. ANDed with the other filters above if both are supplied.\n            \nOnly narrows the row-list (`data`) — the returned `summary` always reports all 7 bucket\ntotals regardless of this filter, since its purpose is to drive tab badge counts and would\notherwise collapse the other buckets toward zero."
+              },
+              {
+                "name": "Search",
+                "value": "",
+                "type": "query",
+                "description": "Search text to filter by case reference or client company name (case-insensitive, partial match).\nMinimum 2 characters required for search to be applied."
+              },
+              {
+                "name": "Page",
+                "value": "",
+                "type": "query",
+                "description": "Page number (1-indexed)"
+              },
+              {
+                "name": "PageSize",
+                "value": "",
+                "type": "query",
+                "description": "Number of results per page (default: 10, max: 100)"
+              },
+              {
+                "name": "CountryIds",
+                "value": "",
+                "type": "query",
+                "description": "Filter by debtor country ID(s). Multiple values can be provided.\nOnly transactions where the debtor's country matches one of the specified IDs are returned."
+              },
+              {
+                "name": "CollectionPartnerIds",
+                "value": "",
+                "type": "query",
+                "description": "Filter by collection partner ID(s). Multiple values can be provided.\nOnly transactions for cases assigned to one of the specified collection partners are returned."
+              },
+              {
+                "name": "Sort",
+                "value": "",
+                "type": "query",
+                "description": "Sort field and direction. Format: \"field[:asc|desc]\"\nSupported fields: collectionDate, amount\nExamples: \"collectionDate:desc\", \"amount:asc\"\nDefault: collectionDate:desc"
+              }
+            ]
+          },
+          "docs": "Retrieves comprehensive transaction-level financial data for all clients linked to the authenticated referral partner.\n\n**IMPORTANT: All amounts are returned in USD regardless of the original collection currency.**\n\nRevenue Recognition Stages\nThe response includes a 4-stage revenue breakdown for each transaction, representing the complete lifecycle from collection to payment:\n\n1. **Unrecognized Revenue** - Collections that have occurred but revenue is not yet recognized (typically due to pending"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Webhooks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get all webhooks for the authenticated referral partner",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/v1/Webhooks"
+          },
+          "docs": "Returns all webhook subscriptions with their configuration (URL, events, status). Note: Secrets are never included in GET responses."
+        },
+        {
+          "info": {
+            "name": "Create a new webhook subscription",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://referral-api.debitura.com/v1/Webhooks",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates webhook subscription for real-time event notifications.\n\n**Available Events:**\n- `client.onboarding.poa_signed` - Client signed Power of Attorney\n- `client.onboarding.contract_signed` - Client signed Service Delivery Agreement\n- `client.linked` - Client successfully linked to your account\n- `client.link_declined` - Client declined to link\n- `client.link_requested` - 409 link request created (awaiting end-user approval)\n- `client.link_expired` - 409 link request reached its TTL without ap"
+        },
+        {
+          "info": {
+            "name": "Get a specific webhook by ID",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://referral-api.debitura.com/v1/Webhooks/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns webhook configuration including URL, events, active status, and DisabledReason if auto-disabled. Secret is never included (only shown during creation/regeneration)."
+        },
+        {
+          "info": {
+            "name": "Update an existing webhook subscription",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://referral-api.debitura.com/v1/Webhooks/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Updates webhook URL, events, or active status. Set RegenerateSecret=true to rotate signing secret (returned in response). Use IsActive=true to re-enable auto-disabled webhooks after fixing delivery issues. Secret only included if RegenerateSecret=true."
+        },
+        {
+          "info": {
+            "name": "Delete a webhook subscription",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://referral-api.debitura.com/v1/Webhooks/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Permanently deletes webhook subscription. Cannot be undone. Consider setting IsActive=false to temporarily disable instead. Delivery history is lost after deletion."
+        },
+        {
+          "info": {
+            "name": "Trigger a test webhook event (test environment only)",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://referral-api.debitura.com/v1/Webhooks/test",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Triggers a realistic webhook delivery through the real pipeline (queue → dispatcher → HMAC-signed HTTP delivery).\n\n⚠️ **TEST ENVIRONMENT ONLY** - Returns 403 in production. Use testreferral-api.debitura.com for testing.\n\n**How it works:**\n- Looks up real entity data (case or client link) to construct a realistic payload\n- Publishes through the same pipeline as production events (signature verification, retries, etc.)\n- Returns immediately after enqueueing — delivery is async via Azure Queue\n\n**C"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

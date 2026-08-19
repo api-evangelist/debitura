@@ -1,0 +1,1136 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Debitura Collection Partner API",
+    "version": "v1"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "XApiKey",
+      "value": "{{XApiKey}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Cases",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List collection cases.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases",
+            "params": [
+              {
+                "name": "Page",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "PageSize",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "DebtorIds",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "Ids",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "Statuses",
+                "value": "",
+                "type": "query",
+                "description": "Filter by case lifecycle status. Valid values: PendingContractSigning, PendingVerificationInternal,\nPendingVerification, NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed, Merged\n(case-insensitive; both name and description forms accepted)."
+              },
+              {
+                "name": "DivisionIds",
+                "value": "",
+                "type": "query",
+                "description": "Optional list of division IDs to filter by"
+              },
+              {
+                "name": "Sort",
+                "value": "",
+                "type": "query",
+                "description": "Optional sorting string \"Field[:asc|desc][,Field2[:asc|desc]]…\".\nValid sort fields: DateCreated, DateUpdated, DateFinished, DateCollectionStarted,\nDueDate, Date, GrossAmount, Remainder, InterestFees, CollectionFees, ReminderFees,\nLifecycle, CloseCode. Examples: 'DateCreated:desc', 'DueDate:asc'. Unknown fields are silently ignored."
+              },
+              {
+                "name": "includeTestCases",
+                "value": "",
+                "type": "query",
+                "description": "When true, includes test/demo cases where the caller is the owner (either as collection partner\nor as managing partner). Defaults to false.\n            \nImplementation note: the spec sets CollectionPartnerIds = [callerPartnerId] as an AND filter.\nSelf-managed test cases are still returned because routing isolation guarantees\nCollectionPartnerId == ManagedByPartnerId for cases submitted by the managing partner to themselves.\nTestCaseOwnerManagedByPartnerId provides the OR-leg for non-self-routed test cases."
+              }
+            ]
+          },
+          "docs": "Returns a paginated list of cases where you are the **collection partner** (actively collecting the debt).\n\n**What is a Collection Partner?**\nA collection partner is an agency or law firm that performs the actual debt recovery work. When you appear as the collection partner on a case, you are responsible for:\n- Contacting the debtor and attempting recovery\n- Managing the case lifecycle and status updates\n- Recording payments and fees\n- Uploading documents and evidence\n- Communicating with the cr"
+        },
+        {
+          "info": {
+            "name": "Fetch case by ID",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns detailed case information for a specific case ID (GUID).\n\n**Access Control:**\nOnly returns cases where you are the collection partner, or test/demo cases where you are the managing partner. For managed production cases, use `/managed-cases/{id}` instead.\n\n**Response Includes:**\n- Case details (reference, amount, currency, status, lifecycle stage)\n- Debtor information (name, address, contact details, company/private type)\n- Creditor information\n- Collection partner assignment details\n- Fi"
+        },
+        {
+          "info": {
+            "name": "Fetch case by reference",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/case-reference/:caseReference",
+            "params": [
+              {
+                "name": "caseReference",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns detailed case information using the Debitura case reference (e.g., 'Q8OAXF3W').\n\n**Use Case:**\nUse this endpoint when you have the Debitura case reference (visible in the partner portal and emails) but not the GUID. This is helpful for customer service integrations or when referencing cases in communications.\n\n**Access Control:**\nOnly returns cases where you are the collection partner, or test/demo cases where you are the managing partner. For managed production cases, use `/managed-case"
+        },
+        {
+          "info": {
+            "name": "Fetch a single case by the collection partner's own reference ID.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/by-partner-reference/:reference",
+            "params": [
+              {
+                "name": "reference",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns detailed case information using the collection partner's own reference (the `CollectionPartnerReference` field set during case activation).\n\n**Use Case:**\nUse this endpoint when you have your own internal case reference and want to look up the corresponding Debitura case. This is useful for integrating your case management system with Debitura.\n\n**Matching:**\nExact string match only. Combined references like '112179442 & 112179443' must be queried with the full combined string.\n\n**Access"
+        },
+        {
+          "info": {
+            "name": "Batch lookup of cases by the collection partner's own reference IDs.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/by-partner-reference",
+            "params": [
+              {
+                "name": "references",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Returns a dictionary mapping each partner reference to its corresponding case details.\n\n**Use Case:**\nUse this endpoint to look up multiple cases at once using your own internal reference IDs. This is more efficient than making individual calls for each reference.\n\n**Parameters:**\n- references (required) - Comma-separated list of partner reference strings (max 100)\n\n**Matching:**\nExact string match only. References not found or not assigned to you are omitted from the response (no error).\n\n**Res"
+        },
+        {
+          "info": {
+            "name": "Fetch a single case by creditor reference, scoped to a specific creditor and partner.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/by-creditor-reference",
+            "params": [
+              {
+                "name": "reference",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "creditorId",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Returns detailed case information using the creditor's own reference (`CreditorReference`) scoped to a specific creditor.\n\n**Use Case:**\nUse this endpoint when you have the creditor's reference (e.g. from an invoice file or payment import) and need to look up the corresponding Debitura case. Because `CreditorReference` is only unique within a single creditor, you must also supply `creditorId` to make the lookup unambiguous.\n\n**Matching:**\nExact string match on `CreditorReference`. The case must "
+        },
+        {
+          "info": {
+            "name": "Fetch case timeline",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/timeline",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns the complete chronological event history for a case along with the current engagement phase.\n\n**Timeline Events Include:**\n- Case assignment to collection partner\n- Status changes and lifecycle transitions\n- Payment recordings\n- Document uploads\n- Communication events\n- Fee additions\n- Manual updates and notes\n- System-generated events\n\n**Response shape:**\n- `items` — chronological list of timeline events\n- `currentEngagementPhase` — current phase of the active engagement: \"Pre-legal\", \""
+        },
+        {
+          "info": {
+            "name": "Fetch case chats",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/chats",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns all chat messages for a case in chronological order.\n\n**Chat Participants:**\n- Collection partner (you) - Messages from your team\n- Creditor - Messages from the client who owns the debt\n- Debitura support - System notifications and support messages\n- Managing partner (if applicable) - Messages from the partner who submitted the case\n\n**Message Details Include:**\n- Message content and timestamp\n- Sender information (name, role)\n- Message type (text, system notification, file attachment re"
+        },
+        {
+          "info": {
+            "name": "Send a chat message on a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/chats",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Posts a new chat message on a case, visible to both the collection partner and the creditor.\n\n**Message Details:**\n- The message is attributed to the team member identified by `userId`\n- The creditor will receive an email notification about the new message\n- A task is created in the Debitura platform for the creditor to review the message\n- Messages appear in the case chat timeline in chronological order\n\n**Prerequisites:**\n- The case must exist and be assigned to you as collection partner\n- The"
+        },
+        {
+          "info": {
+            "name": "Fetch case payments",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/payments",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns all payments recorded on a specific case.\n\n**Payment Information Includes:**\n- Payment amount and currency\n- Payment date (when received)\n- Payment type (full payment, partial payment, settlement)\n- Payment method (bank transfer, card, cash, etc.)\n- Payment status (pending, confirmed, reconciled)\n- Reference information\n- Allocation breakdown (principal, interest, fees)\n\n**Use Case:**\nUse this endpoint to:\n- Track payment history for a case\n- Reconcile payments with your records\n- Displa"
+        },
+        {
+          "info": {
+            "name": "Create a payment on a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/payments",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Records a payment received for a collection case.\n\n**Use Case:**\nUse this endpoint when you receive a payment from the debtor. Provide the payment amount and, in the normal case, nothing else for the split — **omit both PayoutCreditor and PayoutCollectionPartner** and Debitura computes the creditor/partner split server-side from the case's pricing terms (success fee). This is the default and recommended usage for almost every integration.\n\n**Advanced override — PayoutCreditor / PayoutCollectionP"
+        },
+        {
+          "info": {
+            "name": "Get case files",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/files",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns all documents and files attached to a case.\n\n**File Types Include:**\n- OriginalInvoice - The initial invoice/claim document\n- ProofOfDelivery - Delivery confirmations\n- Contract - Agreements and contracts\n- Correspondence - Email and letter communications\n- PaymentProof - Payment receipts and confirmations\n- CourtDocuments - Legal filings and court papers\n- Other - Miscellaneous supporting documents\n\n**File Information Includes:**\n- File ID and case ID\n- File name and description/label\n-"
+        },
+        {
+          "info": {
+            "name": "Upload a file to a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/files",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "multipart-form",
+              "data": [
+                {
+                  "name": "File",
+                  "type": "text",
+                  "value": ""
+                },
+                {
+                  "name": "DocumentType",
+                  "type": "text",
+                  "value": ""
+                },
+                {
+                  "name": "Description",
+                  "type": "text",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "docs": "Uploads a file and attaches it to a case. Mirrors the file upload action available in the Partner portal.\n\n**Access:** Collection partners only. Managing partners are rejected.\n\n**Status gate:** Allowed on all non-Merged statuses, including Closed. Only Merged cases are rejected.\n\n**File requirements:**\n- Maximum size: 25 MB\n- Allowed extensions: `.pdf` `.doc` `.docx` `.xls` `.xlsx` `.jpg` `.jpeg` `.png` `.txt` `.zip` `.csv` `.eml`\n\n**DocumentType (optional):**\n- `OriginalInvoice` — the original"
+        },
+        {
+          "info": {
+            "name": "Create a note on a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/notes",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a new note/comment on a collection case.\n\n**Use Case:**\nUse this endpoint to document activities, record conversations, add reminders, or log any relevant information about the case. Notes are automatically shared with the creditor.\n\n**Validation:**\n- Description is required (max 10000 characters)\n- EventDate must not be in the future (if provided)\n\n**EventDate:**\nSupply EventDate to back-date the note to the time the event actually occurred. For example, if a phone call happened three d"
+        },
+        {
+          "info": {
+            "name": "Edit a payment on a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/payments/:paymentId",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "paymentId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Edits an existing payment on a collection case. Mirrors the payout-split semantics of the create-payment endpoint.\n\n**Payout Split:** supply both PayoutCreditor and PayoutCollectionPartner to set the split explicitly (they must sum to PaymentAmount), or omit both to have it recomputed from the case's pricing terms.\n\n**Invoiced payments are frozen:** a payment whose payout has already been invoiced (Stripe/QBO) cannot be edited and returns **422 Unprocessable Entity**. This protects the issued ac"
+        },
+        {
+          "info": {
+            "name": "Delete a payment on a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/payments/:paymentId",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "paymentId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "reopenCaseIfNeeded",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Deletes a payment from a collection case, reverting its effect on the case balance and cascading the payout deletion. A durable audit record of the deletion is retained.\n\n**Invoiced payments are frozen:** a payment whose payout has already been invoiced (Stripe/QBO) cannot be deleted and returns **422 Unprocessable Entity**.\n\n**Reopen consent:** if deleting the payment leaves a previously closed (Paid) case with a positive outstanding balance, the case must be reopened. By default this returns *"
+        },
+        {
+          "info": {
+            "name": "Close a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/close",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Closes a collection case with a specified close code.\n\n**Use Case:**\nUse this endpoint to formally close a case when collection is complete or cannot continue. The close code determines the reason and impacts reporting.\n\n**Close Code Validation:**\n- **Paid**: Requires at least one payment AND total payments >= outstanding amount\n- **PartiallyPaid**: Requires at least one payment AND total payments < outstanding amount\n- **All other codes**: No payment requirements\n\n**Valid Close Codes:**\n- **Pai"
+        },
+        {
+          "info": {
+            "name": "Activate a case from PendingVerification",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/start",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Transitions a case from `PendingVerification` → `Active`, officially accepting it for debt collection.\n\n**Prerequisites:**\n- The case must be in `PendingVerification` status (returns 400 otherwise)\n- The case must not require custom terms (non-standard agreement). Cases outside the standard pre-legal scope — where the claim type is not an unpaid invoice or loan repayment, or where a dispute exists — require negotiation in the partner portal and cannot be activated via this API (returns 400 with "
+        },
+        {
+          "info": {
+            "name": "Update case fees and/or principal",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/fees",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Updates the interest, reminder, and collection fees — and optionally the principal (GrossAmount) — on a case.\n\nAll provided values replace the current values. The `grossAmount` field is optional and backward-compatible: omitting it leaves the principal unchanged.\n\nFees typically change over time as collection activity progresses — for example due to legal costs, attorney fees, investigation charges, or other events.\n\n**When `grossAmount` is supplied:**\n- Both increases and decreases are allowed "
+        },
+        {
+          "info": {
+            "name": "Get exclusive collection period chain",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/exclusive-period",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns the full exclusive collection period chain for a case, including the initial period and any extensions triggered by debtor actions (promise to pay, payment agreement, or actual payment)."
+        },
+        {
+          "info": {
+            "name": "Get full validation detail for a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/cases/:id/validation",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns the full creditor-facing validation status for a case, including the resolution area and description for each outstanding item.\n\n**When to call:** Check `validation.needsInfo` on `GET /cases/{id}`. If `true`, call this endpoint to retrieve the item-level breakdown of what must be supplied.\n\n**Access Control:** Same as `GET /cases/{id}` — only accessible when you are the collection partner (or managing partner on test cases).\n\n**Safety:** Only creditor-facing resolution areas are returned"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "IngestionJobs",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Enqueue a batch of partner ingest events (notes, payments, status updates).",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/ingestion-jobs",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates one AsyncJob of type PartnerIngestDispatch and one AsyncJobOperation per row.\nThe job is processed asynchronously; poll GET /ingestion-jobs/{jobId} for progress.\n            \nCurrently supported row types: Note (type = 0).\nPayment and StatusUpdate types are reserved for future use and will return 400 if submitted."
+        },
+        {
+          "info": {
+            "name": "Poll the status of a previously submitted ingestion job.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/ingestion-jobs/:jobId",
+            "params": [
+              {
+                "name": "jobId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns current status and per-operation counts for the job."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "ManagedCases",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List managed cases",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases",
+            "params": [
+              {
+                "name": "Page",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "PageSize",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "DebtorIds",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "Ids",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "Statuses",
+                "value": "",
+                "type": "query",
+                "description": "Filter by case lifecycle status. Valid values: PendingContractSigning, PendingVerificationInternal,\nPendingVerification, NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed, Merged\n(case-insensitive; both name and description forms accepted)."
+              },
+              {
+                "name": "DivisionIds",
+                "value": "",
+                "type": "query",
+                "description": "Optional list of division IDs to filter by"
+              },
+              {
+                "name": "Sort",
+                "value": "",
+                "type": "query",
+                "description": "Optional sorting string \"Field[:asc|desc][,Field2[:asc|desc]]…\".\nValid sort fields: DateCreated, DateUpdated, DateFinished, DateCollectionStarted,\nDueDate, Date, GrossAmount, Remainder, InterestFees, CollectionFees, ReminderFees,\nLifecycle, CloseCode. Examples: 'DateCreated:desc', 'DueDate:asc'. Unknown fields are silently ignored."
+              }
+            ]
+          },
+          "docs": "Returns a paginated list of cases where you are the **managing partner** (submitted on behalf of your clients).\n\n**What is a Managing Partner?**\nA managing partner is a collection partner that submits cases on behalf of their own clients but forwards the actual debt recovery work to another collection partner in Debitura's network. You remain your client's point of contact while leveraging Debitura's global network of 500+ partners across 183 jurisdictions.\n\n**Why Become a Managing Partner?**\n- "
+        },
+        {
+          "info": {
+            "name": "Create case as managing partner",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a collection case on behalf of your client (or yourself) through the Debitura platform.\n\n**Understanding the Creditor Field:**\nThe creditor is the party that the debtor owes money to. This can be:\n- **Your client's company** - When you're submitting cases on behalf of clients you represent\n- **Your own company** - When you're submitting your own debt collection cases\n\n**How It Works:**\n1. You provide the creditor's basic information (company name + country)\n2. Debitura creates a creditor"
+        },
+        {
+          "info": {
+            "name": "Fetch managed case by ID",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns detailed information for a case you submitted on behalf of your client (where you are the managing partner).\n\n**Access Control:**\nThis endpoint only returns cases where YOU are the managing partner. If you are the collection partner on a case, use `/cases/{id}` instead.\n\n**Response Includes:**\n- Case details (reference, amount, currency, status)\n- Debtor information\n- Your client information (the creditor)\n- Collection partner details (who is actively collecting this case)\n- Financial br"
+        },
+        {
+          "info": {
+            "name": "Fetch managed case by reference",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases/case-reference/:caseReference",
+            "params": [
+              {
+                "name": "caseReference",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns detailed case information using the Debitura case reference (e.g., 'Q8OAXF3W') for cases you submitted.\n\n**Use Case:**\nUse this endpoint when you have the Debitura case reference but not the GUID. Helpful for customer service integrations or when your clients reference cases by the Debitura reference number.\n\n**Access Control:**\nOnly returns cases where you are the managing partner."
+        },
+        {
+          "info": {
+            "name": "Fetch managed case timeline",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases/:id/timeline",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns the complete chronological event history for a case you submitted as managing partner.\n\n**Timeline Events Include:**\n- Case submission and acceptance\n- Assignment to collection partner\n- Status changes and lifecycle transitions\n- Payment recordings\n- Communication events between collection partner and creditor\n- Collection partner updates and notes\n\n**Managing Partner Transparency:**\nThe timeline provides full visibility into the collection partner's activities, allowing you to monitor p"
+        },
+        {
+          "info": {
+            "name": "Fetch managed case chats",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases/:id/chats",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns all chat messages for a case you submitted, in chronological order.\n\n**Chat Participants (for Managed Cases):**\n- Managing partner (you) - Your messages to the collection partner\n- Collection partner - Messages from the partner actively collecting the case\n- Your client (creditor) - Messages from the client you represent\n- Debitura support - System notifications and support messages\n\n**Communication Flow:**\nAs the managing partner, you can participate in case discussions to:\n- Coordinate"
+        },
+        {
+          "info": {
+            "name": "Fetch managed case payments",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases/:id/payments",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns all payments recorded on a case you submitted as managing partner.\n\n**Payment Information Includes:**\n- Payment amount, currency, and date\n- Payment type and method\n- Payment status (recorded by collection partner)\n- Allocation breakdown (principal, interest, fees)\n- Payout details (amounts to creditor and collection partner)\n\n**What This Endpoint Shows:**\nAs a managing partner, you can monitor all payment activity on cases you submitted for your clients. This endpoint provides visibilit"
+        },
+        {
+          "info": {
+            "name": "Record a payment on a test case (managing partner)",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases/:id/payments",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Records a payment on a test case you submitted as managing partner.\n\n**Test-Only Restriction:**\nThis endpoint only works on cases created with `isTestCase: true`. Attempting to record a payment on a production case returns a 400 error. For production cases, the assigned collection partner must use `POST /cases/{id}/payments`.\n\n**Purpose:**\nAllows managing partners (e.g. Get-Systems) to test their full payment integration end-to-end — including webhook delivery, lifecycle transitions, and remaind"
+        },
+        {
+          "info": {
+            "name": "Edit a payment on a test case (managing partner)",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases/:id/payments/:paymentId",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "paymentId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Edits a payment on a test case you submitted as managing partner.\n\n**Test-Only Restriction:** like recording a payment, this only works on cases created with `isTestCase: true`. Production cases return a 400 — the assigned collection partner must edit via `PUT /cases/{id}/payments/{paymentId}`.\n\n**Invoiced payments are frozen:** an already-invoiced payment cannot be edited and returns **422**.\n\n**Reopen consent:** if the edit leaves a previously closed (Paid) case with an outstanding balance, th"
+        },
+        {
+          "info": {
+            "name": "Delete a payment on a test case (managing partner)",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases/:id/payments/:paymentId",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "paymentId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "reopenCaseIfNeeded",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Deletes a payment from a test case you submitted as managing partner, reverting its effect on the case balance and cascading the payout deletion. A durable audit record is retained.\n\n**Test-Only Restriction:** only works on cases created with `isTestCase: true`. Production cases return a 400 — the assigned collection partner must delete via `DELETE /cases/{id}/payments/{paymentId}`.\n\n**Invoiced payments are frozen:** an already-invoiced payment cannot be deleted and returns **422**.\n\n**Reopen co"
+        },
+        {
+          "info": {
+            "name": "Get managed case files",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/managed-cases/:id/files",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns all documents and files attached to a case you submitted as managing partner.\n\n**File Access for Managing Partners:**\nYou have read-only access to all files uploaded by:\n- Your client (the creditor you represent)\n- The collection partner handling the case\n- Debitura support team\n- Yourself (files you uploaded when submitting the case)\n\n**File Types Include:**\n- OriginalInvoice - The initial claim documentation\n- ProofOfDelivery - Delivery confirmations\n- Contract - Agreements between cre"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Me",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Verifies the provided API key and returns the collection partner profile",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/me"
+          },
+          "docs": "Returns the authenticated collection partner's profile information when the `XApiKey` header is valid.\n\nAuthentication\n- Requires a valid API key in the XApiKey header\n- The API key uniquely identifies the collection partner\n\nResponse Data\n- Partner identification (ID, company name, registration details)\n- Contact information (email, phone)\n- Address and location details\n- Billing and invoicing configuration\n- Revenue sharing settings\n- Partner permissions and access levels\n\nUse Cases\n- Verify A"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "TestCases",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Advance a test case to a known lifecycle state.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/test/cases/:id/advance",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Drives a test case to a well-known lifecycle state in a single call.\n\n**Purpose:**\nEnables CI pipelines and integrators to exercise the full collection lifecycle — including real webhooks and events — without manual intervention.\n\n**Target States:**\n- `Active` — Activates the case from PendingVerification or PendingVerificationInternal. No-op if already Active or Closed.\n- `Closed:Paid` — Records a payment for `amount` and closes the case as Paid. Activates the case first if needed. `amount` is "
+        },
+        {
+          "info": {
+            "name": "Hard-delete a single test case by ID.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://collectionpartner-api.debitura.com/test/cases/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Permanently removes a test case and all its child entities (payments, chats, files, timeline entries, webhook delivery records) from the database.\n\n**This is a hard-delete.** The row is removed entirely — there is no soft-delete or recovery path. This is intentional for CI environments that create many test cases per day.\n\n**Guards:**\n- Returns 400 if the case is classified as Production. Only Test cases may be deleted via this endpoint.\n- Returns 404 if the case is not found or not owned by the"
+        },
+        {
+          "info": {
+            "name": "Hard-delete all test cases with the given tag.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://collectionpartner-api.debitura.com/test/cases",
+            "params": [
+              {
+                "name": "tag",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Permanently removes all test cases created with the specified tag (and all their child entities) from the database.\n\n**Scoped cleanup:** Each CI pipeline run should create cases with a unique tag (e.g. `suite-run-{uuid}`) and use this endpoint at the end of the run to clean up, without affecting cases from parallel pipeline runs.\n\n**This is a hard-delete.** Rows are removed entirely with no recovery path. This is intentional for CI environments.\n\n**Guards:**\n- Returns 400 if any matched case is "
+        },
+        {
+          "info": {
+            "name": "Replay the most recent webhook event for a test case.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/test/cases/:id/replay-last-event",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "<b>Collection Partner API only</b> — this endpoint is a convenience stopgap that existed\n             before `GET /webhooks/events` was available. It remains here for backward compatibility\n             and because it is a thin wrapper over `POST /webhooks/events/{eventId}/replay`.\n            \n             <b>Design note:</b> This endpoint was added when the Collection Partner API had no\n             delivery-history endpoint (`GET /webhooks/events`), making it impossible to look up\n           "
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "TestWebhooks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Fire a named webhook event type for a test case.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/test/webhooks/fire",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Fires a real current-state webhook event for any registered Collection Partner event type against a test case — even if the case hasn't naturally reached the state that would produce that event.\n\n**Purpose:**\nUnblocks testing webhook handlers for rare or hard-to-reach event types (e.g. `case.closed`, `chat.created`) without having to drive the case through its full lifecycle.\n\n**Payload:**\nThe event carries the real current state of the case — fields are read from the case as it exists now. No p"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Users",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Lists team members belonging to the authenticated collection partner.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/users",
+            "params": [
+              {
+                "name": "Page",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "PageSize",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Returns a paginated list of users belonging to the authenticated collection partner's team.\n\n**Use Case:**\nUse this endpoint to retrieve valid user IDs for the `assignedUserId` field when activating a case via `POST /cases/{id}/start`.\n\n**Pagination:**\n- `page` (default: 1) — Page number, starting from 1\n- `pageSize` (default: 50, max: 100) — Number of results per page\n\n**Response:**\nEach user entry includes:\n- `id` (Guid) — Use this as `assignedUserId` in `POST /cases/{id}/start`\n- `name` — Ful"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "WebhookEvents",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List webhook events dispatched for a case.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/webhooks/events",
+            "params": [
+              {
+                "name": "caseId",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "since",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Returns all webhook events dispatched for the given case, scoped to your webhook subscriptions.\nResults are ordered newest-first.\n\n**Use cases:**\n- Verify that a specific event (e.g. `case.updated`) fired after a state transition.\n- Inspect the exact payload delivered on each attempt.\n- Find the event ID to replay via `POST /webhooks/events/{id}/replay`.\n- Part of the CI-loop ASSERT step: after advancing a test case, query this endpoint to confirm the correct events fired.\n\n**Filtering:**\n- `cas"
+        },
+        {
+          "info": {
+            "name": "Replay a specific webhook event.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/webhooks/events/:id/replay",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Re-enqueues the exact payload from a previously recorded event to its original subscription.\n\nThe event is re-queued as a fresh delivery attempt (attempt 1) using the original payload unchanged.\nDelivery follows the normal retry schedule if the endpoint is unavailable.\n\n**Replay signal:** Replayed deliveries include the header `X-Debitura-Replay: true` so your endpoint can distinguish a replay from a live event and implement idempotency correctly.\n\n**When to use:**\n- Your endpoint was temporaril"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Webhooks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List all webhook subscriptions for the authenticated collection partner.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/webhooks"
+          },
+          "docs": "Returns all webhook subscriptions for the authenticated collection partner. Secrets are never returned in list operations."
+        },
+        {
+          "info": {
+            "name": "Create a new webhook subscription.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://collectionpartner-api.debitura.com/webhooks",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a new webhook subscription for receiving real-time event notifications.\n\n**Available Events (assigned/working-partner role):**\n- `case.assigned` - Case validated by Debitura and assigned to your agency\n- `case.updated` - Case lifecycle changed (e.g., Active → Paused). Does not cover engagement phase\n  changes (Pre-legal/Legal/Enforcement) — poll `GET /cases/{id}` or `GET /cases/{id}/timeline` for\n  the current phase; there is no phase-change event today.\n- `case.closed` - Case closed\n- `"
+        },
+        {
+          "info": {
+            "name": "Get a specific webhook subscription by ID.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://collectionpartner-api.debitura.com/webhooks/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "The unique identifier of the webhook subscription."
+              }
+            ]
+          },
+          "docs": "Returns details of a specific webhook subscription. Secret is never returned in this operation."
+        },
+        {
+          "info": {
+            "name": "Update an existing webhook subscription.",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://collectionpartner-api.debitura.com/webhooks/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "The unique identifier of the webhook subscription to update."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Updates webhook URL, events, or active status. Set RegenerateSecret=true to rotate signing secret (returned in response). Use IsActive=true to re-enable auto-disabled webhooks after fixing delivery issues. Secret only included if RegenerateSecret=true."
+        },
+        {
+          "info": {
+            "name": "Delete a webhook subscription.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://collectionpartner-api.debitura.com/webhooks/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path",
+                "description": "The unique identifier of the webhook subscription to delete."
+              }
+            ]
+          },
+          "docs": "Permanently deletes webhook subscription. Cannot be undone. Consider setting IsActive=false to temporarily disable instead."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

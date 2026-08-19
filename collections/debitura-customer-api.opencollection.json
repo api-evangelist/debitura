@@ -1,0 +1,1181 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Debitura Customer API",
+    "version": "v1"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "XApiKey",
+      "value": "{{XApiKey}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Cases",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List collection cases",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases",
+            "params": [
+              {
+                "name": "Page",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "PageSize",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "DebtorIds",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "Ids",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "Statuses",
+                "value": "",
+                "type": "query",
+                "description": "Filter by case lifecycle status. Valid values: PendingContractSigning, PendingVerificationInternal,\nPendingVerification, NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed, Merged\n(case-insensitive; both name and description forms accepted)."
+              },
+              {
+                "name": "DivisionIds",
+                "value": "",
+                "type": "query",
+                "description": "Optional list of division IDs to filter by"
+              },
+              {
+                "name": "Sort",
+                "value": "",
+                "type": "query",
+                "description": "Optional sorting string \"Field[:asc|desc][,Field2[:asc|desc]]…\".\nValid sort fields: DateCreated, DateUpdated, DateFinished, DateCollectionStarted,\nDueDate, Date, GrossAmount, Remainder, InterestFees, CollectionFees, ReminderFees,\nLifecycle, CloseCode. Examples: 'DateCreated:desc', 'DueDate:asc'. Unknown fields are silently ignored."
+              }
+            ]
+          },
+          "docs": "Returns a paginated list of collection cases for your account.\n\n**Pagination:**\n- page (default: 1) - Page number, starting from 1\n- pageSize (default: 10, max: 100) - Number of results per page\n\n**Filters:**\n- statuses - Filter by case lifecycle status (comma-separated list)\n  Valid values: PendingContractSigning, PendingVerificationInternal, PendingVerification,\n  NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed, Merged\n  (case-insensitive; both name and description forms"
+        },
+        {
+          "info": {
+            "name": "Create collection case",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/cases",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a new collection case for debt collection.\n\n**Test Mode:**\n- Set isTest=true to create a test case (case IS created in the database but marked as test data)\n- Test cases are excluded from production metrics and can be easily filtered or deleted\n- Use test mode for integration testing and development\n\n**Debtor Rules:**\n- debtor.type must be \"Company\" or \"Private\"\n  - Company → debtor.name is mandatory (company name)\n  - Private → debtor.name is mandatory (person's full name)\n\n**Geographic"
+        },
+        {
+          "info": {
+            "name": "Preview case eligibility and requirements",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/cases/preview",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Preview what would happen if you submitted a case, without actually creating it.\n\n**What This Endpoint Returns:**\n- IsEligible - Whether the case can be submitted (partner available)\n- PartnerAssignment - Which collection partner would handle the case\n- RequiredActions - What contracts/documents need to be signed before submission\n  - Standard Debt Collection Agreement (SDCA)\n  - Power of Attorney (PoA) for the assigned partner\n- PricingPreview - Estimated success fee with age-based surcharges\n-"
+        },
+        {
+          "info": {
+            "name": "Fetch case by ID",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns case details for the provided Debitura case ID (a GUID)."
+        },
+        {
+          "info": {
+            "name": "Fetch case by creditor reference",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/by-creditor-reference/:creditorReference",
+            "params": [
+              {
+                "name": "creditorReference",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns case details for the provided creditor reference. The creditor reference is your own unique identifier for the case, as provided when the case was created."
+        },
+        {
+          "info": {
+            "name": "Get contract signing status for a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/contract-status",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns the signing status of the SDCA (Standard Debt Collection Agreement), PoA (Power of Attorney), and Jurisdiction Pricing Appendix for a case.\n\n**Use case:** When a case is stuck in PendingContractSigning, use this endpoint to determine which contract is missing and get the signing URL.\n\n**Response:**\n- sdca: Always present — shows whether the debt collection agreement is signed\n- poa: Present only if a collection partner is assigned — shows whether the power of attorney is signed for that "
+        },
+        {
+          "info": {
+            "name": "Fetch case by reference",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/case-reference/:caseReference",
+            "params": [
+              {
+                "name": "caseReference",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns case details for the provided Debitura case reference (example: Q8OAXF3W)."
+        },
+        {
+          "info": {
+            "name": "Fetch case timeline",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/timeline",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns the full event timeline for the case along with the current engagement phase.\n\n**Response shape:**\n- `items` — chronological list of timeline events\n- `currentEngagementPhase` — current phase of the active engagement: \"Pre-legal\", \"Legal\", or \"Enforcement\". Null when no active engagement exists."
+        },
+        {
+          "info": {
+            "name": "Fetch case chats",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/chats",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns all chat messages attached to the case."
+        },
+        {
+          "info": {
+            "name": "Send a chat message",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/cases/:id/chats",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Posts a new chat message on a case, visible to both you and the collection partner.\n\n**Message Details:**\n- The message is attributed to the team member identified by `userId`\n- The collection partner will receive an email notification about the new message\n- Messages appear in the case chat timeline in chronological order\n\n**Prerequisites:**\n- The case must exist and belong to your account\n- The `userId` must be a valid user ID from `GET /users` belonging to your team\n\n**Use Case:**\nUse this en"
+        },
+        {
+          "info": {
+            "name": "Fetch case payments",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/payments",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns every payment recorded on the case."
+        },
+        {
+          "info": {
+            "name": "Get case files",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/files",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns all files associated with the specified case."
+        },
+        {
+          "info": {
+            "name": "Upload a file to a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/cases/:id/files",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "multipart-form",
+              "data": [
+                {
+                  "name": "Description",
+                  "type": "text",
+                  "value": ""
+                },
+                {
+                  "name": "DocumentType",
+                  "type": "text",
+                  "value": ""
+                },
+                {
+                  "name": "File",
+                  "type": "text",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "docs": "Uploads a file and associates it with a case.\n\nFile requirements:\n- Maximum file size: 25MB\n- Allowed file types: PDF (.pdf), Excel (.xls, .xlsx), CSV (.csv), Text (.TXT), Images (.jpg, .jpeg, .png, .gif)\n\nThe file will be stored securely and associated with the specified case.\n\nDocument types:\n- OriginalInvoice (default) - The original invoice document\n- DebtorDocuments - Documents provided by the debtor\n- CreditorDocuments - Documents provided by the creditor\n- PartnerDocuments - Documents pro"
+        },
+        {
+          "info": {
+            "name": "List quote requests for a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/quote-requests",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns all quote requests for the specified case. Multiple quote requests can exist per case."
+        },
+        {
+          "info": {
+            "name": "Get quote request details",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/quote-requests/:quoteRequestId",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "quoteRequestId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns detailed information for a specific quote request including computed properties."
+        },
+        {
+          "info": {
+            "name": "List quotes for a quote request",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/quote-requests/:quoteRequestId/quotes",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "quoteRequestId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns all partner quotes received for the specified quote request."
+        },
+        {
+          "info": {
+            "name": "Get quote details",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/quote-requests/:quoteRequestId/quotes/:quoteId",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "quoteRequestId",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "quoteId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns complete details for a specific quote including full pricing breakdown."
+        },
+        {
+          "info": {
+            "name": "Get exclusive collection period chain",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/exclusive-period",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns the full exclusive collection period chain for a case, including the initial period and any extensions triggered by debtor actions (promise to pay, payment agreement, or actual payment)."
+        },
+        {
+          "info": {
+            "name": "Get full validation detail for a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/validation",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns the full creditor-facing validation status for a case, including the resolution area and description for each outstanding item.\n\n**When to call:** Check `validation.needsInfo` on `GET /cases/{id}`. If `true`, call this endpoint to retrieve the item-level breakdown of what the creditor must supply.\n\n**Safety:** Only creditor-facing resolution areas are returned. Internal areas (InternalReview, AdminReview) and sensitive fields (Rationale, Confidence) are never exposed."
+        },
+        {
+          "info": {
+            "name": "List tasks for a case",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/cases/:id/tasks",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              },
+              {
+                "name": "status",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "type",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Returns every open task (action-item) attached to this specific case. Same data as GET /tasks, scoped to one case — use this when you're already working a specific case and want just its outstanding tasks.\n\n**Note:** account-level tasks that aren't tied to a single case (e.g. SignContract, AssignBankAccount — these block your whole account, not one case) never appear here; call GET /tasks to see those.\n\n**Filtering:**\n- status (default: Open) — Open or Solved\n- type (repeatable, e.g. ?type=Reply"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Contracts",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get debt collection contract status",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/contracts/debt-collection/status"
+          },
+          "docs": "Returns the status of your standard Debt Collection Agreement with Debitura.\n\n**Response Fields:**\n- signed (boolean) - Whether the agreement has been signed\n- requiresResigning (boolean) - Whether the contract needs to be re-signed\n- invalidationReason (string) - Why re-signing is required (if applicable)\n  Possible values: None, NewVersion, AdminInvalidated, Other, CreditorNameChanged\n- termsUrl (string, nullable) - URL to download the signed agreement PDF (only when signed=true)\n- solutionUrl"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Coverage",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List all jurisdiction coverage",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/coverage"
+          },
+          "docs": "Returns complete coverage information for all jurisdictions where Debitura operates, including power of attorney signing status and solution URLs."
+        },
+        {
+          "info": {
+            "name": "Get jurisdiction coverage by ID",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/coverage/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns a single jurisdiction with its geographic information, assigned collection partner, and power of attorney signing status."
+        },
+        {
+          "info": {
+            "name": "[DEPRECATED] Search for jurisdiction coverage",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/coverage/search",
+            "params": [
+              {
+                "name": "q",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "⚠️ **DEPRECATED:** Use POST /coverage/check-eligibility instead."
+        },
+        {
+          "info": {
+            "name": "[DEPRECATED] Search for jurisdiction coverage",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/coverage/:search",
+            "params": [
+              {
+                "name": "q",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "⚠️ **DEPRECATED:** Use POST /coverage/check-eligibility instead."
+        },
+        {
+          "info": {
+            "name": "Check case eligibility and get assigned partner",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/coverage/check-eligibility",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "**Determine if a case can be submitted and get partner + PoA status.**\n\n**Request Fields:**\n- CountryAlpha2 (required) - Debtor country (e.g., 'DK', 'US', 'DE')\n- StateAlpha2 (conditional) - Required for US debtors (e.g., 'CA', 'NY')\n- DebtorType (required) - 'Company' or 'Private'\n- Amount (required) - Amount to recover\n- CurrencyCode (required) - Currency (e.g., 'USD', 'EUR', 'DKK')\n\n**Response:**\n- IsEligible (boolean) - Whether case can be submitted\n- Partner - Specific partner that will han"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Divisions",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List divisions for the authenticated creditor.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/divisions",
+            "params": [
+              {
+                "name": "page",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "pageSize",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "includeArchived",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Returns a paginated list of divisions for the authenticated creditor.\n\nBy default, archived divisions are excluded. Set `includeArchived=true` to include them."
+        },
+        {
+          "info": {
+            "name": "Create a new division.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/divisions",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a new division for the authenticated creditor.\n\nDivisions allow creditors to organize cases under different business units, branches, or departments.\n\n**Required Fields:**\n- companyName - Name of the division\n- city - City where the division is located\n- countryCode - ISO 3166-1 alpha-2 country code (e.g. 'US', 'DE', 'DK')\n\n**Optional Fields:**\n- registrationNumber - Company registration number (CVR, VAT, etc.)\n- address, zipCode, state - Full address details\n- officeEmail, officePhone -"
+        },
+        {
+          "info": {
+            "name": "Get a single division by ID.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/divisions/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns details of a specific division. The division must belong to the authenticated creditor."
+        },
+        {
+          "info": {
+            "name": "Update a division.",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://customer-api.debitura.com/divisions/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Replaces all fields of a division. All required fields must be provided.\n\n**Required Fields:**\n- companyName - Name of the division\n- city - City where the division is located\n- countryCode - ISO 3166-1 alpha-2 country code (e.g. 'US', 'DE', 'DK')"
+        },
+        {
+          "info": {
+            "name": "Delete a division.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://customer-api.debitura.com/divisions/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Deletes a division.\n\n**Important:** A division cannot be deleted if it is referenced by active cases.\nIf you need to deactivate a division that has cases, use the archive endpoint instead."
+        },
+        {
+          "info": {
+            "name": "Archive a division.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/divisions/:id/archive",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Archives a division, making it inactive. Archived divisions are excluded from list results by default.\n\n**Important:** This action is irreversible. Archived divisions can still be referenced by existing cases."
+        },
+        {
+          "info": {
+            "name": "Archive a division.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/divisions/:id:archive",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Archives a division, making it inactive. Archived divisions are excluded from list results by default.\n\n**Important:** This action is irreversible. Archived divisions can still be referenced by existing cases."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Me",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Verifies the provided authentication and returns the current Creditor profile",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/me"
+          },
+          "docs": "Returns your creditor profile when a valid `XApiKey` header or `Authorization: Bearer` token is provided."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Payments",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List payments",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/Payments",
+            "params": [
+              {
+                "name": "Page",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "PageSize",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Returns a paginated list of all payments recorded on your account across all cases.\n\n**Pagination:**\n- Page (default: 1) - Page number, starting from 1\n- PageSize (default: 10, max: 100) - Number of results per page\n\n**Response:**\n- Returns PaymentListApiDTO with page metadata and payments array\n- Each payment includes case reference, amount, currency, date, payment type, and status\n- Page metadata includes: totalResults, currentPage, skipped, pageSize\n\n**Note:** This endpoint returns ALL paymen"
+        },
+        {
+          "info": {
+            "name": "Fetch payment by ID",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/Payments/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns payment details for the supplied payment ID."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Tasks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List your open tasks",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/tasks",
+            "params": [
+              {
+                "name": "status",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "type",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "Page",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "PageSize",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Returns a paginated, account-wide list of every task (action-item) your account currently has — across ALL cases, not just one. Use GET /cases/{id}/tasks instead to scope this to a single case.\n\n**What is a task?**\nA task is something the platform needs YOU to do before a case can proceed — e.g. reply to a chat message, sign a contract, or assign a bank account for payouts. Tasks auto-resolve when the underlying condition clears (for example, once you reply to the case's chat, the ReplyToChat ta"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "TestCases",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Advance a test case to a known lifecycle state.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/test/cases/:id/advance",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Drives a test case to a well-known lifecycle state in a single call.\n\n**Purpose:**\nEnables CI pipelines and integrators to exercise the full collection lifecycle — including real webhooks and events — without manual intervention.\n\n**Target States:**\n- `Active` — Activates the case from PendingVerification or PendingVerificationInternal. No-op if already Active or Closed.\n- `Closed:Paid` — Records a payment for `amount` and closes the case as Paid. Activates the case first if needed. `amount` is "
+        },
+        {
+          "info": {
+            "name": "Hard-delete a single test case by ID.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://customer-api.debitura.com/test/cases/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Permanently removes a test case and all its child entities (payments, chats, files, timeline entries, webhook delivery records) from the database.\n\n**This is a hard-delete.** The row is removed entirely — there is no soft-delete or recovery path. This is intentional for CI environments that create many test cases per day.\n\n**Guards:**\n- Returns 400 if the case is classified as Production. Only Test cases may be deleted via this endpoint.\n- Returns 404 if the case is not found or not owned by the"
+        },
+        {
+          "info": {
+            "name": "Hard-delete all test cases with the given tag.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://customer-api.debitura.com/test/cases",
+            "params": [
+              {
+                "name": "tag",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Permanently removes all test cases created with the specified tag (and all their child entities) from the database.\n\n**Scoped cleanup:** Each CI pipeline run should create cases with a unique tag (e.g. `suite-run-{uuid}`) and use this endpoint at the end of the run to clean up, without affecting cases from parallel pipeline runs.\n\n**This is a hard-delete.** Rows are removed entirely with no recovery path. This is intentional for CI environments.\n\n**Guards:**\n- Returns 400 if any matched case is "
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "TestWebhooks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Fire a named webhook event type for a test case.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/test/webhooks/fire",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Fires a real current-state webhook event for any registered Customer API event type against a test case — even if the case hasn't naturally reached the state that would produce that event.\n\n**Purpose:**\nUnblocks testing webhook handlers for rare or hard-to-reach event types (e.g. `case.closed`, `chat.created`) without having to drive the case through its full lifecycle.\n\n**Payload:**\nThe event carries the real current state of the case — fields are read from the case as it exists now. No payload"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Users",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Lists team members belonging to the authenticated creditor.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/users",
+            "params": [
+              {
+                "name": "Page",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "PageSize",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Returns a paginated list of users belonging to the authenticated creditor's team.\n\n**Use Case:**\nUse this endpoint to retrieve valid user IDs for the `userId` field when sending a chat message via `POST /cases/{id}/chats`.\n\n**Pagination:**\n- `page` (default: 1) — Page number, starting from 1\n- `pageSize` (default: 50, max: 100) — Number of results per page\n\n**Response:**\nEach user entry includes:\n- `id` (Guid) — Use this as `userId` in `POST /cases/{id}/chats`\n- `name` — Full name of the team me"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "WebhookEvents",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List webhook events dispatched for a case.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/webhooks/events",
+            "params": [
+              {
+                "name": "caseId",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "since",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Returns all webhook events dispatched for the given case, scoped to your webhook subscriptions.\nResults are ordered newest-first.\n\n**Use cases:**\n- Verify that a specific event (e.g. `case.updated`) fired after a state transition.\n- Inspect the exact payload delivered on each attempt.\n- Find the event ID to replay via `POST /webhooks/events/{id}/replay`.\n\n**Filtering:**\n- `caseId` (required): restricts to events for this case.\n- `since` (optional): only returns events created at or after this IS"
+        },
+        {
+          "info": {
+            "name": "Replay a specific webhook event.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/webhooks/events/:id/replay",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Re-enqueues the exact payload from a previously recorded event to its original subscription.\n\nThe event is re-queued as a fresh delivery attempt (attempt 1) using the original payload unchanged.\nDelivery follows the normal retry schedule if the endpoint is unavailable.\n\n**Replay signal:** Replayed deliveries include the header `X-Debitura-Replay: true` so your endpoint can distinguish a replay from a live event and implement idempotency correctly.\n\n**When to use:**\n- Your endpoint was temporaril"
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Webhooks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List all webhook subscriptions for the authenticated creditor.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/webhooks"
+          },
+          "docs": "Returns all webhook subscriptions for the authenticated creditor. Secrets are never returned in list operations."
+        },
+        {
+          "info": {
+            "name": "Create a new webhook subscription.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/webhooks",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a new webhook subscription for receiving real-time event notifications.\n\n**Available Events:**\n- `case.created` - New collection case created\n- `case.updated` - Case lifecycle changed (e.g., Active → Paused). Does not cover engagement phase\n  changes (Pre-legal/Legal/Enforcement) — poll `GET /cases/{id}` or `GET /cases/{id}/timeline` for\n  the current phase; there is no phase-change event today.\n- `case.closed` - Case closed\n- `payment.created` - Payment registered on case\n- `payment.del"
+        },
+        {
+          "info": {
+            "name": "Get a single webhook subscription by ID.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://customer-api.debitura.com/webhooks/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Returns details of a specific webhook subscription. Secret is never returned in this operation."
+        },
+        {
+          "info": {
+            "name": "Update an existing webhook subscription.",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://customer-api.debitura.com/webhooks/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Partially updates an existing webhook subscription using HTTP PATCH.\n\nSupported Updates:\n- Change the webhook URL\n- Enable or disable the subscription\n- Regenerate the secret key\n\nNote: Event types cannot be changed after creation. To update event types, delete and recreate the subscription."
+        },
+        {
+          "info": {
+            "name": "Delete a webhook subscription.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://customer-api.debitura.com/webhooks/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Deletes a webhook subscription. This operation is permanent."
+        },
+        {
+          "info": {
+            "name": "Send a test event to the webhook endpoint.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/webhooks/:id/test",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Sends a synthetic case.created test event to the webhook endpoint.\n\nThis is useful for:\n- Verifying the webhook URL is reachable\n- Testing your webhook endpoint implementation\n- Validating signature verification\n\nThe test payload will be a realistic case.created event with synthetic data."
+        },
+        {
+          "info": {
+            "name": "Send a test event to the webhook endpoint.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/webhooks/:id:test",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Sends a synthetic case.created test event to the webhook endpoint.\n\nThis is useful for:\n- Verifying the webhook URL is reachable\n- Testing your webhook endpoint implementation\n- Validating signature verification\n\nThe test payload will be a realistic case.created event with synthetic data."
+        },
+        {
+          "info": {
+            "name": "[Deprecated] This endpoint is misnamed and does not actually replay events.\nUse `GET /webhooks/events?caseId={id}` to inspect delivery history,\nthen `POST /webhooks/events/{eventId}/replay` to re-deliver a specific event.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/webhooks/:id/replay",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "This endpoint was never fully implemented — it counts cases created\nsince `sinceUtc` and returns the count as `eventsReplayed`, but does not\nre-enqueue or redeliver any events. The name \"replay\" collides with the real\n`POST /webhooks/events/{eventId}/replay` endpoint which actually re-delivers.\n            \nThis endpoint is kept for backward compatibility (additive-only rule) but is deprecated.\nIntegrators should migrate to the event-log + replay-by-id pattern described above."
+        },
+        {
+          "info": {
+            "name": "[Deprecated] This endpoint is misnamed and does not actually replay events.\nUse `GET /webhooks/events?caseId={id}` to inspect delivery history,\nthen `POST /webhooks/events/{eventId}/replay` to re-deliver a specific event.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://customer-api.debitura.com/webhooks/:id:replay",
+            "params": [
+              {
+                "name": "id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "This endpoint was never fully implemented — it counts cases created\nsince `sinceUtc` and returns the count as `eventsReplayed`, but does not\nre-enqueue or redeliver any events. The name \"replay\" collides with the real\n`POST /webhooks/events/{eventId}/replay` endpoint which actually re-delivers.\n            \nThis endpoint is kept for backward compatibility (additive-only rule) but is deprecated.\nIntegrators should migrate to the event-log + replay-by-id pattern described above."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}
