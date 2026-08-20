@@ -18,6 +18,14 @@ tags:
   - Debt Collection
   - Accounts Receivable
   - Debt Recovery
+  - Fintech
+  - Payments
+  - Invoicing
+  - Webhook
+tags_raw:
+  - Debt Collection
+  - Accounts Receivable
+  - Debt Recovery
   - FinTech
   - Payments
   - Invoicing
@@ -32,6 +40,12 @@ apis:
     humanURL: https://docs.debitura.com/clients
     baseURL: https://customer-api.debitura.com
     tags:
+      - Debt Collection
+      - Accounts Receivable
+      - Invoicing
+      - Payments
+      - Webhook
+    tags_raw:
       - Debt Collection
       - Accounts Receivable
       - Invoicing
@@ -57,6 +71,11 @@ apis:
     tags:
       - Debt Collection
       - Debt Recovery
+      - Fintech
+      - Webhook
+    tags_raw:
+      - Debt Collection
+      - Debt Recovery
       - FinTech
       - Webhooks
     properties:
@@ -74,6 +93,10 @@ apis:
     humanURL: https://docs.debitura.com/collection-partners
     baseURL: https://collectionpartner-api.debitura.com
     tags:
+      - Debt Collection
+      - Debt Recovery
+      - Webhook
+    tags_raw:
       - Debt Collection
       - Debt Recovery
       - Webhooks
