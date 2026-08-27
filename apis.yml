@@ -31,82 +31,371 @@ tags_raw:
   - Invoicing
   - Webhooks
 apis:
-  - name: Debitura Customer API
-    description: >-
-      For creditors. Uploading B2B and B2C invoices to collection, then tracking cases, contracts,
-      payments and tasks through recovery. 53 operations across 44 paths, OpenAPI 3.0.4 with 81
-      component schemas. Authenticates with an API key in the XApiKey header or a bearer token.
-      Carries webhooks with a paired test-webhook and test-case surface.
-    humanURL: https://docs.debitura.com/clients
-    baseURL: https://customer-api.debitura.com
-    tags:
-      - Debt Collection
-      - Accounts Receivable
-      - Invoicing
-      - Payments
-      - Webhook
-    tags_raw:
-      - Debt Collection
-      - Accounts Receivable
-      - Invoicing
-      - Payments
-      - Webhooks
-    properties:
-      - type: OpenAPI
-        url: openapi/debitura-customer-api.json
-      - type: OpenAPI
-        url: https://docs.debitura.com/openapi/customer-api.json
-      - type: Documentation
-        url: https://docs.debitura.com/clients
-      - type: SignUp
-        url: https://app.debitura.com/CreditorApiKey
-  - name: Debitura Referral Partner API
-    description: >-
-      For platforms embedding collection as a referral. Setting up clients, previewing cases,
-      tracking revenue share, and minting bearer tokens through OAuth operations. 22 operations
-      across 17 paths, OpenAPI 3.0.4 with 81 component schemas. Authenticates with an API key in
-      the XApiKey header.
-    humanURL: https://docs.debitura.com/referral-partners
-    baseURL: https://referral-api.debitura.com
-    tags:
-      - Debt Collection
-      - Debt Recovery
-      - Fintech
-      - Webhook
-    tags_raw:
-      - Debt Collection
-      - Debt Recovery
-      - FinTech
-      - Webhooks
-    properties:
-      - type: OpenAPI
-        url: openapi/debitura-referral-partner-api.json
-      - type: OpenAPI
-        url: https://docs.debitura.com/openapi/referral-partner-api.json
-      - type: Documentation
-        url: https://docs.debitura.com/referral-partners
-  - name: Debitura Collection Partner API
-    description: >-
-      For collection agencies operating cases on the platform. Managed cases, bulk ingestion jobs,
-      and the user and webhook surface behind them. 48 operations across 38 paths, OpenAPI 3.0.4
-      with 68 component schemas. Authenticates with an API key in the XApiKey header.
-    humanURL: https://docs.debitura.com/collection-partners
-    baseURL: https://collectionpartner-api.debitura.com
-    tags:
-      - Debt Collection
-      - Debt Recovery
-      - Webhook
-    tags_raw:
-      - Debt Collection
-      - Debt Recovery
-      - Webhooks
-    properties:
-      - type: OpenAPI
-        url: openapi/debitura-collection-partner-api.json
-      - type: OpenAPI
-        url: https://docs.debitura.com/openapi/collection-partner-api.json
-      - type: Documentation
-        url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-cases-api
+  name: Debitura Cases API
+  description: Cases
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Cases
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-cases-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-clients-api
+  name: Debitura Clients API
+  description: Clients
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Clients
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-clients-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-contracts-api
+  name: Debitura Contracts API
+  description: Debt-collection contract status and signing URLs for your account.
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Contracts
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-contracts-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-coverage-api
+  name: Debitura Coverage API
+  description: >-
+    Jurisdiction coverage — query which countries and debt types Debitura can collect in, and check case
+    eligibility.
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Coverage
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-coverage-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-divisions-api
+  name: Debitura Divisions API
+  description: Divisions
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Divisions
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-divisions-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-filteroptions-api
+  name: Debitura Filter Options API
+  description: Referral Partners
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - FilterOptions
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-filteroptions-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-ingestionjobs-api
+  name: Debitura Ingestion Jobs API
+  description: IngestionJobs
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - IngestionJobs
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-ingestionjobs-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-managedcases-api
+  name: Debitura Managed Cases API
+  description: Managed Cases
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - ManagedCases
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-managedcases-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-me-api
+  name: Debitura Me API
+  description: Collection Partner Profile
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Me
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-me-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-oauth-api
+  name: Debitura O Auth API
+  description: The OAuth API from Debitura — 1 operation(s) for oauth.
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - OAuth
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-oauth-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-payments-api
+  name: Debitura Payments API
+  description: Payments
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Payments
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-payments-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-previewcases-api
+  name: Debitura Preview Cases API
+  description: Cases
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - PreviewCases
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-previewcases-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-referralpartners-api
+  name: Debitura Referral Partners API
+  description: Referral Partners
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - ReferralPartners
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-referralpartners-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-reporting-api
+  name: Debitura Reporting API
+  description: Reporting
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Reporting
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-reporting-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-tasks-api
+  name: Debitura Tasks API
+  description: Tasks
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Tasks
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-tasks-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-testcases-api
+  name: Debitura Test Cases API
+  description: Test Cases
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - TestCases
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-testcases-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-testwebhooks-api
+  name: Debitura Test Webhooks API
+  description: Test Webhooks
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - TestWebhooks
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-testwebhooks-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-users-api
+  name: Debitura Users API
+  description: Users
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Users
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-users-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-webhookevents-api
+  name: Debitura Webhook Events API
+  description: Webhooks
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - WebhookEvents
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-webhookevents-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
+- aid: debitura:debitura-webhooks-api
+  name: Debitura Webhooks API
+  description: >-
+    Manage webhook subscriptions and inspect the delivery event log. Create subscriptions to receive real-time
+    notifications for case lifecycle events, payments, and chats. Use GET /webhooks/events to verify deliveries
+    and POST /webhooks/events/{id}/replay to re-deliver a specific event.
+  humanURL: https://docs.debitura.com/clients
+  baseURL: https://customer-api.debitura.com
+  tags:
+  - Webhooks
+  properties:
+  - type: OpenAPI
+    url: openapi/debitura-webhooks-api-openapi.yml
+  - type: Documentation
+    url: https://docs.debitura.com/clients
+  - type: SignUp
+    url: https://app.debitura.com/CreditorApiKey
+  - type: Documentation
+    url: https://docs.debitura.com/referral-partners
+  - type: Documentation
+    url: https://docs.debitura.com/collection-partners
 properties:
   - type: Documentation
     url: https://docs.debitura.com
