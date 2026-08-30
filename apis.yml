@@ -213,6 +213,8 @@ apis:
   humanURL: https://docs.debitura.com/clients
   baseURL: https://customer-api.debitura.com
   tags:
+  - Authentication
+  tags_raw:
   - OAuth
   properties:
   - type: OpenAPI
@@ -303,6 +305,8 @@ apis:
   humanURL: https://docs.debitura.com/clients
   baseURL: https://customer-api.debitura.com
   tags:
+  - Task
+  tags_raw:
   - Tasks
   properties:
   - type: OpenAPI
@@ -321,6 +325,8 @@ apis:
   humanURL: https://docs.debitura.com/clients
   baseURL: https://customer-api.debitura.com
   tags:
+  - Test Cases
+  tags_raw:
   - TestCases
   properties:
   - type: OpenAPI
@@ -357,6 +363,8 @@ apis:
   humanURL: https://docs.debitura.com/clients
   baseURL: https://customer-api.debitura.com
   tags:
+  - User
+  tags_raw:
   - Users
   properties:
   - type: OpenAPI
@@ -375,6 +383,8 @@ apis:
   humanURL: https://docs.debitura.com/clients
   baseURL: https://customer-api.debitura.com
   tags:
+  - Webhook Events
+  tags_raw:
   - WebhookEvents
   properties:
   - type: OpenAPI
@@ -396,6 +406,8 @@ apis:
   humanURL: https://docs.debitura.com/clients
   baseURL: https://customer-api.debitura.com
   tags:
+  - Webhook
+  tags_raw:
   - Webhooks
   properties:
   - type: OpenAPI
