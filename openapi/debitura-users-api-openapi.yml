@@ -1,0 +1,249 @@
+openapi: 3.2.0
+info:
+  title: Debitura Users API
+  version: v1
+  description: 'Operations tagged Users across 2 of this provider''s published API definitions: debitura-collection-partner-api.json, debitura-customer-api.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://collectionpartner-api.debitura.com
+  description: Production
+- url: https://customer-api.debitura.com
+  description: Production
+tags:
+- name: Users
+  description: Users
+paths:
+  /users:
+    get:
+      tags:
+      - Users
+      summary: Lists team members belonging to the authenticated collection partner.
+      description: 'Returns a paginated list of users belonging to the authenticated collection partner''s team.
+
+
+        **Use Case:**
+
+        Use this endpoint to retrieve valid user IDs for the `assignedUserId` field when activating a case via `POST /cases/{id}/start`.
+
+
+        **Pagination:**
+
+        - `page` (default: 1) — Page number, starting from 1
+
+        - `pageSize` (default: 50, max: 100) — Number of results per page
+
+
+        **Response:**
+
+        Each user entry includes:
+
+        - `id` (Guid) — Use this as `assignedUserId` in `POST /cases/{id}/start`
+
+        - `name` — Full name of the team member
+
+        - `email` — Email address of the team member'
+      parameters:
+      - name: Page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: PageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: Paginated list of team members returned
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Users.UserListDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Users.UserListDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Users.UserListDto'
+        '400':
+          description: Invalid pagination parameters
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '401':
+          description: Missing or invalid API key
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://collectionpartner-api.debitura.com
+      description: Production
+components:
+  schemas:
+    Debitura.Web.ExternalApi.Contracts.V1.Users.UserListDto:
+      required:
+      - page
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
+        users:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Users.CollectionPartnerUserDto'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Users.CollectionPartnerUserDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The user's unique ID. Use this as `assignedUserId` in POST /cases/{id}/start.
+          format: uuid
+        name:
+          type:
+          - string
+          - 'null'
+          description: The user's full name.
+        email:
+          type:
+          - string
+          - 'null'
+          description: The user's email address.
+      additionalProperties: false
+      description: 'A user belonging to the authenticated collection partner''s team.
+
+        Use the Debitura.Web.ExternalApi.Contracts.V1.Users.CollectionPartnerUserDto.Id as the `assignedUserId` when starting a case via POST /cases/{id}/start.'
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Domain.Model.Base.PageData:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        currentPage:
+          type: integer
+          format: int32
+        responseCount:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int32
+          readOnly: true
+      additionalProperties: false
+    Microsoft.AspNetCore.Mvc.ProblemDetails:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+        title:
+          type:
+          - string
+          - 'null'
+        status:
+          type:
+          - integer
+          - 'null'
+          format: int32
+        detail:
+          type:
+          - string
+          - 'null'
+        instance:
+          type:
+          - string
+          - 'null'
+      additionalProperties: {}
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Collection Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+    Bearer:
+      type: http
+      description: This is for referral partners, who are sending in clients to the platform. They get the bearer token from the referral partner Api and can be inserted here.
+      scheme: bearer
+      bearerFormat: JWT
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com
+x-refined-from:
+- debitura-collection-partner-api.json
+- debitura-customer-api.json

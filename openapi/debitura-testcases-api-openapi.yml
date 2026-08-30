@@ -1,0 +1,377 @@
+openapi: 3.2.0
+info:
+  title: Debitura Test Cases API
+  version: v1
+  description: 'Operations tagged TestCases across 2 of this provider''s published API definitions: debitura-collection-partner-api.json, debitura-customer-api.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://collectionpartner-api.debitura.com
+  description: Production
+- url: https://customer-api.debitura.com
+  description: Production
+tags:
+- name: TestCases
+  description: Test Cases
+paths:
+  /test/cases/{id}/advance:
+    post:
+      tags:
+      - TestCases
+      summary: Advance a test case to a known lifecycle state.
+      description: "Drives a test case to a well-known lifecycle state in a single call.\n\n**Purpose:**\nEnables CI pipelines and integrators to exercise the full collection lifecycle — including real webhooks and events — without manual intervention.\n\n**Target States:**\n- `Active` — Activates the case from PendingVerification or PendingVerificationInternal. No-op if already Active or Closed.\n- `Closed:Paid` — Records a payment for `amount` and closes the case as Paid. Activates the case first if needed. `amount` is required.\n- `Closed:NoPayment` — Closes the case with PreLegalExhaustedNoPayment. Activates the case first if needed.\n\n**Guards:**\n- Returns 400 if the case is not a test case (Classification != Test).\n- Returns 400 if `amount` is missing when `to` is `Closed:Paid`.\n- Returns 400 if `to` is not one of the valid values.\n- Returns 400 if the case is already closed with a different close code (e.g. already Closed:NoPayment when requesting Closed:Paid).\n- Returns 404 if the case is not found or not owned by the calling partner.\n\n**No-op behaviour:**\nIf the case is already at the requested state, the call returns 200 with `advanced: false` and the current state — no changes are made.\n\n**Webhooks:**\nTransitions use the real internal service pipeline. Webhook delivery per target:\n\n- `→ Active`: fires `case.updated` to Creditor, ReferralPartner, and **Collection Partner** subscriptions.\n- `→ Closed:Paid`: fires `payment.created` to Creditor and **Collection Partner**; fires `case.updated` and `case.closed` to Creditor, ReferralPartner, and **Collection Partner** subscriptions.\n- `→ Closed:NoPayment`: fires `case.updated` and `case.closed` to Creditor, ReferralPartner, and **Collection Partner** subscriptions.\n\n**Note:** `case.closed` is delivered to Collection Partner subscriptions on both close paths.\n\nAll events carry `classification: test` and are only delivered to webhook subscriptions registered with `classification: test`.\n\n**How to Test:**\n\n1. **Create a test case** — `POST /managed-cases` with `isTest: true` (optionally a `tag` for scoped cleanup). Note the returned `id`.\n\n2. **Register a test webhook subscription** — subscribe to the events you want to assert on (`case.updated`, `payment.created`, `case.closed`) with `classification: test` and point the URL to your test receiver (e.g. a local ngrok tunnel or a CI webhook sink).\n\n3. **Advance to Active** — `POST /test/cases/{id}/advance` with `{ \"to\": \"Active\" }`. Expect `{ advanced: true, state: \"Active\" }` and a `case.updated` event on your Collection Partner subscription.\n\n4. **Advance to Closed:Paid** — `POST /test/cases/{id}/advance` with `{ \"to\": \"Closed:Paid\", \"amount\": 1000.00 }`. Expect `{ advanced: true, state: \"Closed:Paid\" }` and a `payment.created` event on your Collection Partner subscription.\n   - Alternatively: advance straight from any pre-active state — the endpoint activates the case first automatically.\n\n5. **Verify final state** — `GET /cases/{id}` and assert `lifecycle: Closed` and `closeCode: Paid`.\n\n6. **Test no-op** — Call the same advance again. Expect `{ advanced: false, state: \"Closed:Paid\" }` and no new webhook events.\n\n7. **Test mismatch error** — With the case closed as Paid, call `{ \"to\": \"Closed:NoPayment\" }`. Expect 400 with a message describing the conflict.\n\n8. **Test Closed:NoPayment path** — Create a fresh test case, call `{ \"to\": \"Closed:NoPayment\" }` directly (no amount needed). Expect `case.updated` and `case.closed` on your Collection Partner subscription.\n\n9. **Reset between runs** — Delete the test case via `DELETE /test/cases/{id}` (or `DELETE /test/cases?tag={tag}` to clear a whole tag) or create a new one per test run to keep assertions clean."
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.AdvanceTestCaseRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.AdvanceTestCaseRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.AdvanceTestCaseRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.AdvanceTestCaseRequest'
+      responses:
+        '200':
+          description: Advance result (advanced=true if state changed, advanced=false if already there)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.AdvanceTestCaseResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.AdvanceTestCaseResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.AdvanceTestCaseResponse'
+        '400':
+          description: Validation error — non-test case, missing amount, or unknown target state
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case not found or not owned by this collection partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://collectionpartner-api.debitura.com
+      description: Production
+  /test/cases/{id}:
+    delete:
+      tags:
+      - TestCases
+      summary: Hard-delete a single test case by ID.
+      description: 'Permanently removes a test case and all its child entities (payments, chats, files, timeline entries, webhook delivery records) from the database.
+
+
+        **This is a hard-delete.** The row is removed entirely — there is no soft-delete or recovery path. This is intentional for CI environments that create many test cases per day.
+
+
+        **Guards:**
+
+        - Returns 400 if the case is classified as Production. Only Test cases may be deleted via this endpoint.
+
+        - Returns 404 if the case is not found or not owned by the calling partner.
+
+
+        **Idempotent:** Returns 204 even if the case is already deleted (no-op).'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Case deleted (or already absent — idempotent)
+        '400':
+          description: Case is a Production case — deletion rejected
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case not found or not owned by this collection partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://collectionpartner-api.debitura.com
+      description: Production
+  /test/cases:
+    delete:
+      tags:
+      - TestCases
+      summary: Hard-delete all test cases with the given tag.
+      description: 'Permanently removes all test cases created with the specified tag (and all their child entities) from the database.
+
+
+        **Scoped cleanup:** Each CI pipeline run should create cases with a unique tag (e.g. `suite-run-{uuid}`) and use this endpoint at the end of the run to clean up, without affecting cases from parallel pipeline runs.
+
+
+        **This is a hard-delete.** Rows are removed entirely with no recovery path. This is intentional for CI environments.
+
+
+        **Guards:**
+
+        - Returns 400 if any matched case is classified as Production. The entire operation is rejected and nothing is deleted.
+
+        - Returns 400 if the tag query parameter is missing or blank.
+
+
+        **Idempotent:** Returns 204 even if no cases match the tag — no error is raised.'
+      parameters:
+      - name: tag
+        in: query
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Cases deleted (or none matched — idempotent, no response body)
+        '400':
+          description: Tag is missing/blank, or matched cases include a Production case
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://collectionpartner-api.debitura.com
+      description: Production
+  /test/cases/{id}/replay-last-event:
+    post:
+      tags:
+      - TestCases
+      summary: Replay the most recent webhook event for a test case.
+      description: "<b>Collection Partner API only</b> — this endpoint is a convenience stopgap that existed\n             before `GET /webhooks/events` was available. It remains here for backward compatibility\n             and because it is a thin wrapper over `POST /webhooks/events/{eventId}/replay`.\n            \n             <b>Design note:</b> This endpoint was added when the Collection Partner API had no\n             delivery-history endpoint (`GET /webhooks/events`), making it impossible to look up\n             event IDs for replay. It is a stopgap: \"give me the last event without having to know its ID.\"\n             Now that `GET /webhooks/events` exists, integrators can use the full\n             history + replay-by-id pattern instead. This endpoint is intentionally <b>not</b> ported\n             to the Customer API — the stopgap only exists because it was needed before history existed."
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Event re-enqueued for delivery
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ReplayLastEventResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ReplayLastEventResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ReplayLastEventResponse'
+        '400':
+          description: Validation error — non-test case or not owned by this partner
+        '404':
+          description: Case not found, or no webhook events recorded yet for this case
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://collectionpartner-api.debitura.com
+      description: Production
+components:
+  schemas:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.ReplayLastEventResponse:
+      type: object
+      properties:
+        eventId:
+          type: string
+          description: The ID of the webhook event that was re-enqueued.
+          format: uuid
+        subscriptionId:
+          type: string
+          description: The subscription the event was re-enqueued to.
+          format: uuid
+        eventType:
+          type:
+          - string
+          - 'null'
+          description: The event type that was replayed (e.g. "case.updated").
+      additionalProperties: false
+      description: Result of the `POST /test/cases/{id}/replay-last-event` convenience endpoint.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.AdvanceTestCaseRequest:
+      required:
+      - to
+      type: object
+      properties:
+        to:
+          type:
+          - string
+          - 'null'
+          description: 'The target state to advance the case to.
+
+            Valid values: "Active", "Closed:Paid", "Closed:NoPayment"'
+          example: Active
+        amount:
+          type:
+          - number
+          - 'null'
+          description: 'Payment amount (required when To is "Closed:Paid").
+
+            Must be a positive value in the case currency.'
+          format: double
+          example: 1500.0
+      additionalProperties: false
+      description: Request to advance a test case to a known lifecycle state.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.AdvanceTestCaseResponse:
+      type: object
+      properties:
+        advanced:
+          type: boolean
+          description: True if the case was advanced in this call; false if it was already at or past the target state (no-op).
+        state:
+          type:
+          - string
+          - 'null'
+          description: 'The current state of the case after this call.
+
+            One of: "Active", "Closed:Paid", "Closed:NoPayment", "Closed" (for other close codes).'
+      additionalProperties: false
+      description: Response from POST /test/cases/{id}/advance.
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Collection Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+    Bearer:
+      type: http
+      description: This is for referral partners, who are sending in clients to the platform. They get the bearer token from the referral partner Api and can be inserted here.
+      scheme: bearer
+      bearerFormat: JWT
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com
+x-refined-from:
+- debitura-collection-partner-api.json
+- debitura-customer-api.json

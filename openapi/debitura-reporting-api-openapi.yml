@@ -1,0 +1,653 @@
+openapi: 3.2.0
+info:
+  title: Debitura Referral Partner Reporting API
+  description: 'Welcome to the Debitura Referral API. This API allows you to set up new clients and track your revenue share with Debitura. You can also generate bearer tokens for use in the Customer API to create cases, check case status, and access all other endpoints. To get access to this API, please contact us at contact@debitura.com.
+
+
+    📖 Full documentation, guides, and integration walkthroughs: https://docs.debitura.com/referral-partners'
+  contact:
+    name: Debitura Support
+    url: https://www.debitura.com/integration
+    email: contact@debitura.com
+  version: v1
+servers:
+- url: https://referral-api.debitura.com
+  description: Production
+security:
+- ApiKey: []
+tags:
+- name: Reporting
+  description: Reporting
+paths:
+  /reporting/transactions:
+    get:
+      tags:
+      - Reporting
+      summary: Get transaction-level revenue data
+      description: 'Retrieves comprehensive transaction-level financial data for all clients linked to the authenticated referral partner.
+
+
+        **IMPORTANT: All amounts are returned in USD regardless of the original collection currency.**
+
+
+        Revenue Recognition Stages
+
+        The response includes a 4-stage revenue breakdown for each transaction, representing the complete lifecycle from collection to payment:
+
+
+        1. **Unrecognized Revenue** - Collections that have occurred but revenue is not yet recognized (typically due to pending verifications or disputes)
+
+        2. **Uninvoiced Recognized Revenue** - Revenue that has been recognized as earned but not yet invoiced to the partner
+
+        3. **Invoiced Revenue** - Revenue that has been invoiced to the partner but not yet paid
+
+        4. **Paid Revenue** - Revenue that has been paid to the partner
+
+
+        Exchange Rate Rules (Critical for Revenue Calculations)
+
+        - **Stage 1 (Unrecognized)** - Amounts fluctuate with current exchange rates (recalculated in real-time)
+
+        - **Stages 2-4 (Recognized/Invoiced/Paid)** - Amounts are LOCKED at the exchange rate from the moment revenue was recognized (Stage 1 → Stage 2 transition)
+
+        - This locking prevents exchange rate volatility from affecting recognized revenue, invoices, and payments
+
+        - The locked exchange rate is used for all downstream stages (Stages 2, 3, and 4)
+
+
+        Monthly Invoicing Workflow
+
+        Revenue progresses through stages on a monthly cycle:
+
+        - Collections occur throughout the month (Stage 1)
+
+        - At month-end, unrecognized revenue is reviewed and recognized (Stage 1 → Stage 2, exchange rate locked)
+
+        - Recognized revenue is invoiced to the partner (Stage 2 → Stage 3)
+
+        - Partner pays the invoice (Stage 3 → Stage 4)
+
+        - Use this endpoint to track revenue status before and after monthly invoicing
+
+
+        Transaction Data
+
+        Each transaction includes:
+
+        - Client identification (External Tenant ID, Client ID, Company Name)
+
+        - Case/Invoice details (Case ID, Debitura Reference, Creditor Reference)
+
+        - Debtor information (Name, Country)
+
+        - Financial amounts (Gross Amount in original currency, all revenue stages in USD, Collection Date)
+
+        - Revenue breakdown across all 4 stages (in USD)
+
+        - Referral fee percentage applied to this transaction
+
+
+        Filtering and Pagination
+
+        - **DateFrom/DateTo** - Filter transactions by collection date range (ISO 8601 format)
+
+        - **ExternalTenantId** - Filter to specific client(s)
+
+        - **Page/PageSize** - Paginate results (default: page 1, size 10, max: 100)
+
+
+        Sorting
+
+        - **Sort** - Sort field and direction (format: ''field:direction'')
+
+        - Supported fields: collectionDate, amount
+
+        - Examples: ''collectionDate:desc'', ''amount:asc''
+
+        - Default: collectionDate:desc (most recent first)
+
+
+        Use Cases
+
+        - Generate partner commission reports (all amounts in USD)
+
+        - Track revenue recognition status and exchange rate impact
+
+        - Reconcile monthly invoices and payments
+
+        - Analyze per-client performance
+
+        - Export financial data for accounting systems
+
+        - Monitor outstanding receivables
+
+        - Understand exchange rate fluctuations on Stage 1 (unrecognized) revenue
+
+
+        The data returned represents real collection activity and actual revenue earned from cases created through the referral partnership.'
+      parameters:
+      - name: FromDate
+        in: query
+        description: Filter transactions from this date (inclusive). ISO 8601 format.
+        schema:
+          type: string
+          format: date-time
+      - name: ToDate
+        in: query
+        description: Filter transactions to this date (inclusive). ISO 8601 format.
+        schema:
+          type: string
+          format: date-time
+      - name: ExternalTenantId
+        in: query
+        description: Filter by specific client's external tenant ID
+        schema:
+          type: string
+      - name: HasRecognizedRevenue
+        in: query
+        description: 'When true, only show transactions where revenue has been recognized (collection partner has paid Debitura).
+
+          When false, only show unrecognized transactions.'
+        schema:
+          type: boolean
+      - name: CommissionPaymentStatuses
+        in: query
+        description: 'Filter by commission payment status (Unpaid = 0, Paid = 1, Credited = 2).
+
+          Tracks whether Debitura has received the collection partner''s commission.'
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/Debitura.Domain.Model.InvoicePayments.Payouts.Enums.PayoutCommissionPaymentStatus'
+      - name: PlatformInvoicingStatuses
+        in: query
+        description: 'Filter by platform invoicing status (NotInvoiced = 0, InvoiceIssued = 1, PaymentReceived = 2, InvoiceCredited = 3).
+
+          Tracks Debitura''s invoicing lifecycle with the collection partner.'
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/Debitura.Domain.Model.Core.InvoicePayments.PlatformInvoicingStatus'
+      - name: ReferralInvoicingStatuses
+        in: query
+        description: Filter by referral invoicing status (Pending = 0, Invoiced = 1, Paid = 2)
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/Debitura.Domain.Model.ReferralPartners.Enums.ReferralInvoicingStatus'
+      - name: RevenueStages
+        in: query
+        description: "Filter by revenue-lifecycle stage (see Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionRevenueStage). Use this instead of\ncombining CommissionPaymentStatuses/PlatformInvoicingStatuses/ReferralInvoicingStatuses when you need\na row list for one specific \"Ready to Invoice\" tab bucket — it applies the same ConfirmedPipeline\nfold the summary already uses, so the row list matches the badge count exactly for partners in\nConfirmedPipeline mode. ANDed with the other filters above if both are supplied.\n            \nOnly narrows the row-list (`data`) — the returned `summary` always reports all 7 bucket\ntotals regardless of this filter, since its purpose is to drive tab badge counts and would\notherwise collapse the other buckets toward zero."
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionRevenueStage'
+      - name: Search
+        in: query
+        description: 'Search text to filter by case reference or client company name (case-insensitive, partial match).
+
+          Minimum 2 characters required for search to be applied.'
+        schema:
+          type: string
+      - name: Page
+        in: query
+        description: Page number (1-indexed)
+        schema:
+          maximum: 2147483647
+          minimum: 1
+          type: integer
+          format: int32
+      - name: PageSize
+        in: query
+        description: 'Number of results per page (default: 10, max: 100)'
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          format: int32
+      - name: CountryIds
+        in: query
+        description: 'Filter by debtor country ID(s). Multiple values can be provided.
+
+          Only transactions where the debtor''s country matches one of the specified IDs are returned.'
+        schema:
+          type: array
+          items:
+            type: integer
+            format: int32
+      - name: CollectionPartnerIds
+        in: query
+        description: 'Filter by collection partner ID(s). Multiple values can be provided.
+
+          Only transactions for cases assigned to one of the specified collection partners are returned.'
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+      - name: Sort
+        in: query
+        description: 'Sort field and direction. Format: "field[:asc|desc]"
+
+          Supported fields: collectionDate, amount
+
+          Examples: "collectionDate:desc", "amount:asc"
+
+          Default: collectionDate:desc'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionsResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionsResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionsResponse'
+        '400':
+          description: Invalid request parameters (e.g., invalid date format, page size too large)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+components:
+  schemas:
+    Debitura.Domain.Model.InvoicePayments.Payouts.Enums.PayoutCommissionPaymentStatus:
+      enum:
+      - 0
+      - 1
+      - 2
+      type: integer
+      format: int32
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionsSummary:
+      type: object
+      properties:
+        revenue:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.RevenueBreakdown'
+        totalDebituraRevenueUsd:
+          type: number
+          description: Total Debitura revenue across all transactions for reference
+          format: double
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Domain.Model.Base.PageData:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          description: Total number of records for the query (filtered or all as applicable).
+          format: int32
+        pageSize:
+          type: integer
+          description: How many records are returned per page.
+          format: int32
+        currentPage:
+          type: integer
+          description: Which page number is being shown, calculated from the number of skipped items.
+          format: int32
+        responseCount:
+          type: integer
+          description: How many records are present in the current page.
+          format: int32
+        totalPages:
+          type: integer
+          description: Total number of pages available given Debitura.Domain.Model.Base.PageData.TotalResults and Debitura.Domain.Model.Base.PageData.PageSize.
+          format: int32
+          readOnly: true
+      additionalProperties: false
+      description: Paging metadata describing a paged result set.
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.RecognitionInfo:
+      type: object
+      properties:
+        isRecognized:
+          type: boolean
+          description: Whether revenue has been recognized (PlatformInvoicingStatus == PaymentReceived)
+        referralFeeRecognizedUsd:
+          type: number
+          description: Recognized referral fee amount in USD (0 if not yet recognized)
+          format: double
+      additionalProperties: false
+    Debitura.Domain.Model.Core.InvoicePayments.PlatformInvoicingStatus:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      type: integer
+      description: Tracks the invoicing lifecycle for platform fees charged to collection partners.
+      format: int32
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.CaseInfo:
+      type: object
+      properties:
+        invoiceId:
+          type: string
+          format: uuid
+        caseReference:
+          type:
+          - string
+          - 'null'
+        debtorName:
+          type:
+          - string
+          - 'null'
+        originalAmount:
+          type: number
+          format: double
+        currency:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.EarningsInfo:
+      type: object
+      properties:
+        currency:
+          type:
+          - string
+          - 'null'
+          description: Currency of the original transaction
+        debituraRevenue:
+          type: number
+          format: double
+        debituraRevenueUsd:
+          type: number
+          format: double
+        referralFeePercentage:
+          type: number
+          format: double
+        referralFeeAmount:
+          type: number
+          format: double
+        referralFeeAmountUsd:
+          type: number
+          format: double
+        isEstimate:
+          type: boolean
+          description: 'True if the referral fee amount is an estimate (CommissionPaymentStatus != Paid).
+
+            When true, the final amount may change based on FX rates.'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.ClientInfo:
+      type: object
+      properties:
+        externalTenantId:
+          type:
+          - string
+          - 'null'
+        creditorId:
+          type: string
+          format: uuid
+        companyName:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.PaymentInfo:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+        currency:
+          type:
+          - string
+          - 'null'
+        paymentDate:
+          type: string
+          format: date-time
+      additionalProperties: false
+    Debitura.Domain.Model.ReferralPartners.Enums.ReferralInvoicingStatus:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      type: integer
+      description: 'Tracks the invoicing and payment status for referral fees owed to referral partners.
+
+        This is separate from collection partner invoicing (PlatformInvoicingStatus).'
+      format: int32
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.RevenueBreakdown:
+      type: object
+      properties:
+        pendingReferralFeeUsd:
+          type: number
+          description: 'Stage 1: Pending — CommissionPaymentStatus=Unpaid/Credited, PlatformInvoicingStatus=NotInvoiced,
+
+            and ReferralInvoicingStatus=null/Pending (excludes payouts already invoiced/paid to the referral
+
+            partner via a commission clawback after settlement — see Stage 5/6).
+
+            Fee is speculative. Depends on the client paying the collection partner. Amount may change.'
+          format: double
+        pendingCount:
+          type: integer
+          format: int32
+        confirmedPendingInvoiceReferralFeeUsd:
+          type: number
+          description: 'Stage 2: Confirmed, awaiting Debitura invoice — CommissionPaymentStatus=Paid, PlatformInvoicingStatus=NotInvoiced,
+
+            and ReferralInvoicingStatus=null/Pending (excludes payouts already invoiced/paid to the referral
+
+            partner — see Stage 5/6).
+
+            Fee is confirmed. Debitura will invoice the collection partner on the next billing cycle (8th of month).'
+          format: double
+        confirmedPendingInvoiceCount:
+          type: integer
+          format: int32
+        awaitingCollectionPartnerPaymentReferralFeeUsd:
+          type: number
+          description: 'Stage 3: Awaiting collection partner payment — PlatformInvoicingStatus=InvoiceIssued and
+
+            ReferralInvoicingStatus=null/Pending (excludes payouts already invoiced/paid to the referral
+
+            partner — see Stage 5/6).
+
+            Debitura has invoiced the collection partner. Payment expected within 30 days.'
+          format: double
+        awaitingCollectionPartnerPaymentCount:
+          type: integer
+          format: int32
+        readyToInvoiceDebituraReferralFeeUsd:
+          type: number
+          description: 'Stage 4: Ready to invoice Debitura — PlatformInvoicingStatus=PaymentReceived and ReferralInvoicingStatus=null/Pending.
+
+            Collection partner has paid Debitura. Referral partner can now invoice Debitura.'
+          format: double
+        readyToInvoiceDebituraCount:
+          type: integer
+          format: int32
+        awaitingDebituraPaymentReferralFeeUsd:
+          type: number
+          description: 'Stage 5: Awaiting Debitura payment — ReferralInvoicingStatus=Invoiced. NOT gated on
+
+            PlatformInvoicingStatus: that tracks Debitura''s own invoicing cycle with the collection partner,
+
+            an independent axis from the referral partner''s invoicing state (ConfirmedPipeline partners can
+
+            be invoiced/paid before Debitura''s own PlatformInvoicingStatus reaches PaymentReceived).
+
+            Referral partner has invoiced Debitura. Payment expected within 20 business days.
+
+            Disputed amounts are excluded — see Debitura.Web.ReferralPartnerApi.Models.Reporting.RevenueBreakdown.DisputedReferralFeeUsd.'
+          format: double
+        awaitingDebituraPaymentCount:
+          type: integer
+          format: int32
+        paidReferralFeeUsd:
+          type: number
+          description: 'Stage 6: Paid — ReferralInvoicingStatus=Paid. NOT gated on PlatformInvoicingStatus — see Stage 5.
+
+            Debitura has paid the referral partner.'
+          format: double
+        paidCount:
+          type: integer
+          format: int32
+        disputedReferralFeeUsd:
+          type: number
+          description: 'Disputed — ReferralInvoicingStatus=Disputed. NOT gated on PlatformInvoicingStatus — see Stage 5.
+
+            Deliberately excluded from every other bucket (including "ready to invoice" / "awaiting payment"
+
+            totals): per business rules, disputed referral fees must be shown separately, not folded
+
+            into a "payment expected" lifecycle stage, since the amount may still be reduced, corrected, or
+
+            reverted.'
+          format: double
+        disputedCount:
+          type: integer
+          format: int32
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.StatusInfo:
+      type: object
+      properties:
+        commissionPaymentStatus:
+          type:
+          - string
+          - 'null'
+          description: 'Commission payment status: "Unpaid" | "Paid" | "Credited"
+
+            Tracks whether Debitura has received the collection partner''s commission.
+
+            Paid = fee confirmed and received by Debitura.'
+        platformInvoicingStatus:
+          type:
+          - string
+          - 'null'
+          description: 'Platform invoicing status: "NotInvoiced" | "InvoiceIssued" | "PaymentReceived" | "InvoiceCredited"
+
+            Tracks Debitura''s invoicing lifecycle with the collection partner.'
+        referralInvoicingStatus:
+          type:
+          - string
+          - 'null'
+          description: 'Referral invoicing status: "Pending" | "Invoiced" | "Paid" | "Disputed"
+
+            Tracks the referral partner''s invoicing with Debitura. Set only via manual DB operation —
+
+            no application code path writes anything but "Pending" (at payout creation).'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionRevenueStage:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      type: integer
+      description: "The 7-stage revenue lifecycle used by Debitura.Web.ReferralPartnerApi.Models.Reporting.RevenueBreakdown — one\nvalue per bucket, in the same order/naming as the summary. Used by Debitura.Web.ReferralPartnerApi.Models.Reporting.GetTransactionsRequest.RevenueStages\nto request the row-list for a given tab/bucket.\n            \nUnlike the raw Debitura.Web.ReferralPartnerApi.Models.Reporting.GetTransactionsRequest.CommissionPaymentStatuses/\nDebitura.Web.ReferralPartnerApi.Models.Reporting.GetTransactionsRequest.PlatformInvoicingStatuses/Debitura.Web.ReferralPartnerApi.Models.Reporting.GetTransactionsRequest.ReferralInvoicingStatuses\nfilters (which AND together independently), this filter reproduces the exact per-stage predicate the\nsummary aggregation uses to compute each bucket — including the ConfirmedPipeline fold:\nfor partners in ConfirmedPipeline mode, requesting Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionRevenueStage.ReadyToInvoiceDebitura also matches the\nfolded Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionRevenueStage.ConfirmedPendingInvoice/Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionRevenueStage.AwaitingCollectionPartnerPayment confirmed\nsubset, and requesting Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionRevenueStage.ConfirmedPendingInvoice/Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionRevenueStage.AwaitingCollectionPartnerPayment\nexcludes that subset — so a transaction row appears under exactly one stage, matching the summary badges\none-for-one. No-op difference for partners not in ConfirmedPipeline mode."
+      format: int32
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionsResponse:
+      type: object
+      properties:
+        data:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionItem'
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
+        summary:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionsSummary'
+      additionalProperties: false
+      description: Response model for transactions list
+    Debitura.Web.ReferralPartnerApi.Models.Reporting.TransactionItem:
+      type: object
+      properties:
+        transactionId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date-time
+        client:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.ClientInfo'
+        case:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.CaseInfo'
+        payment:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.PaymentInfo'
+        earnings:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.EarningsInfo'
+        recognition:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.RecognitionInfo'
+        status:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Reporting.StatusInfo'
+      additionalProperties: false
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Referral Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com

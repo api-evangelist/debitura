@@ -1,0 +1,261 @@
+openapi: 3.2.0
+info:
+  title: Debitura Test Webhooks API
+  version: v1
+  description: 'Operations tagged TestWebhooks across 2 of this provider''s published API definitions: debitura-collection-partner-api.json, debitura-customer-api.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://collectionpartner-api.debitura.com
+  description: Production
+- url: https://customer-api.debitura.com
+  description: Production
+tags:
+- name: TestWebhooks
+  description: Test Webhooks
+paths:
+  /test/webhooks/fire:
+    post:
+      tags:
+      - TestWebhooks
+      summary: Fire a named webhook event type for a test case.
+      description: 'Fires a real current-state webhook event for any registered Collection Partner event type against a test case — even if the case hasn''t naturally reached the state that would produce that event.
+
+
+        **Purpose:**
+
+        Unblocks testing webhook handlers for rare or hard-to-reach event types (e.g. `case.closed`, `chat.created`) without having to drive the case through its full lifecycle.
+
+
+        **Payload:**
+
+        The event carries the real current state of the case — fields are read from the case as it exists now. No payload fabrication or override is supported in this version.
+
+
+        **Event types:**
+
+        - `case.assigned` — current lifecycle
+
+        - `case.updated` — current lifecycle (oldLifecycle and newLifecycle both reflect current state)
+
+        - `case.closed` — current close code and comment (use after case is already closed, or to test your handler regardless)
+
+        - `payment.created` — most recent payment on the case (returns 422 if no payments exist)
+
+        - `payment.deleted` — most recently deleted payment on the case (returns 422 if no payments have been deleted)
+
+        - `chat.created` — most recent chat message on the case (returns 422 if no chats exist)
+
+
+        **Target subscriptions:**
+
+        - If `subscriptionId` is provided, fires only to that subscription. Returns 400 if the subscription is not found, not a test subscription, or not owned by this partner.
+
+        - If omitted, fires to all active test subscriptions registered for the given event type.
+
+
+        **Event log (asynchronous):**
+
+        The synthetic fire is enqueued into the normal delivery pipeline, exactly like a real dispatch. A successful response (and its `enqueuedCount`) confirms the event was queued — it does **not** mean a row already exists in the webhook event log. The `WebhookEvent` row appears in `GET /webhooks/events` only after the worker drains the queue and attempts delivery — usually within a few seconds, but allow up to ~30 seconds, as the queue drain can lag under load. Do not assume the row is present the instant this call returns: poll `GET /webhooks/events?caseId={id}` with a short backoff until the event appears (or a ~30s timeout elapses) rather than reading it once immediately.
+
+
+        **Guards:**
+
+        - Returns 400 if the case is not a test case (`classification != test`), the event type is not valid, or the subscription is not found/not owned.
+
+        - Returns 404 if the case is not found or not owned by this collection partner.
+
+        - Returns 422 if required data is missing (e.g. no payments for `payment.created`, no chats for `chat.created`).'
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.FireWebhookRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.FireWebhookRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.FireWebhookRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.FireWebhookRequest'
+      responses:
+        '200':
+          description: Event fired — delivery jobs enqueued
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.FireWebhookResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.FireWebhookResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.FireWebhookResponse'
+        '400':
+          description: Validation error — non-test case, invalid event type, or subscription not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case not found or not owned by this collection partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '422':
+          description: Required data missing (e.g. no payments for payment.created)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://collectionpartner-api.debitura.com
+      description: Production
+components:
+  schemas:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.FireWebhookRequest:
+      required:
+      - caseId
+      - event
+      type: object
+      properties:
+        event:
+          type:
+          - string
+          - 'null'
+          description: 'The webhook event type to fire (e.g. "case.updated", "payment.created").
+
+            Must be a valid event type for the calling API — refer to each API''s documentation
+
+            for the supported list (Collection Partner and Customer API accept different sets).'
+          example: case.updated
+        caseId:
+          type: string
+          description: The ID of the test case to use as the event source.
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        subscriptionId:
+          type:
+          - string
+          - 'null'
+          description: 'Optional — the specific subscription ID to fire to.
+
+            If omitted, fires to all active test subscriptions for the calling API subscriber
+
+            that are registered for the given event type.'
+          format: uuid
+          example: 6b7a1f23-9c48-4e72-a901-1d2b3e4f5a6b
+      additionalProperties: false
+      description: Request body for POST /test/webhooks/fire.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.FireWebhookResponse:
+      type: object
+      properties:
+        eventType:
+          type:
+          - string
+          - 'null'
+          description: The event type that was fired (e.g. "case.updated").
+        caseId:
+          type: string
+          description: The case ID the event was fired for.
+          format: uuid
+        enqueuedCount:
+          type: integer
+          description: 'Number of webhook delivery jobs enqueued.
+
+            Zero means no active test subscriptions were found for this event type.'
+          format: int32
+      additionalProperties: false
+      description: Result of the `POST /test/webhooks/fire` endpoint.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Collection Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+    Bearer:
+      type: http
+      description: This is for referral partners, who are sending in clients to the platform. They get the bearer token from the referral partner Api and can be inserted here.
+      scheme: bearer
+      bearerFormat: JWT
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com
+x-refined-from:
+- debitura-collection-partner-api.json
+- debitura-customer-api.json

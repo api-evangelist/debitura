@@ -1,0 +1,381 @@
+openapi: 3.2.0
+info:
+  title: Debitura Webhook Events API
+  version: v1
+  description: 'Operations tagged WebhookEvents across 2 of this provider''s published API definitions: debitura-collection-partner-api.json, debitura-customer-api.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://collectionpartner-api.debitura.com
+  description: Production
+- url: https://customer-api.debitura.com
+  description: Production
+tags:
+- name: WebhookEvents
+  description: Webhooks
+paths:
+  /webhooks/events:
+    get:
+      tags:
+      - WebhookEvents
+      summary: List webhook events dispatched for a case.
+      description: 'Returns all webhook events dispatched for the given case, scoped to your webhook subscriptions.
+
+        Results are ordered newest-first.
+
+
+        **Use cases:**
+
+        - Verify that a specific event (e.g. `case.updated`) fired after a state transition.
+
+        - Inspect the exact payload delivered on each attempt.
+
+        - Find the event ID to replay via `POST /webhooks/events/{id}/replay`.
+
+        - Part of the CI-loop ASSERT step: after advancing a test case, query this endpoint to confirm the correct events fired.
+
+
+        **Filtering:**
+
+        - `caseId` (required): restricts to events for this case.
+
+        - `since` (optional): only returns events created at or after this ISO 8601 timestamp.
+
+
+        **Note:** Only events for your subscriptions are returned — events from other collection partners'' subscriptions are never exposed.'
+      parameters:
+      - name: caseId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: since
+        in: query
+        schema:
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: List of webhook events
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Models.Webhooks.WebhookEventDto'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Models.Webhooks.WebhookEventDto'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Models.Webhooks.WebhookEventDto'
+        '400':
+          description: Missing or invalid query parameters
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://collectionpartner-api.debitura.com
+      description: Production
+  /webhooks/events/{id}/replay:
+    post:
+      tags:
+      - WebhookEvents
+      summary: Replay a specific webhook event.
+      description: 'Re-enqueues the exact payload from a previously recorded event to its original subscription.
+
+
+        The event is re-queued as a fresh delivery attempt (attempt 1) using the original payload unchanged.
+
+        Delivery follows the normal retry schedule if the endpoint is unavailable.
+
+
+        **Replay signal:** Replayed deliveries include the header `X-Debitura-Replay: true` so your endpoint can distinguish a replay from a live event and implement idempotency correctly.
+
+
+        **When to use:**
+
+        - Your endpoint was temporarily unavailable and you want to re-deliver a specific event.
+
+        - You want to test idempotency of your event handler.
+
+        - Part of CI-loop ASSERT: confirm an event was dispatched via `GET /webhooks/events`, then replay to a different receiver.
+
+
+        **Relationship to `replay-last-event`:** `POST /test/cases/{id}/replay-last-event` is a convenience wrapper over this endpoint — it looks up the most recent event ID for you. Use that endpoint when you don''t yet know the event ID; use this endpoint when you have the ID from `GET /webhooks/events`.
+
+
+        **Tenant isolation:** Only events belonging to your own subscriptions can be replayed.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Event re-enqueued for delivery
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Models.Webhooks.ReplayEventResultDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Models.Webhooks.ReplayEventResultDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Models.Webhooks.ReplayEventResultDto'
+        '400':
+          description: ID missing or empty
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Event not found or not owned by this collection partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://collectionpartner-api.debitura.com
+      description: Production
+components:
+  schemas:
+    Debitura.Web.CollectionPartnerApi.Models.Webhooks.ReplayEventResultDto:
+      type: object
+      properties:
+        eventId:
+          type: string
+          description: The ID of the event that was replayed.
+          format: uuid
+        subscriptionId:
+          type: string
+          description: The subscription the event was re-enqueued to.
+          format: uuid
+        eventType:
+          type:
+          - string
+          - 'null'
+          description: The event type that was replayed (e.g. "case.updated").
+      additionalProperties: false
+      description: Result of replaying a specific webhook event.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.CollectionPartnerApi.Models.Webhooks.WebhookEventDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 'Unique identifier for this event record.
+
+            Use this ID to replay the event via `POST /webhooks/events/{id}/replay`.'
+          format: uuid
+        subscriptionId:
+          type: string
+          description: The webhook subscription this event was dispatched to.
+          format: uuid
+        caseId:
+          type:
+          - string
+          - 'null'
+          description: The collection case this event relates to.
+          format: uuid
+        eventType:
+          type:
+          - string
+          - 'null'
+          description: The event type (e.g. "case.assigned", "case.updated", "case.closed", "payment.created", "chat.created").
+        payload:
+          type:
+          - string
+          - 'null'
+          description: The full JSON payload that was (or will be) delivered.
+        createdAt:
+          type: string
+          description: When this event was first recorded (UTC).
+          format: date-time
+        deliveredAt:
+          type:
+          - string
+          - 'null'
+          description: 'When the event was successfully delivered (UTC).
+
+            Null if delivery has not yet succeeded.'
+          format: date-time
+        attemptCount:
+          type: integer
+          description: Number of delivery attempts made so far.
+          format: int32
+        lastResponseCode:
+          type:
+          - integer
+          - 'null'
+          description: HTTP status code returned by the subscriber endpoint on the last attempt.
+          format: int32
+        lastError:
+          type:
+          - string
+          - 'null'
+          description: Error message from the last failed delivery attempt. Null on successful delivery.
+      additionalProperties: false
+      description: Represents a recorded webhook delivery event.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.WebhookEventDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 'Unique identifier for this event record.
+
+            Use this ID to replay the event via `POST /webhooks/events/{id}/replay`.'
+          format: uuid
+        subscriptionId:
+          type: string
+          description: The webhook subscription this event was dispatched to.
+          format: uuid
+        caseId:
+          type:
+          - string
+          - 'null'
+          description: The collection case this event relates to.
+          format: uuid
+        eventType:
+          type:
+          - string
+          - 'null'
+          description: The event type (e.g. "case.created", "payment.created").
+        payload:
+          type:
+          - string
+          - 'null'
+          description: The full JSON payload that was (or will be) delivered.
+        createdAt:
+          type: string
+          description: When this event was first recorded (UTC).
+          format: date-time
+        deliveredAt:
+          type:
+          - string
+          - 'null'
+          description: 'When the event was successfully delivered (UTC).
+
+            Null if delivery has not yet succeeded.'
+          format: date-time
+        attemptCount:
+          type: integer
+          description: Number of delivery attempts made so far.
+          format: int32
+        lastResponseCode:
+          type:
+          - integer
+          - 'null'
+          description: HTTP status code returned by the subscriber endpoint on the last attempt.
+          format: int32
+        lastError:
+          type:
+          - string
+          - 'null'
+          description: Error message from the last failed delivery attempt. Null on successful delivery.
+      additionalProperties: false
+      description: Represents a recorded webhook delivery event.
+    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayEventResultDto:
+      type: object
+      properties:
+        eventId:
+          type: string
+          description: The ID of the event that was replayed.
+          format: uuid
+        subscriptionId:
+          type: string
+          description: The subscription the event was re-enqueued to.
+          format: uuid
+        eventType:
+          type:
+          - string
+          - 'null'
+          description: The event type that was replayed.
+      additionalProperties: false
+      description: Result of replaying a specific webhook event.
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Collection Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+    Bearer:
+      type: http
+      description: This is for referral partners, who are sending in clients to the platform. They get the bearer token from the referral partner Api and can be inserted here.
+      scheme: bearer
+      bearerFormat: JWT
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com
+x-refined-from:
+- debitura-collection-partner-api.json
+- debitura-customer-api.json

@@ -1,0 +1,2118 @@
+openapi: 3.2.0
+info:
+  title: Debitura Collection Partner Managed Cases API
+  description: 'Welcome to the Debitura Collection Partner API, your gateway to automating debt collection workflows on the world''s leading platform for cross-border debt recovery.
+
+
+    As a trusted partner in Debitura''s network of 500+ collection agencies and law firms across 183 jurisdictions, this API provides the following capabilities:
+
+
+    **Managing Assigned Cases** - For exclusive partners with designated jurisdictions:
+
+    - Retrieve and manage cases assigned to your agency
+
+    - Track case details, timelines, and communications
+
+    - Update case status and payment information
+
+
+    **Submitting Cases to the Network** - Available to all partners:
+
+    - Submit new cases on behalf of your clients to our global network
+
+    - Track status of cases submitted to partners worldwide
+
+    - Provide global coverage to your existing clients and earn a 20% revenue share
+
+    - Manage cross-border debt collection through one unified platform
+
+
+    All operations follow our standardized Debt Collection Agreement and no-cure-no-pay model. The API provides the same functionality available through our user-friendly partner portal at https://partner.debitura.com.
+
+
+    For support or inquiries, please reach out to us at contact@debitura.com. To obtain your API key, log into the partner portal and navigate to: https://partner.debitura.com/CollectionPartnerApiKey/Index
+
+
+    📖 Full documentation, guides, and integration walkthroughs: https://docs.debitura.com/collection-partners
+
+
+    NOTE: Authentication requires the XApiKey header with your partner-specific API key. Available features depend on your partnership agreement.'
+  contact:
+    name: Debitura Support
+    url: https://www.debitura.com/integration
+    email: contact@debitura.com
+  version: v1
+servers:
+- url: https://collectionpartner-api.debitura.com
+  description: Production
+security:
+- ApiKey: []
+tags:
+- name: ManagedCases
+  description: Managed Cases
+paths:
+  /managed-cases:
+    post:
+      tags:
+      - ManagedCases
+      summary: Create case as managing partner
+      description: "Creates a collection case on behalf of your client (or yourself) through the Debitura platform.\n\n**Understanding the Creditor Field:**\nThe creditor is the party that the debtor owes money to. This can be:\n- **Your client's company** - When you're submitting cases on behalf of clients you represent\n- **Your own company** - When you're submitting your own debt collection cases\n\n**How It Works:**\n1. You provide the creditor's basic information (company name + country)\n2. Debitura creates a creditor record (if one doesn't exist)\n3. The collection case is created under that creditor\n4. You are set as the managing partner\n5. The case is automatically assigned to a collection partner based on jurisdiction\n\n**Managing Partner Benefits:**\n- Submit cases on behalf of your clients via API\n- Maintain your client relationships\n- Leverage Debitura's global partner network\n- Monitor case progress through read-only access\n- Provide full-service debt recovery to your clients\n\n**Required Fields:**\n- CreditorCompanyName - The company name of who the debtor owes money to\n- CreditorCountryAlpha2 OR CreditorCountry - Creditor's country (provide either code or name)\n- CurrencyCode - Case currency (e.g., 'USD', 'EUR', 'DKK')\n- Date - Invoice issue date\n- AmountToRecover - Claim amount\n- Debtor - Complete debtor information with jurisdiction\n\n**Debtor Rules:**\n- debtor.type must be \"Company\" or \"Person\"\n  - Company → debtor.name is mandatory (company name)\n  - Person → debtor.name is mandatory (person's full name)\n- For Company debtors, debtor.contactPerson is required\n- debtor.country (or debtor.countryAlpha2) is always required\n- debtor.stateAlpha2 is **required for US cases** - provide the two-letter state code (e.g., \"CA\", \"NY\"). For non-US cases, this field is optional.\n- debtor.state is a general-purpose region field (not used for US jurisdiction resolution)\n\n**Optional Fields:**\n- DueDate - Invoice due date\n- Comments - Additional notes\n- ClaimDescription - Description of the claim\n- CreditorReference - Your client's internal reference\n- CollectionPartnerId - Override automatic partner matching\n- IsTest - Mark as test case (excluded from production metrics)\n\n**Response:**\nReturns the created case details including the case ID, reference number, and assignment information.\n\n**Important Notes:**\n- Creditor records are created fresh each time (no duplicate detection)\n- Contract requirements are automatically bypassed\n- Cases appear in your 'Managed Cases' list\n- You have read-only access to monitor case progress"
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        description: 'Optional idempotency key (max 255 characters) for safely retrying this request. If a previous request used the same key with an identical body, the original terminal response is replayed verbatim. Reusing the key with a different body returns 422 with `Type: "IdempotencyConflict"`. Field-level 400 validation errors are not stored, so you may fix the request and retry with the same key.'
+        schema:
+          maxLength: 255
+          type: string
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.CreateManagedCaseRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.CreateManagedCaseRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.CreateManagedCaseRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.CreateManagedCaseRequest'
+      responses:
+        '200':
+          description: Case created successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+        '400':
+          description: Invalid request data (field validation errors)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '422':
+          description: Business rule violation (e.g., no partner available for jurisdiction)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+    get:
+      tags:
+      - ManagedCases
+      summary: List managed cases
+      description: "Returns a paginated list of cases where you are the **managing partner** (submitted on behalf of your clients).\n\n**What is a Managing Partner?**\nA managing partner is a collection partner that submits cases on behalf of their own clients but forwards the actual debt recovery work to another collection partner in Debitura's network. You remain your client's point of contact while leveraging Debitura's global network of 500+ partners across 183 jurisdictions.\n\n**Why Become a Managing Partner?**\n- Serve clients globally without physical presence in every jurisdiction\n- Maintain client relationships while outsourcing collection work\n- Access Debitura's vetted partner network\n- Earn commission on successful recoveries\n- Provide full-service debt recovery to your clients\n\n**Your Role as Managing Partner:**\n- Submit cases on behalf of your clients (via API or partner portal)\n- Monitor case progress and recovery status (read-only access)\n- Communicate with the collection partner through case chat\n- Receive updates on payments and case status\n- Invoice your clients and remit payments\n\n**Note:** This endpoint shows cases YOU submitted. For cases where you are actively collecting, use the `/cases` endpoint instead.\n\n**Partner Portal View:** These cases appear in the 'Cases Submitted' section of the partner portal.\n\n**Pagination:**\n- page (default: 1) - Page number, starting from 1\n- pageSize (default: 10, max: 100) - Number of results per page\n\n**Filters:**\n- statuses - Filter by case lifecycle status (comma-separated list)\n  Valid values: PendingContractSigning, PendingVerificationInternal, PendingVerification,\n  NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed\n- divisionIds - Filter by your client division IDs (comma-separated GUIDs)\n- debtorIds - Filter by specific debtor IDs (comma-separated GUIDs)\n- ids - Filter by specific case IDs (comma-separated GUIDs)\n\n**Sorting:**\n- sort - Sort field and direction (format: 'field:direction')\n  Examples: 'date:desc', 'amount:asc', 'debtorName:asc'\n\n**Response:**\n- Returns InvoiceListApiDTO with page metadata and cases array\n- Each case includes collection partner information (who is actually collecting)\n- Page metadata includes: totalResults, currentPage, skipped, pageSize"
+      parameters:
+      - name: Page
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: PageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: DebtorIds
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+      - name: Ids
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+      - name: Statuses
+        in: query
+        description: 'Filter by case lifecycle status. Valid values: PendingContractSigning, PendingVerificationInternal,
+
+          PendingVerification, NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed, Merged
+
+          (case-insensitive; both name and description forms accepted).'
+        schema:
+          type: array
+          items:
+            type: string
+      - name: DivisionIds
+        in: query
+        description: Optional list of division IDs to filter by
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+      - name: Sort
+        in: query
+        description: 'Optional sorting string "Field[:asc|desc][,Field2[:asc|desc]]…".
+
+          Valid sort fields: DateCreated, DateUpdated, DateFinished, DateCollectionStarted,
+
+          DueDate, Date, GrossAmount, Remainder, InterestFees, CollectionFees, ReminderFees,
+
+          Lifecycle, CloseCode. Examples: ''DateCreated:desc'', ''DueDate:asc''. Unknown fields are silently ignored.'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: List returned
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceListDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceListDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceListDto'
+        '400':
+          description: Invalid query parameters (returns specific validation errors)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+  /managed-cases/{id}:
+    get:
+      tags:
+      - ManagedCases
+      summary: Fetch managed case by ID
+      description: 'Returns detailed information for a case you submitted on behalf of your client (where you are the managing partner).
+
+
+        **Access Control:**
+
+        This endpoint only returns cases where YOU are the managing partner. If you are the collection partner on a case, use `/cases/{id}` instead.
+
+
+        **Response Includes:**
+
+        - Case details (reference, amount, currency, status)
+
+        - Debtor information
+
+        - Your client information (the creditor)
+
+        - Collection partner details (who is actively collecting this case)
+
+        - Financial breakdown
+
+        - Case progress and timeline summary
+
+
+        **Monitoring Your Cases:**
+
+        As the managing partner, you have read-only access to monitor progress while the collection partner handles the actual recovery work.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Case found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+        '400':
+          description: ID missing, empty, or ID is not a collection case
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case not found, deleted, or not submitted by you as managing partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+  /managed-cases/case-reference/{caseReference}:
+    get:
+      tags:
+      - ManagedCases
+      summary: Fetch managed case by reference
+      description: 'Returns detailed case information using the Debitura case reference (e.g., ''Q8OAXF3W'') for cases you submitted.
+
+
+        **Use Case:**
+
+        Use this endpoint when you have the Debitura case reference but not the GUID. Helpful for customer service integrations or when your clients reference cases by the Debitura reference number.
+
+
+        **Access Control:**
+
+        Only returns cases where you are the managing partner.'
+      parameters:
+      - name: caseReference
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Case found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+        '400':
+          description: Reference missing or reference is not a collection case
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Reference not found or not submitted by you as managing partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+  /managed-cases/{id}/timeline:
+    get:
+      tags:
+      - ManagedCases
+      summary: Fetch managed case timeline
+      description: 'Returns the complete chronological event history for a case you submitted as managing partner.
+
+
+        **Timeline Events Include:**
+
+        - Case submission and acceptance
+
+        - Assignment to collection partner
+
+        - Status changes and lifecycle transitions
+
+        - Payment recordings
+
+        - Communication events between collection partner and creditor
+
+        - Collection partner updates and notes
+
+
+        **Managing Partner Transparency:**
+
+        The timeline provides full visibility into the collection partner''s activities, allowing you to monitor progress and keep your clients informed.
+
+
+        **Response shape:**
+
+        - `items` — chronological list of timeline events
+
+        - `currentEngagementPhase` — current phase of the active engagement: "Pre-legal", "Legal", or "Enforcement". Null when no active engagement exists.
+
+
+        **Use Case:**
+
+        Use this to track case progress, update your clients on status, or audit collection partner activities.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Timeline returned
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.CaseTimelineResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.CaseTimelineResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.CaseTimelineResponse'
+        '400':
+          description: Case ID missing or empty
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case not found or not submitted by you as managing partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+  /managed-cases/{id}/chats:
+    get:
+      tags:
+      - ManagedCases
+      summary: Fetch managed case chats
+      description: 'Returns all chat messages for a case you submitted, in chronological order.
+
+
+        **Chat Participants (for Managed Cases):**
+
+        - Managing partner (you) - Your messages to the collection partner
+
+        - Collection partner - Messages from the partner actively collecting the case
+
+        - Your client (creditor) - Messages from the client you represent
+
+        - Debitura support - System notifications and support messages
+
+
+        **Communication Flow:**
+
+        As the managing partner, you can participate in case discussions to:
+
+        - Coordinate with the collection partner
+
+        - Provide additional information about the debtor
+
+        - Relay questions from your client
+
+        - Stay updated on collection progress
+
+
+        **Use Case:**
+
+        Monitor collection partner communications, coordinate case strategy, or extract conversation history to share with your clients.
+
+
+        **Note:** Managing partners have limited write access - you can read and send messages but cannot modify case details or add payments.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Chats returned (empty array if no messages)
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Chats.ChatDto'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Chats.ChatDto'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Chats.ChatDto'
+        '400':
+          description: Case ID missing or empty
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case not found or not submitted by you as managing partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+  /managed-cases/{id}/payments:
+    get:
+      tags:
+      - ManagedCases
+      summary: Fetch managed case payments
+      description: 'Returns all payments recorded on a case you submitted as managing partner.
+
+
+        **Payment Information Includes:**
+
+        - Payment amount, currency, and date
+
+        - Payment type and method
+
+        - Payment status (recorded by collection partner)
+
+        - Allocation breakdown (principal, interest, fees)
+
+        - Payout details (amounts to creditor and collection partner)
+
+
+        **What This Endpoint Shows:**
+
+        As a managing partner, you can monitor all payment activity on cases you submitted for your clients. This endpoint provides visibility into:
+
+        - What the collection partner has recovered from the debtor
+
+        - How recovered amounts are allocated (principal vs. interest vs. fees)
+
+        - The collection partner''s success fee on each payment
+
+        - Payment history and timeline
+
+
+        **Important:** This endpoint is for monitoring and client reporting purposes. Your financial arrangements with your clients (billing, commissions, etc.) are managed outside of Debitura''s platform. The payment data shown here represents what the collection partner recovered and their fees, not any commissions or payments to you as the managing partner.
+
+
+        **Use Case:**
+
+        Monitor recovery progress, reconcile payments with your records, track case performance, or provide payment status updates to your clients.
+
+
+        **Note:** On production cases, only the assigned collection partner can record new payments. For test cases (isTestCase: true), managing partners can record payments via `POST /managed-cases/{id}/payments`.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Payments returned (may be empty array)
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto'
+        '400':
+          description: Case ID missing or empty
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case not found or not submitted by you as managing partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+    post:
+      tags:
+      - ManagedCases
+      summary: Record a payment on a test case (managing partner)
+      description: 'Records a payment on a test case you submitted as managing partner.
+
+
+        **Test-Only Restriction:**
+
+        This endpoint only works on cases created with `isTestCase: true`. Attempting to record a payment on a production case returns a 400 error. For production cases, the assigned collection partner must use `POST /cases/{id}/payments`.
+
+
+        **Purpose:**
+
+        Allows managing partners (e.g. Get-Systems) to test their full payment integration end-to-end — including webhook delivery, lifecycle transitions, and remainder updates — without involving the collection partner.
+
+
+        **Payout Handling:**
+
+        A payout record is created automatically with the full payment amount going to the creditor and zero to the collection partner. CommissionPaymentStatus is set to Unpaid.
+
+
+        **Webhooks:**
+
+        Payment webhooks fire normally, making this useful for end-to-end integration testing.
+
+
+        **CloseCase:**
+
+        If `closeCase=true` and the payment amount is less than the outstanding balance, a 400 is returned.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.CreateManagedCasePaymentRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.CreateManagedCasePaymentRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.CreateManagedCasePaymentRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.CreateManagedCasePaymentRequest'
+      responses:
+        '200':
+          description: Payment recorded successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.CreateManagedCasePaymentResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.CreateManagedCasePaymentResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.CreateManagedCasePaymentResponse'
+        '400':
+          description: Invalid request or production case
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case not found or not submitted by you as managing partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+  /managed-cases/{id}/payments/{paymentId}:
+    put:
+      tags:
+      - ManagedCases
+      summary: Edit a payment on a test case (managing partner)
+      description: 'Edits a payment on a test case you submitted as managing partner.
+
+
+        **Test-Only Restriction:** like recording a payment, this only works on cases created with `isTestCase: true`. Production cases return a 400 — the assigned collection partner must edit via `PUT /cases/{id}/payments/{paymentId}`.
+
+
+        **Invoiced payments are frozen:** an already-invoiced payment cannot be edited and returns **422**.
+
+
+        **Reopen consent:** if the edit leaves a previously closed (Paid) case with an outstanding balance, the case is reopened only when `reopenCaseIfNeeded: true`; otherwise the request returns **409 Conflict**.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: paymentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.UpdatePaymentRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.UpdatePaymentRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.UpdatePaymentRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.UpdatePaymentRequest'
+      responses:
+        '200':
+          description: Payment updated successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto'
+        '400':
+          description: Invalid request or production case
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case or payment not found / not submitted by you
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '409':
+          description: Edit would reopen the case; resend with reopenCaseIfNeeded=true
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '422':
+          description: Payment has already been invoiced and cannot be edited
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+    delete:
+      tags:
+      - ManagedCases
+      summary: Delete a payment on a test case (managing partner)
+      description: 'Deletes a payment from a test case you submitted as managing partner, reverting its effect on the case balance and cascading the payout deletion. A durable audit record is retained.
+
+
+        **Test-Only Restriction:** only works on cases created with `isTestCase: true`. Production cases return a 400 — the assigned collection partner must delete via `DELETE /cases/{id}/payments/{paymentId}`.
+
+
+        **Invoiced payments are frozen:** an already-invoiced payment cannot be deleted and returns **422**.
+
+
+        **Reopen consent:** if the deletion leaves a previously closed (Paid) case with an outstanding balance, the case is reopened only when `reopenCaseIfNeeded=true`; otherwise the request returns **409 Conflict**.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: paymentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: reopenCaseIfNeeded
+        in: query
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '204':
+          description: Payment deleted successfully
+        '400':
+          description: Invalid request or production case
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case or payment not found / not submitted by you
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '409':
+          description: Deletion would reopen the case; resend with reopenCaseIfNeeded=true
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '422':
+          description: Payment has already been invoiced and cannot be deleted
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+  /managed-cases/{id}/files:
+    get:
+      tags:
+      - ManagedCases
+      summary: Get managed case files
+      description: 'Returns all documents and files attached to a case you submitted as managing partner.
+
+
+        **File Access for Managing Partners:**
+
+        You have read-only access to all files uploaded by:
+
+        - Your client (the creditor you represent)
+
+        - The collection partner handling the case
+
+        - Debitura support team
+
+        - Yourself (files you uploaded when submitting the case)
+
+
+        **File Types Include:**
+
+        - OriginalInvoice - The initial claim documentation
+
+        - ProofOfDelivery - Delivery confirmations
+
+        - Contract - Agreements between creditor and debtor
+
+        - Correspondence - Email and letter communications
+
+        - PaymentProof - Payment receipts
+
+        - CourtDocuments - Legal filings
+
+        - Other - Miscellaneous supporting documents
+
+
+        **Use Case:**
+
+        - Review evidence and supporting documents
+
+        - Download files to share with your client
+
+        - Verify document completeness before escalation
+
+        - Build client-facing portals showing case documentation
+
+
+        **Note:** File URLs are temporary signed links that expire. Call this endpoint again to generate fresh download links if needed.
+
+
+        **Managing Partner Limitation:** You can view and download files but cannot upload new files directly via this endpoint. File uploads are handled by the collection partner or through the case submission process.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Files retrieved successfully (may be empty array)
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Files.CaseFileDto'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Files.CaseFileDto'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Files.CaseFileDto'
+        '400':
+          description: Case ID missing or empty
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case not found or not submitted by you as managing partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Server error occurred while retrieving files
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+components:
+  schemas:
+    Debitura.Web.ExternalApi.Contracts.V1.Users.UserRelationDto:
+      required:
+      - email
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        dateCreated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        dateUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        firstName:
+          type:
+          - string
+          - 'null'
+        lastName:
+          type:
+          - string
+          - 'null'
+        email:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.TimelineActorDto:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: 'The type of actor. One of: "System", "Creditor user", "Partner user".'
+        name:
+          type:
+          - string
+          - 'null'
+          description: Display name of the actor, if available.
+      additionalProperties: false
+      description: Represents the actor (person or system) that performed a timeline action.
+    Debitura.Web.ExternalApi.Contracts.V1.Files.CaseFileDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type: string
+          format: date-time
+        caseId:
+          type: string
+          format: uuid
+        entityType:
+          type:
+          - string
+          - 'null'
+        entityId:
+          type: string
+          format: uuid
+        fileName:
+          type:
+          - string
+          - 'null'
+        url:
+          type:
+          - string
+          - 'null'
+        description:
+          type:
+          - string
+          - 'null'
+        documentType:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Domain.Model.CommunicationCenter.Chats.ChatRole:
+      enum:
+      - 0
+      - 1
+      - 2
+      type: integer
+      format: int32
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto:
+      type: object
+      properties:
+        combinedSigningUrl:
+          type:
+          - string
+          - 'null'
+          description: 'Single signing entry URL that walks the creditor through every
+
+            pending step (SDCA upgrade → PoA → JPA → KYC) on the Creditors app
+
+            and returns to the partner-supplied returnUrl when done.'
+      additionalProperties: false
+      description: "Partner-facing handoff metadata for a creditor's pending signing chain.\nReturned on POST /cases responses (422 with pending-signing errors,\nor 200 with AllowPendingContracts=true when signings remain).\n            \nDesigned as an envelope so future fields (expiration, suggested email\ncopy, etc.) can be added without polluting the parent DTO."
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CollectionPartnerDto:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+        officeEmail:
+          type:
+          - string
+          - 'null'
+        officePhone:
+          type:
+          - string
+          - 'null'
+        publicSite:
+          type:
+          - string
+          - 'null'
+        surveyCadenceMode:
+          $ref: '#/components/schemas/Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode'
+      additionalProperties: false
+      description: V1 Collection Partner DTO for external partner APIs
+    Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentRelatedInvoiceDto:
+      required:
+      - reference
+      - status
+      type: object
+      properties:
+        status:
+          type:
+          - string
+          - 'null'
+        reference:
+          type:
+          - string
+          - 'null'
+        invoiceId:
+          type: string
+          format: uuid
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.AssignedUserDto:
+      type: object
+      properties:
+        email:
+          type:
+          - string
+          - 'null'
+          description: The assigned user's email address.
+        name:
+          type:
+          - string
+          - 'null'
+          description: The assigned user's full name.
+      additionalProperties: false
+      description: Represents the creditor team member assigned to a case.
+    Debitura.Web.ExternalApi.Contracts.V1.Payments.CreateManagedCasePaymentRequest:
+      required:
+      - date
+      - paymentAmount
+      type: object
+      properties:
+        date:
+          type: string
+          description: Payment date (when payment was received).
+          format: date-time
+          example: '2025-11-19'
+        paymentAmount:
+          maximum: 1.7976931348623157e+308
+          minimum: 0.01
+          type: number
+          description: Total payment amount received.
+          format: double
+          example: 5000.0
+        closeCase:
+          type: boolean
+          description: 'Whether to close the case after recording this payment (default: false).
+
+            If true and payment < invoice remainder, returns validation error.'
+          example: false
+      additionalProperties: false
+      description: 'Request to record a payment on a test case as managing partner.
+
+        Only available for cases created with isTestCase: true.'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDivisionDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the division
+          format: uuid
+        name:
+          type:
+          - string
+          - 'null'
+          description: Name of the division
+      additionalProperties: false
+      description: 'Creditor division information for external partner APIs.
+
+        Represents a specific division or department within a creditor organization.'
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BankAccountDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Bank account identifier
+          format: int32
+        label:
+          type:
+          - string
+          - 'null'
+          description: User-friendly label (e.g., "Main EUR Account")
+        scheme:
+          type:
+          - string
+          - 'null'
+          description: 'Account scheme: IBAN, SWIFT, or LOCAL'
+        currencyCode:
+          type:
+          - string
+          - 'null'
+          description: Currency code (ISO 4217)
+        bankCountryCode:
+          type:
+          - string
+          - 'null'
+          description: Bank country code (ISO Alpha-2)
+        accountHolderName:
+          type:
+          - string
+          - 'null'
+          description: Account holder name (beneficiary)
+        iban:
+          type:
+          - string
+          - 'null'
+          description: IBAN (for IBAN scheme accounts)
+        bic:
+          type:
+          - string
+          - 'null'
+          description: BIC/SWIFT code (for IBAN and SWIFT scheme accounts)
+        accountNumber:
+          type:
+          - string
+          - 'null'
+          description: Account number (for SWIFT and LOCAL scheme accounts)
+        localIdentifier:
+          type:
+          - string
+          - 'null'
+          description: Local identifier (for LOCAL scheme accounts, e.g., sort code + account number)
+        localIdentifierType:
+          type:
+          - string
+          - 'null'
+          description: Type of local identifier (e.g., "Sort Code", "Routing Number")
+        bankName:
+          type:
+          - string
+          - 'null'
+          description: Bank name (optional)
+        bankAddress:
+          type:
+          - string
+          - 'null'
+          description: Bank address (optional)
+        bankCity:
+          type:
+          - string
+          - 'null'
+          description: Bank city (optional)
+        bankZipCode:
+          type:
+          - string
+          - 'null'
+          description: Bank zip/postal code (optional)
+        bankState:
+          type:
+          - string
+          - 'null'
+          description: Bank state/region (optional)
+      additionalProperties: false
+      description: 'Bank account information for partner API.
+
+        Full details provided as partners need this to:
+
+        1. Provide payment instructions to debtors (when debtor pays client directly)
+
+        2. Execute payouts to clients (when partner receives payment and pays out remainder)'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceAllocationOutstandingDto:
+      type: object
+      properties:
+        principal:
+          type: number
+          format: double
+        interest:
+          type: number
+          format: double
+        reminderFees:
+          type: number
+          format: double
+        collectionFees:
+          type: number
+          format: double
+      additionalProperties: false
+      description: 'Additive external-API read model. Per-bucket outstanding on the debt ledger, produced by
+
+        the payment allocation engine (bucket total minus Σ active stored allocations — never re-derived
+
+        from a model). Mirrors the internal
+
+        `Debitura.Domain.Model.Receiveables.InvoiceEconomics.EconomicalAllocationOutstanding` shape.'
+    Debitura.Web.ExternalApi.Contracts.V1.Chats.ChatDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        role:
+          $ref: '#/components/schemas/Debitura.Domain.Model.CommunicationCenter.Chats.ChatRole'
+        roleLabel:
+          type:
+          - string
+          - 'null'
+          description: 'Human-readable label for the role (e.g., "Partner", "Creditor", "Managed by partner").
+
+            Companion to Debitura.Web.ExternalApi.Contracts.V1.Chats.ChatDto.Role — always present when Role is set.'
+        message:
+          type:
+          - string
+          - 'null'
+        isSeen:
+          type: boolean
+        user:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Users.UserRelationDto'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CaseTimelineResponse:
+      required:
+      - items
+      type: object
+      properties:
+        items:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.TimelineItemDto'
+          description: Chronological list of events on the case.
+        currentEngagementPhase:
+          type:
+          - string
+          - 'null'
+          description: 'The current engagement phase of the case, sourced from CaseEngagement.CurrentPhase.
+
+            Possible values: "Pre-legal", "Legal", "Enforcement".
+
+            Null when no active engagement exists (e.g. case not yet assigned to a partner).'
+      additionalProperties: false
+      description: 'Response envelope for GET /cases/{id}/timeline.
+
+        Wraps the chronological event list with case-level context
+
+        that cannot be expressed as a single timeline entry.'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO:
+      type: object
+      properties:
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: List of business errors that must be resolved before the case can be created.
+        signingHandoff:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto'
+      additionalProperties: false
+      description: Response returned when business rule violations prevent case creation.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Payments.UpdatePaymentRequest:
+      required:
+      - date
+      - paymentAmount
+      - paymentRecipient
+      type: object
+      properties:
+        date:
+          type: string
+          description: Payment date (when payment was received). Provide date only without time component.
+          format: date-time
+          example: '2025-11-19'
+        paymentAmount:
+          maximum: 1.7976931348623157e+308
+          minimum: 0.01
+          type: number
+          description: "Total payment amount received.\n            \nWhen both PayoutCreditor and PayoutCollectionPartner are supplied they must sum to this amount.\nWhen both are omitted, the split is computed server-side from the case's pricing terms."
+          format: double
+          example: 5000.0
+        payoutCreditor:
+          maximum: 1.7976931348623157e+308
+          minimum: 0
+          type:
+          - number
+          - 'null'
+          description: "Amount to be paid out to creditor. **Optional.**\n            \nWhen omitted (along with PayoutCollectionPartner), the split is computed server-side from the\ncase's pricing terms (success fee). When supplied, PayoutCollectionPartner must also be supplied\nand the two must sum to PaymentAmount."
+          format: double
+          example: 4000.0
+        payoutCollectionPartner:
+          maximum: 1.7976931348623157e+308
+          minimum: 0
+          type:
+          - number
+          - 'null'
+          description: "Amount to be kept by collection partner (commission). **Optional.**\n            \nWhen omitted (along with PayoutCreditor), the split is computed server-side from the\ncase's pricing terms (success fee). When supplied, PayoutCreditor must also be supplied\nand the two must sum to PaymentAmount."
+          format: double
+          example: 1000.0
+        paymentRecipient:
+          minLength: 1
+          type: string
+          description: "Who received the payment.\n            \n**Valid values:**\n- **Creditor**: Payment was received by the creditor (client). When used, you must also specify CommissionPaymentStatus.\n- **CollectionPartner**: Payment was received by the collection partner. Commission is automatically marked as paid."
+          example: Creditor
+        commissionPaymentStatus:
+          type:
+          - string
+          - 'null'
+          description: "Commission payment status. **Required only if PaymentRecipient is Creditor.**\n            \nWhen PaymentRecipient is CollectionPartner, this field is ignored and commission is automatically marked as Paid.\n            \n**Valid values:** Paid, Unpaid."
+          example: Paid
+        reopenCaseIfNeeded:
+          type: boolean
+          description: "Consent to reopen the case if this edit lowers the payment so a previously closed (Paid)\ncase is left with a positive outstanding balance.\n            \nWhen the edit would reopen the case and this flag is `false` (default), the request is\nrejected with HTTP 409 Conflict. Resend with `true` to confirm the reopen — the case is\nreopened to Active and a `case.updated` webhook fires."
+          example: false
+      additionalProperties: false
+      description: "Request to edit an existing payment on a case. Mirrors the payout-split semantics of\nDebitura.Web.ExternalApi.Contracts.V1.Payments.CreatePaymentRequest.\n            \n**Currency:** A payment's currency cannot be changed — it is fixed to the case currency.\n            \n**Invoiced payments are frozen:** a payment whose payout has already been invoiced\n(Stripe/QBO) cannot be edited and returns HTTP 422."
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.CreateManagedCaseRequest:
+      required:
+      - amountToRecover
+      - creditorCompanyName
+      - currencyCode
+      - date
+      - debtor
+      type: object
+      properties:
+        creditorCompanyName:
+          minLength: 1
+          type: string
+          description: 'Creditor company name for this case.
+
+            If you''re submitting cases on behalf of your clients, use your client''s company name.
+
+            If you''re submitting your own cases, use your own partner company name.'
+          example: Acme Services Inc
+        creditorCountryAlpha2:
+          type:
+          - string
+          - 'null'
+          description: Creditor country code (ISO 3166-1 alpha-2 format). Either this or CreditorCountry is required.
+          example: US
+        creditorCountry:
+          type:
+          - string
+          - 'null'
+          description: Creditor country name. Either this or CreditorCountryAlpha2 is required.
+          example: United States
+        currencyCode:
+          minLength: 1
+          type: string
+          description: Currency code for the case (ISO 4217 format)
+          example: USD
+        date:
+          type: string
+          description: Invoice issue date. Provide date only without time component.
+          format: date-time
+          example: '2024-08-19'
+        dueDate:
+          type:
+          - string
+          - 'null'
+          description: Invoice due date. Provide date only without time component.
+          format: date-time
+          example: '2024-09-02'
+        comments:
+          maxLength: 4000
+          type:
+          - string
+          - 'null'
+          description: Optional comments about the case. Use this to provide context about payment attempts, communication history, or other relevant information.
+          example: Invoice 2024-INV-1234 for custom ERP system development. Payment 90 days overdue despite multiple reminders. Client confirmed services received but cited cash flow issues.
+        claimDescription:
+          maxLength: 4000
+          type:
+          - string
+          - 'null'
+          description: Client provided description of the services or goods delivered
+          example: Software development services - Project Alpha
+        creditorReference:
+          maxLength: 50
+          type:
+          - string
+          - 'null'
+          description: Client's internal reference for the case (e.g., invoice number)
+          example: INV-2024-1234
+        debtor:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.DebtorDto'
+        amountToRecover:
+          type: number
+          description: Total amount to recover from debtor (in the specified currency)
+          format: double
+          example: 15000.0
+        isTest:
+          type: boolean
+          description: 'When true, creates a test case that IS persisted to the database but marked as test data.
+
+            Test cases are excluded from production metrics and can be easily filtered or deleted.
+
+            Use this for integration testing and development.'
+        tag:
+          maxLength: 100
+          type:
+          - string
+          - 'null'
+          description: 'Optional tag for scoped test data grouping (e.g. "suite-run-{uuid}").
+
+            Use this to group test cases created by a single CI pipeline run so they can be
+
+            bulk-deleted via DELETE /test/cases?tag={tag} without affecting parallel runs.
+
+            Only meaningful when IsTest is true. Max 100 characters.'
+        collectionPartnerId:
+          type:
+          - string
+          - 'null'
+          description: 'Optional: Specify a collection partner ID to handle this case.
+
+            When provided, this partner will be used regardless of lead agent matching rules.
+
+            The partner must be active and have coverage for the debtor''s jurisdiction.'
+          format: uuid
+      additionalProperties: false
+      description: 'Request model for creating a case as a managing partner.
+
+        The partner submits both creditor information and case details in a single request.'
+      example:
+        creditorCompanyName: Acme Services Inc
+        creditorCountry: United States
+        currencyCode: USD
+        amountToRecover: 15000
+        date: '2026-04-22'
+        dueDate: '2026-05-06'
+        claimDescription: Software development services - Project Alpha
+        comments: Invoice INV-2024-1234 for custom ERP system development. Payment 90 days overdue despite multiple reminders. Client confirmed services received but cited cash flow issues.
+        creditorReference: INV-2024-1234
+        isTest: false
+        debtor:
+          type: Company
+          name: Pacific Trading LLC
+          contactPerson: John Smith
+          companyRegistrationNumber: 47-1234567
+          address: 123 Market Street, Suite 400
+          zipCode: '94105'
+          city: San Francisco
+          stateAlpha2: CA
+          country: United States
+          email: accounts@pacifictrading.com
+          phone: +1 415 555 0123
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.DebtorDto:
+      required:
+      - name
+      - type
+      type: object
+      properties:
+        type:
+          minLength: 1
+          type: string
+          description: 'Debtor type. Valid values: "Company" or "Person"'
+          example: Company
+        name:
+          minLength: 1
+          type: string
+          description: Debtor name (company name or person's full name)
+          example: Pacific Trading LLC
+        contactPerson:
+          type:
+          - string
+          - 'null'
+          description: Contact person at the company (required for companies, not used for persons)
+          example: John Smith
+        companyRegistrationNumber:
+          type:
+          - string
+          - 'null'
+          description: Company registration number (VAT number, CVR, org number, etc.)
+          example: 47-1234567
+        address:
+          type:
+          - string
+          - 'null'
+          description: Street address
+          example: 123 Market Street, Suite 400
+        zipCode:
+          type:
+          - string
+          - 'null'
+          description: Postal/ZIP code
+          example: '94105'
+        city:
+          type:
+          - string
+          - 'null'
+          description: City name
+          example: San Francisco
+        state:
+          type:
+          - string
+          - 'null'
+          description: State/region/province name
+          example: California
+        stateAlpha2:
+          type:
+          - string
+          - 'null'
+          description: 'US state: two-letter code (e.g., "CA"), ISO 3166-2 format (e.g., "US-CA"), or full name (e.g., "California")'
+          example: CA
+        countryAlpha2:
+          type:
+          - string
+          - 'null'
+          description: Country code (ISO 3166-1 alpha-2 format)
+          example: US
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country name
+          example: United States
+        email:
+          type:
+          - string
+          - 'null'
+          description: Email address for debtor contact
+          example: accounts@pacifictrading.com
+        phone:
+          type:
+          - string
+          - 'null'
+          description: Phone number (include country code)
+          example: +1 415 555 0123
+      additionalProperties: false
+      description: 'V1 Debtor DTO for external partner APIs.
+
+        The debtor is the party that owes the debt.'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        reference:
+          type:
+          - string
+          - 'null'
+        creditorReference:
+          type:
+          - string
+          - 'null'
+        creditorComments:
+          type:
+          - string
+          - 'null'
+        claimDescription:
+          type:
+          - string
+          - 'null'
+        grossAmount:
+          type: number
+          format: double
+        remainder:
+          type: number
+          format: double
+        interestFees:
+          type: number
+          format: double
+        reminderFees:
+          type: number
+          format: double
+        collectionFees:
+          type: number
+          format: double
+        totalAddedFees:
+          type: number
+          format: double
+        currency:
+          type:
+          - string
+          - 'null'
+        isTestCase:
+          type: boolean
+        lifecycle:
+          type:
+          - string
+          - 'null'
+        dueDate:
+          type: string
+          format: date-time
+        date:
+          type: string
+          format: date-time
+        dateFinished:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        dateCollectionStarted:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        closeCode:
+          type:
+          - string
+          - 'null'
+        currentEngagementPhase:
+          type:
+          - string
+          - 'null'
+          description: "The current phase of the case's engagement: \"Pre-legal\", \"Legal\", or \"Enforcement\".\nA different axis from Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto.Lifecycle/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto.CloseCode — an Active case can be\nin any of the three phases.\n            \nNull means \"no active engagement\" (e.g. lead / quoting / pre-contract-signing / unassigned, or\na data-consistency gap) — this is a distinct third state, NOT a synonym for Pre-legal. Most\ncases legitimately read Pre-legal; phase only leaves Pre-legal on legal/enforcement quote flows.\n            \nNot guaranteed to be monotonic: an admin correction can move phase backwards (e.g. Legal back\nto Pre-legal).\n            \nPersists after case closure — reflects the case's last-known engagement phase, not the current\nLifecycle. Note: this is a different field from a lead quote's own offered phase (the phase a\npartner's quote proposes to work the case at, if this case ever went through a quote flow) —\nthis field is the case-level phase of its actual engagement, not a quote's terms."
+        claimType:
+          type:
+          - string
+          - 'null'
+          description: 'The type of claim for this case (e.g. "Unpaid Invoice", "Loan Repayment", "Breach of Contract").
+
+            Null if not set.'
+        creditorDivisionId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        debtor:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.DebtorDto'
+        collectionPartner:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.CollectionPartnerDto'
+        creditor:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDto'
+        bankAccount:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BankAccountDto'
+        blendedAgeUpliftPoints:
+          type:
+          - number
+          - 'null'
+          description: 'MULTI-INVOICE AGE BUCKET PRICING
+
+            Calculated blended age uplift percentage points (0-20) for multi-invoice cases.
+
+            Shows the additional fee percentage added due to invoice age.
+
+            Formula: ((A12-A24)×10 + A24×20) / Total Principal
+
+            Null for single-invoice cases (age uplift is calculated from due date instead).'
+          format: double
+        preLegalSuccessFee:
+          type:
+          - number
+          - 'null'
+          description: 'PRE-LEGAL SUCCESS FEE
+
+            The total pre-legal success fee percentage for this case.
+
+            Includes base fee + age-based uplift (blended or single-invoice).
+
+            Null if pricing has not been calculated yet or if case is not in pre-legal phase.
+
+            Example: 20.5 represents 20.5% success fee.'
+          format: double
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: 'When the case is created with allowPendingContracts=true and required contracts are unsigned,
+
+            this URL points to the signing page. Null when contracts are already signed or not applicable.'
+          deprecated: true
+        signingHandoff:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto'
+        exclusivePeriodEndDate:
+          type:
+          - string
+          - 'null'
+          description: 'The date the exclusive collection period ends (or ended).
+
+            Null if no collection period has been created for this case (e.g. custom-terms cases).
+
+            Use GET /cases/{id}/exclusive-period for the full chain including extensions.'
+          format: date-time
+        disputeStatus:
+          type:
+          - string
+          - 'null'
+          description: 'Whether the claim is disputed by the debtor.
+
+            Returns the description of Debitura.Domain.Model.Receiveables.Invoices.Enums.ClaimDisputeStatus:
+
+            "Yes, the claim is disputed", "No, the claim is not disputed", or "Don''t Know".
+
+            Null when the dispute status has not been set on the case.'
+        validation:
+          $ref: '#/components/schemas/Debitura.Domain.Services.CaseValidation.CaseValidationLeanDto'
+        assignedUser:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.AssignedUserDto'
+        allocationOutstanding:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceAllocationOutstandingDto'
+      additionalProperties: false
+      description: V1 Invoice DTO for external partner APIs
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.TimelineItemDto:
+      required:
+      - description
+      - title
+      - type
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+        type:
+          type:
+          - string
+          - 'null'
+        title:
+          type:
+          - string
+          - 'null'
+        description:
+          type:
+          - string
+          - 'null'
+        actor:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.TimelineActorDto'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the creditor
+          format: uuid
+        companyName:
+          type:
+          - string
+          - 'null'
+          description: Company name of the creditor
+        companyRegistrationNumber:
+          type:
+          - string
+          - 'null'
+          description: Company registration number (CVR, VAT number, etc.)
+        officeEmail:
+          type:
+          - string
+          - 'null'
+          description: Primary office email address
+        officePhone:
+          type:
+          - string
+          - 'null'
+          description: Primary office phone number
+        address:
+          type:
+          - string
+          - 'null'
+          description: Street address
+        city:
+          type:
+          - string
+          - 'null'
+          description: City
+        zipCode:
+          type:
+          - string
+          - 'null'
+          description: Postal/ZIP code
+        state:
+          type:
+          - string
+          - 'null'
+          description: State or region (if applicable)
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country name
+        division:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDivisionDto'
+      additionalProperties: false
+      description: 'Creditor (client) information for external partner APIs.
+
+        Represents the party that the debtor owes money to.'
+    Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto:
+      required:
+      - currency
+      - invoice
+      - method
+      - recipient
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        date:
+          type: string
+          format: date-time
+        grossAmount:
+          type: number
+          format: double
+        recipient:
+          type:
+          - string
+          - 'null'
+        method:
+          type:
+          - string
+          - 'null'
+        currency:
+          type:
+          - string
+          - 'null'
+        invoice:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentRelatedInvoiceDto'
+      additionalProperties: false
+    Debitura.Domain.Model.Base.PageData:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        currentPage:
+          type: integer
+          format: int32
+        responseCount:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int32
+          readOnly: true
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Payments.CreateManagedCasePaymentResponse:
+      required:
+      - caseReference
+      type: object
+      properties:
+        paymentId:
+          type: string
+          format: uuid
+        caseReference:
+          type:
+          - string
+          - 'null'
+        date:
+          type: string
+          format: date-time
+        paymentAmount:
+          type: number
+          format: double
+        caseClosed:
+          type: boolean
+        remainingAmount:
+          type: number
+          format: double
+      additionalProperties: false
+      description: Response after recording a payment as managing partner on a test case.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceListDto:
+      required:
+      - page
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
+        cases:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+      additionalProperties: false
+    Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode:
+      enum:
+      - 0
+      - 1
+      type: integer
+      format: int32
+    Debitura.Domain.Services.CaseValidation.CaseValidationLeanDto:
+      type: object
+      properties:
+        needsInfo:
+          type: boolean
+      additionalProperties: false
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Collection Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com

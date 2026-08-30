@@ -1,0 +1,443 @@
+openapi: 3.2.0
+info:
+  title: Debitura Referral Partner Preview Cases API
+  description: 'Welcome to the Debitura Referral API. This API allows you to set up new clients and track your revenue share with Debitura. You can also generate bearer tokens for use in the Customer API to create cases, check case status, and access all other endpoints. To get access to this API, please contact us at contact@debitura.com.
+
+
+    📖 Full documentation, guides, and integration walkthroughs: https://docs.debitura.com/referral-partners'
+  contact:
+    name: Debitura Support
+    url: https://www.debitura.com/integration
+    email: contact@debitura.com
+  version: v1
+servers:
+- url: https://referral-api.debitura.com
+  description: Production
+security:
+- ApiKey: []
+tags:
+- name: PreviewCases
+  description: Cases
+paths:
+  /cases/preview:
+    post:
+      tags:
+      - PreviewCases
+      summary: Preview case pricing
+      description: 'Preview the success fee pricing for a potential case without creating it.
+
+
+        **What This Endpoint Returns:**
+
+        - IsEligible - Whether the case can be submitted (partner available in this jurisdiction)
+
+        - PricingPreview - Estimated success fee with base rate and any age-based surcharges
+
+        - Jurisdiction - Geographic details for the matched jurisdiction
+
+
+        **Use This To:**
+
+        1. Show your clients the Debitura success fee before they onboard
+
+        2. Check if a jurisdiction is supported before starting the onboarding flow
+
+        3. Display age-adjusted pricing for aged debt portfolios
+
+
+        **Required Fields:**
+
+        - AmountToRecover - Total principal amount
+
+        - CurrencyCode - ISO 4217 currency code (e.g., ''GBP'', ''EUR'', ''USD'')
+
+        - Debtor.Type - ''Company'' or ''Private''
+
+        - Debtor.CountryAlpha2 - ISO 3166-1 alpha-2 country code
+
+        - Debtor.StateAlpha2 - Required for US cases only (e.g., ''CA'', ''NY'')
+
+
+        **Age-Based Pricing (Optional)**
+
+
+        **Single invoice — pass `dueDate`:** The simplest way to get age-adjusted pricing. Provide the invoice due date (ISO 8601, e.g. `2024-01-15`) and Debitura computes the age surcharge internally. Cannot be a future date. Mutually exclusive with age bucket fields.
+
+
+        **Multi-invoice portfolio — pass age buckets:** For portfolios with invoices at different ages, pass the portion of the total that falls into each age bracket:
+
+        - `AmountToRecoverOver12Months` and `AmountToRecoverOver24Months` must be provided together
+
+        - `AmountToRecoverOver6Months` is optional but improves pricing tier accuracy at the 180-day threshold; can only be provided alongside the 12/24-month fields, must be >= `AmountToRecoverOver12Months`, and must be <= `AmountToRecover`
+
+
+        `dueDate` and age bucket fields are mutually exclusive — use one or the other. When no age fields are provided, base pricing is returned without age surcharge.
+
+
+        **Important Notes:**
+
+        - This endpoint does NOT create a case — it only previews pricing
+
+        - Pricing is based on the referral partner''s agreed rate (jurisdiction pricing zone rate if applicable)
+
+        - No creditor or client account is needed'
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewCaseRequestApiViewModel'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewCaseRequestApiViewModel'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewCaseRequestApiViewModel'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewCaseRequestApiViewModel'
+      responses:
+        '200':
+          description: Preview completed
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.ReferralPartnerPreviewCaseResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.ReferralPartnerPreviewCaseResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.ReferralPartnerPreviewCaseResponse'
+        '400':
+          description: Invalid request (validation errors)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+components:
+  schemas:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.JurisdictionDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Internal jurisdiction identifier.
+          format: int32
+        name:
+          type:
+          - string
+          - 'null'
+          description: Display name of the jurisdiction (e.g., "Denmark", "United States - California").
+        countryAlpha2:
+          type:
+          - string
+          - 'null'
+          description: ISO 3166-1 alpha-2 country code.
+        stateAlpha2:
+          type:
+          - string
+          - 'null'
+          description: ISO 3166-2 state/region code (only for countries with state-level routing like the US).
+      additionalProperties: false
+      description: Geographic jurisdiction information for the case.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewCaseRequestApiViewModel:
+      required:
+      - amountToRecover
+      - currencyCode
+      - debtor
+      type: object
+      properties:
+        amountToRecover:
+          type: number
+          description: "The TOTAL amount to recover for this case.\nThis represents the full principal amount across all invoices (if multiple invoices are bundled).\n            \nFor multi-invoice cases with different ages, you can optionally provide age breakdown fields\n(AmountToRecoverOver12Months and AmountToRecoverOver24Months) to enable blended age-based pricing.\n            \nIf age breakdown fields are omitted, the preview will show base pricing without age surcharge calculation."
+          format: double
+        currencyCode:
+          maxLength: 3
+          minLength: 3
+          type: string
+          description: ISO 4217 currency code for the amount (e.g., "DKK", "EUR", "USD")
+        debtor:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewDebtorDto'
+        amountToRecoverOver6Months:
+          type:
+          - number
+          - 'null'
+          description: "OPTIONAL - MULTI-INVOICE AGE BUCKET PRICING (PRICING ZONE 180-DAY THRESHOLD)\n            \nThe portion of AmountToRecover that is more than 6 months (180 days) overdue.\nThis includes amounts that are 12+ and 24+ months overdue.\n            \nThis field is optional and can only be provided alongside AmountToRecoverOver12Months\nand AmountToRecoverOver24Months. It enables precise pricing tier selection based on\nthe 180-day threshold. When omitted, the system falls back to deriving the threshold\nfrom AmountToRecoverOver12Months.\n            \nValidation rules:\n- Must be ≤ AmountToRecover\n- Must be ≥ AmountToRecoverOver12Months"
+          format: double
+        amountToRecoverOver12Months:
+          type:
+          - number
+          - 'null'
+          description: "OPTIONAL - MULTI-INVOICE AGE BUCKET PRICING\n            \nThe portion of AmountToRecover that is more than 12 months overdue.\nThis includes amounts that are 24+ months overdue.\n            \nIf provided, AmountToRecoverOver24Months must also be provided.\nBoth fields must be provided together or both omitted.\n            \nUsed to calculate blended age uplift for multi-invoice cases:\n- Amount under 12 months = AmountToRecover - AmountToRecoverOver12Months\n- Amount 12-24 months = AmountToRecoverOver12Months - AmountToRecoverOver24Months\n- Amount over 24 months = AmountToRecoverOver24Months\n            \nBlended uplift formula: ((A12-A24)×10 + A24×20) / AmountToRecover\nwhere A12 = AmountToRecoverOver12Months, A24 = AmountToRecoverOver24Months\n            \nValidation rules:\n- Must be ≤ AmountToRecover\n- Must be ≥ AmountToRecoverOver24Months"
+          format: double
+        amountToRecoverOver24Months:
+          type:
+          - number
+          - 'null'
+          description: "OPTIONAL - MULTI-INVOICE AGE BUCKET PRICING\n            \nThe portion of AmountToRecover that is more than 24 months overdue.\n            \nIf provided, AmountToRecoverOver12Months must also be provided.\nBoth fields must be provided together or both omitted.\n            \nUsed to calculate blended age uplift for multi-invoice cases.\nSee AmountToRecoverOver12Months for full details on the calculation.\n            \nValidation rules:\n- Must be ≤ AmountToRecoverOver12Months\n- Must be ≤ AmountToRecover"
+          format: double
+        dueDate:
+          type:
+          - string
+          - 'null'
+          description: 'Optional invoice due date. Mutually exclusive with age bucket fields.
+
+            If provided, Debitura computes the age surcharge internally — no need to calculate age buckets.
+
+            Cannot be a future date.'
+          format: date-time
+        returnUrl:
+          maxLength: 2048
+          type:
+          - string
+          - 'null'
+          description: "Optional: URL the creditor user should land on after completing any\npending signing chain (SDCA upgrade / PoA / JPA / KYC) on the\nDebitura Creditors app. Embedded, URL-encoded, into\n`PreviewCaseResponseApiViewModel.Result.SigningHandoff.CombinedSigningUrl`\n(when at least one signing-related required action is present) and into\n`BusinessErrorResponseApiDTO.SigningHandoff.CombinedSigningUrl` /\n`InvoiceDto.SigningHandoff.CombinedSigningUrl` on POST `/cases`.\n            \nMust be an absolute http(s) URL. Values that fail validation\n(relative URLs, non-http schemes, header-injection characters) are\nsilently dropped — the combined URL is still emitted but without\nthe returnUrl query parameter, and the Creditors app falls back to\nits own safe in-app default landing.\n            \nAdditive. Existing integrations\nthat omit this field see the same behaviour as before."
+      additionalProperties: false
+      description: "Request model for previewing case eligibility, partner assignment, and required actions\nbefore actually creating a collection case.\n            \nThis endpoint allows you to check:\n- Whether a case would be eligible for collection (partner coverage available)\n- Which partner would be assigned\n- What documents need to be signed (SDCA, Power of Attorney)\n- Estimated pricing with age-based surcharges\n            \nUse this to guide users through document signing before final case submission."
+      example:
+        amountToRecover: 4000
+        currencyCode: EUR
+        debtor:
+          type: Company
+          countryAlpha2: PT
+        dueDate: '2026-04-22'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewDebtorDto:
+      required:
+      - countryAlpha2
+      - type
+      type: object
+      properties:
+        type:
+          minLength: 1
+          type: string
+          description: 'Debtor type. Valid values: "Company" or "Private"
+
+            This affects partner selection as different partners may specialize in B2B vs B2C collection.'
+        countryAlpha2:
+          maxLength: 2
+          minLength: 2
+          type: string
+          description: 'Country code (ISO 3166-1 alpha-2 format, e.g., "DK", "US", "PL")
+
+            Used to determine jurisdiction and available collection partners.'
+        stateAlpha2:
+          maxLength: 2
+          minLength: 2
+          type:
+          - string
+          - 'null'
+          description: 'US state code (e.g., "CA", "NY")
+
+            REQUIRED for United States cases only, as US partner coverage is state-specific.
+
+            Optional for other countries.'
+      additionalProperties: false
+      description: 'Simplified debtor information for case preview.
+
+        Only includes the minimum fields required for partner routing and eligibility checking.'
+    Debitura.Web.ReferralPartnerApi.Models.Cases.PendingActionDto:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.PendingActionType'
+        collectionPartnerId:
+          type:
+          - string
+          - 'null'
+          description: 'The collection partner this action is scoped to, when applicable.
+
+            Set for partner-specific actions (PoA, KYC). Null for actions that
+
+            are not partner-scoped (e.g. SDCA upgrade, which is platform-wide).'
+          format: uuid
+        dueDate:
+          type:
+          - string
+          - 'null'
+          description: 'Optional deadline by which the action must be completed (UTC).
+
+            Reserved for orchestrator-generated payloads (the orchestrator
+
+            endpoint), where SDCA-upgrade entries can include their refresh
+
+            deadline. Always null on the `/cases/preview` endpoint, since
+
+            preview is creditor-less and SDCA-upgrade is not surfaced there.'
+          format: date-time
+      additionalProperties: false
+      description: "A single pending action that may need to be completed before cases\ncan be successfully submitted. Returned as part of the structured\nPendingActions array on the /cases/preview response.\n            \nAdditive: this complements (does not replace) the existing\nRequiresKycVerification boolean — old API consumers can continue to\nrely on RequiresKycVerification as before."
+    Debitura.Web.ReferralPartnerApi.Models.Cases.ReferralPartnerPreviewCaseResponse:
+      type: object
+      properties:
+        isEligible:
+          type: boolean
+          description: 'Whether the case is eligible for collection (a partner is available in the requested jurisdiction).
+
+            If false, check IneligibilityReason for details.'
+        ineligibilityReason:
+          type:
+          - string
+          - 'null'
+          description: 'Explanation of why the case is not eligible (only present when IsEligible = false).
+
+            Common reasons: "We don''t have an exclusive pre-legal partner in the provided jurisdiction."'
+        jurisdiction:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.JurisdictionDto'
+        pricingPreview:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.PricingPreviewDto'
+        requiresKycVerification:
+          type: boolean
+          description: 'Whether the resolved collection partner requires KYC verification before cases can be submitted.
+
+            When true, the creditor must complete KYC verification before case creation.
+
+            Use the case creation endpoint with a creditor ID to determine whether KYC is already on file.'
+        pendingActions:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.PendingActionDto'
+          description: "Structured list of actions the creditor will need to complete before\n(or as part of) submitting cases for the matched collection partner.\nAlways present — empty when nothing is pending.\n            \nAt preview time the request is creditor-less, so this list reflects the\nmatched partner's hard requirements (e.g. PoA per partner, KYC if the\npartner is configured for it). Creditor-specific items such as SDCA\nupgrade are returned only when the API has creditor context.\n            \nAdditive over Debitura.Web.ReferralPartnerApi.Models.Cases.ReferralPartnerPreviewCaseResponse.RequiresKycVerification — old clients that\nonly read Debitura.Web.ReferralPartnerApi.Models.Cases.ReferralPartnerPreviewCaseResponse.RequiresKycVerification are unaffected."
+        combinedSigningUrl:
+          type:
+          - string
+          - 'null'
+          description: "Always `null` on `/cases/preview` because preview is creditor-less —\nno concrete creditor signing state exists to chain. The structured\nDebitura.Web.ReferralPartnerApi.Models.Cases.ReferralPartnerPreviewCaseResponse.PendingActions array on this response indicates which step types\nthe matched partner will require ahead of onboarding.\n            \nThe canonical placement for the combined-signing URL on POST `/cases`\nresponses is the nested `SigningHandoff` envelope (a\n`SigningHandoffDto` on both `BusinessErrorResponseApiDTO` and\n`InvoiceDto`). The combined URL is populated on POST `/cases`\nresponses, where the creditor IS identified:\n<list type=\"bullet\"><item><description>422 with at least one signing-related business error\n  (`MissingDebtCollectionContract`, `MissingPowerOfAttorney`,\n  `MissingKycVerification`) — see\n  `BusinessErrorResponseApiDTO.SigningHandoff.CombinedSigningUrl`.</description></item><item><description>200 with `AllowPendingContracts=true` when signings\n  remain — see `InvoiceDto.SigningHandoff.CombinedSigningUrl`.</description></item></list>\nBoth POST surfaces use the same Creditors-app\n`/Signing/PendingContracts` entry point and walk the SDCA-upgrade →\nPoA → JPA → KYC chain end-to-end.\n            \nThis flat `CombinedSigningUrl` field on `/cases/preview` is\npreserved as-is for backward compatibility (it is always null in practice)."
+      additionalProperties: false
+      description: 'Response from the Referral Partner pricing preview endpoint.
+
+        Returns eligibility, jurisdiction, estimated success fee pricing, and
+
+        any actions that the creditor will need to complete before cases can
+
+        be submitted (PoA, KYC, SDCA upgrade).'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.PricingPreviewDto:
+      type: object
+      properties:
+        baseSuccessFeePercentage:
+          type: number
+          description: 'Base success fee percentage before age surcharges.
+
+            This is the standard rate for cases under 12 months overdue.'
+          format: double
+        ageSurchargePercentage:
+          type: number
+          description: 'Additional percentage points added for aged invoices.
+
+            Calculated based on invoice age:
+
+            - 12-24 months overdue: +8 percentage points
+
+            - 24+ months overdue: +15 percentage points
+
+            - Multi-invoice with mixed ages: blended rate (0-15 percentage points)'
+          format: double
+        totalSuccessFeePercentage:
+          type: number
+          description: 'Total success fee percentage (base + age surcharge).
+
+            This is the percentage of the recovered amount that will be charged as a success fee.'
+          format: double
+        currencyCode:
+          type:
+          - string
+          - 'null'
+          description: ISO 4217 currency code for the case.
+        pricingSource:
+          type:
+          - string
+          - 'null'
+          description: 'Which pricing rule determined the fee.
+
+            Possible values: "Standard agreement", "Creditor custom pricing",
+
+            "Managing partner custom pricing", "Jurisdiction custom pricing",
+
+            "Partner custom pricing", "Accepted quote".'
+        pricingSourceDescription:
+          type:
+          - string
+          - 'null'
+          description: 'Human-readable explanation of why this pricing was applied.
+
+            Example: "9.5% success fee — BD Legal custom collection rates (EU zone, $1,000–$7,999 tier)"'
+      additionalProperties: false
+      description: Estimated pricing for the case, including age-based surcharges.
+    Debitura.Web.ReferralPartnerApi.Models.Cases.PendingActionType:
+      enum:
+      - SdcaUpgrade
+      - PoA
+      - Jpa
+      - Kyc
+      type: string
+      description: "Type of action that may need to be completed by the creditor before\n(or as part of) submitting cases via the referral partner API.\nNew values may be added in future API versions — clients should treat\nunknown values as informational and not crash.\n            \nWire format is LOCKED to NAMED STRING values (e.g. `\"PoA\"`,\n`\"Kyc\"`) via Newtonsoft.Json.Converters.StringEnumConverter. The host serializer\nfor this API is Newtonsoft.Json (`AddNewtonsoftJson` in\n`Program.cs`), so a `System.Text.Json``JsonStringEnumConverter` attribute would be silently ignored —\nhence the explicit Newtonsoft converter here.\n            \nNumeric values below mirror `Domain.CombinedSigningStep`\n(SdcaUpgrade=1, PoA=2, Jpa=3, Kyc=4, Done=5) by convention, but they\nare an internal implementation detail. Clients MUST consume the string\nnames; the numbers are not part of the public contract.\n            \nRenumbering or removing already-released values is forbidden — see\n`Debitura.Wiki/engineering/development-philosophy/backend-standards.md`\n(line 102: \"Never renumber or remove released enum values\").\n            \nThe System.Text.Json.Serialization.JsonStringEnumConverter attribute is\ndeclared in addition so that consumers (and our own integration tests)\nwho parse responses using `System.Text.Json` can deserialize the\nstring form back into this enum. The Newtonsoft converter is what\nactually controls outbound wire format on this host."
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Referral Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com

@@ -1,0 +1,1327 @@
+openapi: 3.2.0
+info:
+  title: Debitura Webhooks API
+  version: v1
+  description: 'Operations tagged Webhooks across 3 of this provider''s published API definitions: debitura-collection-partner-api.json, debitura-customer-api.json, debitura-referral-partner-api.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://collectionpartner-api.debitura.com
+  description: Production
+- url: https://customer-api.debitura.com
+  description: Production
+- url: https://referral-api.debitura.com
+  description: Production
+tags:
+- name: Webhooks
+  description: Manage webhook subscriptions and inspect the delivery event log. Create subscriptions to receive real-time notifications for case lifecycle events, payments, and chats. Use GET /webhooks/events to verify deliveries and POST /webhooks/events/{id}/replay to re-deliver a specific event.
+paths:
+  /webhooks:
+    get:
+      tags:
+      - Webhooks
+      summary: List all webhook subscriptions for the authenticated collection partner.
+      description: Returns all webhook subscriptions for the authenticated collection partner. Secrets are never returned in list operations.
+      responses:
+        '200':
+          description: List of webhook subscriptions
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+        '401':
+          description: API key is missing or invalid
+      security:
+      - ApiKey: []
+    post:
+      tags:
+      - Webhooks
+      summary: Create a new webhook subscription.
+      description: "Creates a new webhook subscription for receiving real-time event notifications.\n\n**Available Events (assigned/working-partner role):**\n- `case.assigned` - Case validated by Debitura and assigned to your agency\n- `case.updated` - Case lifecycle changed (e.g., Active → Paused). Does not cover engagement phase\n  changes (Pre-legal/Legal/Enforcement) — poll `GET /cases/{id}` or `GET /cases/{id}/timeline` for\n  the current phase; there is no phase-change event today.\n- `case.closed` - Case closed\n- `payment.created` - Payment registered on case\n- `payment.deleted` - Payment reversed (deleted) on case\n- `chat.created` - Chat message created on case\n\n**Security:** Response includes Base64-encoded signing secret (shown only once). Store it to verify HMAC-SHA256 signatures on deliveries.\n\n**Requirements:** HTTPS URL required. Deliveries retry with exponential backoff (8 attempts). Webhook auto-disables after max failures."
+      requestBody:
+        description: The webhook creation request, including the target URL and event types to subscribe to.
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest'
+      responses:
+        '201':
+          description: Webhook created successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+        '400':
+          description: Invalid request
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '401':
+          description: API key is missing or invalid
+        '422':
+          description: Business rule violation
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://collectionpartner-api.debitura.com
+      description: Production
+  /webhooks/{id}:
+    get:
+      tags:
+      - Webhooks
+      summary: Get a specific webhook subscription by ID.
+      description: Returns details of a specific webhook subscription. Secret is never returned in this operation.
+      parameters:
+      - name: id
+        in: path
+        description: The unique identifier of the webhook subscription.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Webhook subscription found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+        '401':
+          description: API key is missing or invalid
+        '404':
+          description: Webhook not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    put:
+      tags:
+      - Webhooks
+      summary: Update an existing webhook subscription.
+      description: Updates webhook URL, events, or active status. Set RegenerateSecret=true to rotate signing secret (returned in response). Use IsActive=true to re-enable auto-disabled webhooks after fixing delivery issues. Secret only included if RegenerateSecret=true.
+      parameters:
+      - name: id
+        in: path
+        description: The unique identifier of the webhook subscription to update.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        description: The update request. All fields are optional — only provided fields are changed.
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest'
+      responses:
+        '200':
+          description: Webhook updated successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+        '400':
+          description: Invalid request
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '401':
+          description: API key is missing or invalid
+        '404':
+          description: Webhook not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    delete:
+      tags:
+      - Webhooks
+      summary: Delete a webhook subscription.
+      description: Permanently deletes webhook subscription. Cannot be undone. Consider setting IsActive=false to temporarily disable instead.
+      parameters:
+      - name: id
+        in: path
+        description: The unique identifier of the webhook subscription to delete.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Webhook deleted successfully
+        '401':
+          description: API key is missing or invalid
+        '404':
+          description: Webhook not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    patch:
+      tags:
+      - Webhooks
+      summary: Update an existing webhook subscription.
+      description: 'Partially updates an existing webhook subscription using HTTP PATCH.
+
+
+        Supported Updates:
+
+        - Change the webhook URL
+
+        - Enable or disable the subscription
+
+        - Regenerate the secret key
+
+
+        Note: Event types cannot be changed after creation. To update event types, delete and recreate the subscription.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest'
+      responses:
+        '200':
+          description: Webhook updated successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto'
+        '400':
+          description: Invalid request
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Webhook not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://collectionpartner-api.debitura.com
+      description: Production
+  /webhooks/{id}/test:
+    post:
+      tags:
+      - Webhooks
+      summary: Send a test event to the webhook endpoint.
+      description: 'Sends a synthetic case.created test event to the webhook endpoint.
+
+
+        This is useful for:
+
+        - Verifying the webhook URL is reachable
+
+        - Testing your webhook endpoint implementation
+
+        - Validating signature verification
+
+
+        The test payload will be a realistic case.created event with synthetic data.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Test completed
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.TestResultDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.TestResultDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.TestResultDto'
+        '404':
+          description: Webhook not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+      - Bearer: []
+    servers:
+    - url: https://customer-api.debitura.com
+      description: Production
+  /webhooks/{id}:test:
+    post:
+      tags:
+      - Webhooks
+      summary: Send a test event to the webhook endpoint.
+      description: 'Sends a synthetic case.created test event to the webhook endpoint.
+
+
+        This is useful for:
+
+        - Verifying the webhook URL is reachable
+
+        - Testing your webhook endpoint implementation
+
+        - Validating signature verification
+
+
+        The test payload will be a realistic case.created event with synthetic data.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Test completed
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.TestResultDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.TestResultDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.TestResultDto'
+        '404':
+          description: Webhook not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+      - Bearer: []
+    servers:
+    - url: https://customer-api.debitura.com
+      description: Production
+  /webhooks/{id}/replay:
+    post:
+      tags:
+      - Webhooks
+      summary: '[Deprecated] This endpoint is misnamed and does not actually replay events.
+
+        Use `GET /webhooks/events?caseId={id}` to inspect delivery history,
+
+        then `POST /webhooks/events/{eventId}/replay` to re-deliver a specific event.'
+      description: "This endpoint was never fully implemented — it counts cases created\nsince `sinceUtc` and returns the count as `eventsReplayed`, but does not\nre-enqueue or redeliver any events. The name \"replay\" collides with the real\n`POST /webhooks/events/{eventId}/replay` endpoint which actually re-delivers.\n            \nThis endpoint is kept for backward compatibility (additive-only rule) but is deprecated.\nIntegrators should migrate to the event-log + replay-by-id pattern described above."
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto'
+      responses:
+        '200':
+          description: Count of cases since sinceUtc (not events replayed)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayResultDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayResultDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayResultDto'
+        '400':
+          description: Invalid request
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Webhook not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      deprecated: true
+      security:
+      - ApiKey: []
+      - Bearer: []
+    servers:
+    - url: https://customer-api.debitura.com
+      description: Production
+  /webhooks/{id}:replay:
+    post:
+      tags:
+      - Webhooks
+      summary: '[Deprecated] This endpoint is misnamed and does not actually replay events.
+
+        Use `GET /webhooks/events?caseId={id}` to inspect delivery history,
+
+        then `POST /webhooks/events/{eventId}/replay` to re-deliver a specific event.'
+      description: "This endpoint was never fully implemented — it counts cases created\nsince `sinceUtc` and returns the count as `eventsReplayed`, but does not\nre-enqueue or redeliver any events. The name \"replay\" collides with the real\n`POST /webhooks/events/{eventId}/replay` endpoint which actually re-delivers.\n            \nThis endpoint is kept for backward compatibility (additive-only rule) but is deprecated.\nIntegrators should migrate to the event-log + replay-by-id pattern described above."
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto'
+      responses:
+        '200':
+          description: Count of cases since sinceUtc (not events replayed)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayResultDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayResultDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayResultDto'
+        '400':
+          description: Invalid request
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Webhook not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      deprecated: true
+      security:
+      - ApiKey: []
+      - Bearer: []
+    servers:
+    - url: https://customer-api.debitura.com
+      description: Production
+  /v1/Webhooks:
+    get:
+      tags:
+      - Webhooks
+      summary: Get all webhooks for the authenticated referral partner
+      description: 'Returns all webhook subscriptions with their configuration (URL, events, status). Note: Secrets are never included in GET responses.'
+      responses:
+        '200':
+          description: List of webhook subscriptions
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+        '401':
+          description: API key is missing or invalid
+      security:
+      - ApiKey: []
+    post:
+      tags:
+      - Webhooks
+      summary: Create a new webhook subscription
+      description: 'Creates webhook subscription for real-time event notifications.
+
+
+        **Available Events:**
+
+        - `client.onboarding.poa_signed` - Client signed Power of Attorney
+
+        - `client.onboarding.contract_signed` - Client signed Service Delivery Agreement
+
+        - `client.linked` - Client successfully linked to your account
+
+        - `client.link_declined` - Client declined to link
+
+        - `client.link_requested` - 409 link request created (awaiting end-user approval)
+
+        - `client.link_expired` - 409 link request reached its TTL without approval/decline
+
+        - `case.created` - Collection case created for linked client
+
+        - `case.updated` - Collection case lifecycle changed (e.g., Active → Closed)
+
+        - `case.closed` - Collection case closed (terminal state)
+
+        - `cases.replay_failed` - A stored case payload failed to create during 409 carry-through (retry via the Customer API)
+
+
+        **Security:** Response includes Base64-encoded signing secret (shown only once). Store it to verify HMAC-SHA256 signatures on deliveries.
+
+
+        **Requirements:** HTTPS URL required (HTTP, localhost, and private IPs rejected). Deliveries retry with exponential backoff (8 attempts). Webhook auto-disables after max failures.'
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest_2'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest_2'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest_2'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest_2'
+      responses:
+        '200':
+          description: Webhook created successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+        '400':
+          description: Invalid request (validation errors)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '401':
+          description: API key is missing or invalid
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://referral-api.debitura.com
+      description: Production
+  /v1/Webhooks/{id}:
+    get:
+      tags:
+      - Webhooks
+      summary: Get a specific webhook by ID
+      description: Returns webhook configuration including URL, events, active status, and DisabledReason if auto-disabled. Secret is never included (only shown during creation/regeneration).
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Webhook details
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+        '401':
+          description: API key is missing or invalid
+        '404':
+          description: Webhook not found or does not belong to this partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    put:
+      tags:
+      - Webhooks
+      summary: Update an existing webhook subscription
+      description: Updates webhook URL, events, or active status. Set RegenerateSecret=true to rotate signing secret (returned in response). Use IsActive=true to re-enable auto-disabled webhooks after fixing delivery issues. Secret only included if RegenerateSecret=true.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest_2'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest_2'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest_2'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest_2'
+      responses:
+        '200':
+          description: Webhook updated successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2'
+        '400':
+          description: Invalid request (validation errors)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '401':
+          description: API key is missing or invalid
+        '404':
+          description: Webhook not found or does not belong to this partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    delete:
+      tags:
+      - Webhooks
+      summary: Delete a webhook subscription
+      description: Permanently deletes webhook subscription. Cannot be undone. Consider setting IsActive=false to temporarily disable instead. Delivery history is lost after deletion.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Webhook deleted successfully
+        '401':
+          description: API key is missing or invalid
+        '404':
+          description: Webhook not found or does not belong to this partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://referral-api.debitura.com
+      description: Production
+  /v1/Webhooks/test:
+    post:
+      tags:
+      - Webhooks
+      summary: Trigger a test webhook event (test environment only)
+      description: 'Triggers a realistic webhook delivery through the real pipeline (queue → dispatcher → HMAC-signed HTTP delivery).
+
+
+        ⚠️ **TEST ENVIRONMENT ONLY** - Returns 403 in production. Use testreferral-api.debitura.com for testing.
+
+
+        **How it works:**
+
+        - Looks up real entity data (case or client link) to construct a realistic payload
+
+        - Publishes through the same pipeline as production events (signature verification, retries, etc.)
+
+        - Returns immediately after enqueueing — delivery is async via Azure Queue
+
+
+        **Case events** (`case.created`, `case.updated`, `case.closed`):
+
+        - Requires `caseId` — must be a real case belonging to a linked client
+
+        - For `case.updated`: optionally provide `oldLifecycle` and `newLifecycle` (defaults to current → Closed)
+
+        - For `case.closed`: optionally provide `closeCode` and `closeComment` (defaults to Paid)
+
+
+        **Client events** (`client.linked`, `client.link_declined`, `client.link_requested`, `client.link_expired`, `client.onboarding.poa_signed`, `client.onboarding.contract_signed`):
+
+        - Requires `externalTenantId` — must be an active client link belonging to your account'
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookRequest'
+      responses:
+        '200':
+          description: Test event enqueued successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookResponse'
+        '400':
+          description: Invalid request (missing required fields or invalid event type)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '401':
+          description: API key is missing or invalid
+        '403':
+          description: Endpoint not available in production environment
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Case or client link not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+    servers:
+    - url: https://referral-api.debitura.com
+      description: Production
+components:
+  schemas:
+    Debitura.Domain.Model.Webhooks.Dtos.WebhookDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type:
+          - string
+          - 'null'
+        events:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+        isActive:
+          type: boolean
+        createdUtc:
+          type: string
+          format: date-time
+        updatedUtc:
+          type: string
+          format: date-time
+        disabledReason:
+          type:
+          - string
+          - 'null'
+        secret:
+          type:
+          - string
+          - 'null'
+        isTestMode:
+          type: boolean
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest:
+      required:
+      - events
+      - url
+      type: object
+      properties:
+        url:
+          maxLength: 1024
+          minLength: 0
+          type: string
+          format: uri
+        events:
+          minItems: 1
+          type: array
+          items:
+            type: string
+        isTestMode:
+          type: boolean
+      additionalProperties: false
+    Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest:
+      type: object
+      properties:
+        url:
+          maxLength: 1024
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          format: uri
+        events:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+        isActive:
+          type:
+          - boolean
+          - 'null'
+        regenerateSecret:
+          type: boolean
+        isTestMode:
+          type:
+          - boolean
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.TestResultDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the test delivery was successful.
+        httpStatusCode:
+          type:
+          - integer
+          - 'null'
+          description: HTTP status code returned by the webhook endpoint.
+          format: int32
+        durationMs:
+          type:
+          - integer
+          - 'null'
+          description: Duration of the HTTP request in milliseconds.
+          format: int32
+        errorMessage:
+          type:
+          - string
+          - 'null'
+          description: Error message if the delivery failed.
+        errorCategory:
+          type:
+          - string
+          - 'null'
+          description: Category of the error (TimeoutError, NetworkError, SslError, HttpError, UnknownError).
+        testPayload:
+          description: The test event payload that was sent.
+      additionalProperties: false
+      description: Result of a webhook test delivery.
+    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayResultDto:
+      type: object
+      properties:
+        eventsReplayed:
+          type: integer
+          description: Number of events that were re-enqueued for delivery.
+          format: int32
+      additionalProperties: false
+      description: Result of a webhook event replay operation.
+    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto:
+      required:
+      - sinceUtc
+      type: object
+      properties:
+        sinceUtc:
+          type: string
+          description: Replay all case.created events since this timestamp (UTC).
+          format: date-time
+      additionalProperties: false
+      description: Request to replay events from a specific timestamp.
+    Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the webhook subscription.
+          format: uuid
+        url:
+          type:
+          - string
+          - 'null'
+          description: The HTTPS URL where webhook events will be delivered.
+        events:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: Array of event types this subscription is interested in.
+        isActive:
+          type: boolean
+          description: Whether this webhook subscription is active.
+        createdUtc:
+          type: string
+          description: Timestamp when the webhook subscription was created (UTC).
+          format: date-time
+        updatedUtc:
+          type: string
+          description: Timestamp when the webhook subscription was last updated (UTC).
+          format: date-time
+        disabledReason:
+          type:
+          - string
+          - 'null'
+          description: Reason why the webhook was automatically disabled (if IsActive is false).
+        secret:
+          type:
+          - string
+          - 'null'
+          description: 'Secret key for HMAC-SHA256 signature verification.
+
+            Only returned on creation or secret regeneration — never exposed again for security.'
+        isTestMode:
+          type: boolean
+          description: 'True when the subscription has `DataClassification.Test` classification;
+
+            false for all other classifications (Production, Demo).
+
+            Computed as `Classification != DataClassification.Production`.'
+      additionalProperties: false
+      description: Represents a webhook subscription configuration.
+    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookRequest:
+      required:
+      - eventType
+      type: object
+      properties:
+        eventType:
+          minLength: 1
+          type: string
+          description: The webhook event type to trigger (e.g. "case.updated", "client.linked")
+        caseId:
+          type:
+          - string
+          - 'null'
+          description: Required for case.created, case.updated, and case.closed events
+          format: uuid
+        externalTenantId:
+          type:
+          - string
+          - 'null'
+          description: Required for client.* events (client.linked, client.link_declined, client.onboarding.*)
+        oldLifecycle:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.updated: the "from" lifecycle (defaults to current case lifecycle)'
+        newLifecycle:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.updated: the "to" lifecycle (defaults to "Closed")'
+        closeCode:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.closed: the close code (defaults to "Paid")'
+        closeComment:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.closed: a close comment'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookResponse:
+      type: object
+      properties:
+        eventType:
+          type:
+          - string
+          - 'null'
+        enqueuedCount:
+          type: integer
+          format: int32
+        message:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest_2:
+      required:
+      - events
+      - url
+      type: object
+      properties:
+        url:
+          maxLength: 1024
+          minLength: 0
+          type: string
+          description: 'The HTTPS URL where webhook events will be delivered.
+
+            Must be a valid HTTPS URL.'
+          format: uri
+        events:
+          minItems: 1
+          type: array
+          items:
+            type: string
+          description: Array of event types to subscribe to.
+        isTestMode:
+          type: boolean
+          description: 'When true, the subscription is created with `DataClassification.Test`,
+
+            meaning it will only receive events for test-classified data.
+
+            Defaults to false (Production classification).'
+      additionalProperties: false
+      description: Request to create a new webhook subscription.
+    Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest_2:
+      type: object
+      properties:
+        url:
+          maxLength: 1024
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          description: 'The new HTTPS URL where webhook events will be delivered.
+
+            Optional — only provide if changing the URL.'
+          format: uri
+        events:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: 'Updated list of event types to subscribe to.
+
+            Optional — only provide if changing the events.
+
+            Note: Not supported by the ExternalCustomerAPI — that endpoint returns 400 if this field is set.'
+        isActive:
+          type:
+          - boolean
+          - 'null'
+          description: 'Set to true to enable the webhook, false to disable it.
+
+            Optional — only provide if changing the active status.'
+        regenerateSecret:
+          type: boolean
+          description: 'Set to true to regenerate the webhook secret.
+
+            A new secret will be returned in the response.'
+        isTestMode:
+          type:
+          - boolean
+          - 'null'
+          description: 'When set, updates the classification of the subscription.
+
+            True maps to `DataClassification.Test`; false maps to `DataClassification.Production`.
+
+            Omit to leave the current classification unchanged.'
+      additionalProperties: false
+      description: Request to update an existing webhook subscription.
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Collection Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+    Bearer:
+      type: http
+      description: This is for referral partners, who are sending in clients to the platform. They get the bearer token from the referral partner Api and can be inserted here.
+      scheme: bearer
+      bearerFormat: JWT
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com
+x-refined-from:
+- debitura-collection-partner-api.json
+- debitura-customer-api.json
+- debitura-referral-partner-api.json

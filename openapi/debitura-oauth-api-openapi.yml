@@ -1,0 +1,232 @@
+openapi: 3.2.0
+info:
+  title: Debitura Referral Partner O Auth API
+  description: 'Welcome to the Debitura Referral API. This API allows you to set up new clients and track your revenue share with Debitura. You can also generate bearer tokens for use in the Customer API to create cases, check case status, and access all other endpoints. To get access to this API, please contact us at contact@debitura.com.
+
+
+    📖 Full documentation, guides, and integration walkthroughs: https://docs.debitura.com/referral-partners'
+  contact:
+    name: Debitura Support
+    url: https://www.debitura.com/integration
+    email: contact@debitura.com
+  version: v1
+servers:
+- url: https://referral-api.debitura.com
+  description: Production
+security:
+- ApiKey: []
+tags:
+- name: OAuth
+paths:
+  /oauth/token:
+    post:
+      tags:
+      - OAuth
+      summary: Get OAuth access token
+      description: 'Generates a short-lived JWT bearer token for accessing the Customer API on behalf of a specific client.
+
+
+        **How It Works:**
+
+        1. Authenticate with your referral partner API key (XApiKey header)
+
+        2. Provide the externalTenantId of the client you want to access
+
+        3. Receive a Bearer token valid for 30 minutes
+
+        4. Use the token in the Customer API: `Authorization: Bearer {access_token}`
+
+
+        **Requirements:**
+
+        - The externalTenantId must match an active ReferralPartnerClientLink for your partner account
+
+        - The client must be fully onboarded (SDCA signed)
+
+
+        **Token Details:**
+
+        - Type: Bearer (JWT)
+
+        - Lifetime: 30 minutes
+
+        - Scope: Customer API access for the specified client only
+
+
+        **Usage Example:**
+
+        ```
+
+        POST /oauth/token
+
+        { "externalTenantId": "your-client-id" }
+
+
+        Response:
+
+        { "accessToken": "eyJ...", "tokenType": "Bearer", "expiresIn": 1800 }
+
+        ```'
+      requestBody:
+        description: Token generation request with externalTenantId
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.AccessTokens.CreateAccessTokenRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.AccessTokens.CreateAccessTokenRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.AccessTokens.CreateAccessTokenRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.AccessTokens.CreateAccessTokenRequest'
+      responses:
+        '200':
+          description: Token generated successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.AccessTokens.AccessTokenResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.AccessTokens.AccessTokenResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.AccessTokens.AccessTokenResponse'
+        '400':
+          description: Invalid request (missing or invalid externalTenantId)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Client not found (no active client link found for externalTenantId)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+components:
+  schemas:
+    Debitura.Web.ReferralPartnerApi.Models.AccessTokens.AccessTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type:
+          - string
+          - 'null'
+          description: 'The JWT bearer token to use in Authorization header.
+
+            Format: "Bearer {access_token}"'
+        expiresIn:
+          type: integer
+          description: Token lifetime in seconds (typically 1800 for 30 minutes).
+          format: int32
+        creditorId:
+          type: string
+          description: The Debitura creditor ID that this token grants access to.
+          format: uuid
+        externalTenantId:
+          type:
+          - string
+          - 'null'
+          description: The partner's external tenant ID for reference.
+        tokenType:
+          type:
+          - string
+          - 'null'
+          description: Token type - always "Bearer" for JWT tokens.
+      additionalProperties: false
+      description: Response containing a short-lived JWT bearer token for accessing the Customer API.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ReferralPartnerApi.Models.AccessTokens.CreateAccessTokenRequest:
+      required:
+      - externalTenantId
+      type: object
+      properties:
+        externalTenantId:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: 'The partner''s external identifier for the client/tenant.
+
+            This must match an active ReferralPartnerClientLink.'
+      additionalProperties: false
+      description: 'Request to generate a short-lived access token for accessing the Customer API
+
+        on behalf of a linked client.'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Referral Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com

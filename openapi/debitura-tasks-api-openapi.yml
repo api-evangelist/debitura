@@ -1,0 +1,293 @@
+openapi: 3.2.0
+info:
+  title: Debitura Customer Tasks API
+  description: 'Welcome to the Debitura Customer API, your gateway to seamlessly integrating your debt collection workflow with our platform. Debitura connects customers with trusted debt collection firms specializing in pre-legal debt recovery. With this API, you can easily upload cases, track their status, and manage your debt collection process efficiently. For any support or inquiries, please reach out to us at contact@debitura.com. To setup an API key, log into your Debitura account and go here: https://app.debitura.com/CreditorApiKey
+
+
+    📖 Full documentation, guides, and integration walkthroughs: https://docs.debitura.com/clients
+
+
+    NOTE: if you''re representing a platform and want to provide this feature for your customers, you need a different API. Please contact us.'
+  contact:
+    name: Debitura Support
+    url: https://www.debitura.com/integration/debt-collection-api
+    email: contact@debitura.com
+  version: v1
+servers:
+- url: https://customer-api.debitura.com
+  description: Production
+security:
+- ApiKey: []
+- Bearer: []
+tags:
+- name: Tasks
+  description: Tasks
+paths:
+  /tasks:
+    get:
+      tags:
+      - Tasks
+      summary: List your open tasks
+      description: 'Returns a paginated, account-wide list of every task (action-item) your account currently has — across ALL cases, not just one. Use GET /cases/{id}/tasks instead to scope this to a single case.
+
+
+        **What is a task?**
+
+        A task is something the platform needs YOU to do before a case can proceed — e.g. reply to a chat message, sign a contract, or assign a bank account for payouts. Tasks auto-resolve when the underlying condition clears (for example, once you reply to the case''s chat, the ReplyToChat task disappears on its own) — this is a live work queue, not an append-only log. Poll it, don''t assume a task you''ve seen before is still open.
+
+
+        **Every task has a solutionUrl** — an absolute link, identical to the one used inside the Creditor app itself, that a human can open to resolve the task in one click, no matter the task type.
+
+
+        **Some tasks also have an `action`** — a machine-readable hint pointing at the exact existing API call that resolves the task directly, with no human required. Today that''s the chat-driven cluster (ReplyToChat, ClientInputRequired, MoreInfoNeeded) — post a message via POST /cases/{caseId}/chats and the task resolves itself once the case leaves its needs-info state. Tasks without an action are `action: null` — resolve those via solutionUrl.
+
+
+        **Filtering:**
+
+        - status (default: Open) — Open or Solved
+
+        - type (repeatable, e.g. ?type=ReplyToChat&type=SignContract) — restrict to specific task types
+
+
+        **Pagination:**
+
+        - Page (default: 1), PageSize (default: 10, max: 100)'
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          default: Open
+      - name: type
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - name: Page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 1
+      - name: PageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 10
+      responses:
+        '200':
+          description: Tasks returned
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskListDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskListDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskListDto'
+        '400':
+          description: Invalid status, type, or pagination parameters
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+components:
+  schemas:
+    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskActionDto:
+      type: object
+      properties:
+        method:
+          type:
+          - string
+          - 'null'
+          description: HTTP method to use, e.g. `"POST"`.
+        path:
+          type:
+          - string
+          - 'null'
+          description: 'Path template for the resolving call, e.g. `"/cases/{caseId}/chats"`.
+
+            Relative to the API''s base URL.'
+      additionalProperties: false
+      description: "A machine-readable hint pointing at the existing API call that resolves a task, e.g.\n`{ \"method\": \"POST\", \"path\": \"/cases/{caseId}/chats\" }` for a chat-driven task.\n            \nPath uses the same `{param}` placeholder style as this API's own\ndocumented routes — substitute in the real IDs before calling."
+    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The task's unique ID.
+          format: uuid
+        type:
+          type:
+          - string
+          - 'null'
+          description: 'Stable string code for the task type (e.g. `"ReplyToChat"`). This is the public,
+
+            additive-safe contract — it does NOT track the internal integer enum used in storage.'
+        typeLabel:
+          type:
+          - string
+          - 'null'
+          description: Human-readable label for Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.Type (e.g. "Reply to chat").
+        title:
+          type:
+          - string
+          - 'null'
+          description: Short task title, as shown in the Creditor app.
+        description:
+          type:
+          - string
+          - 'null'
+          description: Optional longer description of what the task requires.
+        status:
+          type:
+          - string
+          - 'null'
+          description: Either `"Open"` or `"Solved"`.
+        caseId:
+          type:
+          - string
+          - 'null'
+          description: 'The case (collection case / invoice) this task belongs to, when applicable.
+
+            Null for account-level tasks not tied to a single case (e.g. SignContract, AssignBankAccount).'
+          format: uuid
+        caseReference:
+          type:
+          - string
+          - 'null'
+          description: Your reference for Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.CaseId, if any.
+        leadId:
+          type:
+          - string
+          - 'null'
+          description: The lead this task belongs to (e.g. SelectQuoteWinner), if applicable.
+          format: uuid
+        deadline:
+          type:
+          - string
+          - 'null'
+          description: When this task is due, if a deadline is set.
+          format: date-time
+        dateCreated:
+          type: string
+          description: When the task was created.
+          format: date-time
+        dateSolved:
+          type:
+          - string
+          - 'null'
+          description: When the task was resolved, if it has been.
+          format: date-time
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: 'Absolute URL — identical to the one the Creditor app itself links to — where a human can
+
+            resolve this task. Always present, regardless of whether Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.Action is populated.'
+        action:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskActionDto'
+      additionalProperties: false
+      description: "A creditor-facing action item (\"task\") — something the platform needs the client to do\nbefore a case can proceed (e.g. reply to a chat, sign a contract, assign a bank account).\n            \nEvery task carries a Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.SolutionUrl — an absolute link identical to the one used\ninside the Creditor app — so a human can resolve any task in one click, even task types that\nare not yet directly API-actionable. Tasks that ARE directly API-actionable additionally carry\na non-null Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.Action pointing at the exact API call that resolves them."
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Domain.Model.Base.PageData:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        currentPage:
+          type: integer
+          format: int32
+        responseCount:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int32
+          readOnly: true
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskListDto:
+      required:
+      - page
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
+        tasks:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto'
+      additionalProperties: false
+      description: Paged list of tasks, returned by `GET /tasks`.
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: This is for clients who manage their own account. They can get the API key in the platform and set it as the 'XApiKey' in the header.
+      name: XApiKey
+      in: header
+    Bearer:
+      type: http
+      description: This is for referral partners, who are sending in clients to the platform. They get the bearer token from the referral partner Api and can be inserted here.
+      scheme: bearer
+      bearerFormat: JWT
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com

@@ -1,0 +1,585 @@
+openapi: 3.2.0
+info:
+  title: Debitura Coverage API
+  version: v1
+  description: 'Operations tagged Coverage across 2 of this provider''s published API definitions: debitura-customer-api.json, debitura-referral-partner-api.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://customer-api.debitura.com
+  description: Production
+- url: https://referral-api.debitura.com
+  description: Production
+tags:
+- name: Coverage
+  description: Jurisdiction coverage — query which countries and debt types Debitura can collect in, and check case eligibility.
+paths:
+  /coverage:
+    get:
+      tags:
+      - Coverage
+      summary: List all jurisdiction coverage
+      description: Returns complete coverage information for all jurisdictions where Debitura operates, including power of attorney signing status and solution URLs.
+      responses:
+        '200':
+          description: Coverage list returned
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+      security:
+      - ApiKey: []
+      - Bearer: []
+    servers:
+    - url: https://customer-api.debitura.com
+      description: Production
+  /coverage/{id}:
+    get:
+      tags:
+      - Coverage
+      summary: Get jurisdiction coverage by ID
+      description: Returns a single jurisdiction with its geographic information, assigned collection partner, and power of attorney signing status.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: Coverage item returned
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+        '404':
+          description: Jurisdiction not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+      - Bearer: []
+    servers:
+    - url: https://customer-api.debitura.com
+      description: Production
+  /coverage/search:
+    get:
+      tags:
+      - Coverage
+      summary: '[DEPRECATED] Search for jurisdiction coverage'
+      description: ⚠️ **DEPRECATED:** Use POST /coverage/check-eligibility instead.
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Coverage item returned
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+        '400':
+          description: Search query missing or invalid
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: No jurisdiction found matching the search query
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      deprecated: true
+      security:
+      - ApiKey: []
+      - Bearer: []
+    servers:
+    - url: https://customer-api.debitura.com
+      description: Production
+  /coverage/:search:
+    get:
+      tags:
+      - Coverage
+      summary: '[DEPRECATED] Search for jurisdiction coverage'
+      description: ⚠️ **DEPRECATED:** Use POST /coverage/check-eligibility instead.
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Coverage item returned
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO'
+        '400':
+          description: Search query missing or invalid
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: No jurisdiction found matching the search query
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      deprecated: true
+      security:
+      - ApiKey: []
+      - Bearer: []
+    servers:
+    - url: https://customer-api.debitura.com
+      description: Production
+  /coverage/check-eligibility:
+    post:
+      tags:
+      - Coverage
+      summary: Check case eligibility and get assigned partner
+      description: '**Determine if a case can be submitted and get partner + PoA status.**
+
+
+        **Request Fields:**
+
+        - CountryAlpha2 (required) - Debtor country (e.g., ''DK'', ''US'', ''DE'')
+
+        - StateAlpha2 (conditional) - Required for US debtors (e.g., ''CA'', ''NY'')
+
+        - DebtorType (required) - ''Company'' or ''Private''
+
+        - Amount (required) - Amount to recover
+
+        - CurrencyCode (required) - Currency (e.g., ''USD'', ''EUR'', ''DKK'')
+
+
+        **Response:**
+
+        - IsEligible (boolean) - Whether case can be submitted
+
+        - Partner - Specific partner that will handle this case
+
+        - PowerOfAttorneyStatus - PoA signing status for the matched partner
+
+
+        **Note:** Does NOT check SDCA status. Use GET /contracts/debt-collection/status for that.'
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityRequestApiDTO'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityRequestApiDTO'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityRequestApiDTO'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityRequestApiDTO'
+      responses:
+        '200':
+          description: Eligibility check completed
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityResponseApiDTO'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityResponseApiDTO'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityResponseApiDTO'
+        '400':
+          description: Invalid request (validation errors)
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      security:
+      - ApiKey: []
+      - Bearer: []
+    servers:
+    - url: https://customer-api.debitura.com
+      description: Production
+components:
+  schemas:
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityRequestApiDTO:
+      required:
+      - amount
+      - countryAlpha2
+      - currencyCode
+      - debtorType
+      type: object
+      properties:
+        countryAlpha2:
+          minLength: 1
+          type: string
+          description: Debtor country (2-letter ISO code, e.g., "DK", "US", "DE")
+        stateAlpha2:
+          type:
+          - string
+          - 'null'
+          description: US state code for US debtors (e.g., "CA", "NY"). Required if CountryAlpha2 = "US"
+        debtorType:
+          minLength: 1
+          type: string
+          description: 'Debtor type: "Company" or "Private"'
+        amount:
+          maximum: 1.7976931348623157e+308
+          minimum: 0.01
+          type: number
+          description: Amount to recover in specified currency
+          format: double
+        currencyCode:
+          minLength: 1
+          type: string
+          description: Currency code (e.g., "USD", "EUR", "DKK")
+      additionalProperties: false
+      description: Request for checking case eligibility and getting partner/PoA status.
+      example:
+        countryAlpha2: PL
+        debtorType: Company
+        amount: 2500
+        currencyCode: EUR
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.CoverageItemApiDTO:
+      type: object
+      properties:
+        jurisdiction:
+          type:
+          - string
+          - 'null'
+        jurisdictionId:
+          type: integer
+          format: int32
+        country:
+          type:
+          - string
+          - 'null'
+        countryId:
+          type: integer
+          format: int32
+        countryAlpha2:
+          type:
+          - string
+          - 'null'
+        usStateAlpha2:
+          type:
+          - string
+          - 'null'
+        partners:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.PartnerCoverageApiDTO'
+          description: 'Collection partners available for this jurisdiction.
+
+            May be empty if no partners are assigned.
+
+            May contain multiple partners if different conditions apply (e.g., B2B vs B2C).'
+      additionalProperties: false
+      description: 'Coverage information for a single jurisdiction.
+
+        BREAKING CHANGE: Partners is now an array - may contain multiple partners with different conditions.'
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.PowerOfAttorneyStatusApiDTO:
+      type: object
+      properties:
+        signed:
+          type: boolean
+          description: Whether PoA has been signed for this partner
+        requiresResigning:
+          type: boolean
+          description: Whether PoA needs to be re-signed (new version available)
+        invalidationReason:
+          type:
+          - string
+          - 'null'
+          description: Why re-signing is required (if applicable)
+        termsUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to download signed PoA document (null if not signed)
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to sign or re-sign PoA (null if fully signed and valid)
+      additionalProperties: false
+      description: Power of Attorney status (shared DTO for check-eligibility and coverage endpoints).
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.PartnerCoverageApiDTO:
+      type: object
+      properties:
+        partnerId:
+          type: string
+          format: uuid
+        partnerName:
+          type:
+          - string
+          - 'null'
+        conditions:
+          type:
+          - string
+          - 'null'
+          description: 'Human-readable description of when this partner applies.
+
+            Examples: "All cases", "B2B cases only", "B2C cases ≥ €1000"'
+        signed:
+          type: boolean
+          description: Whether Power of Attorney has been signed for this partner
+        termsUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to download signed PoA document (null if not signed)
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to sign or re-sign PoA (null if fully signed and valid)
+        requiresResigning:
+          type: boolean
+          description: Whether PoA needs to be re-signed (new version available)
+        invalidationReason:
+          type:
+          - string
+          - 'null'
+          description: Why re-signing is required (if applicable)
+      additionalProperties: false
+      description: Partner coverage details including conditions and PoA status.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityResponseApiDTO:
+      type: object
+      properties:
+        isEligible:
+          type: boolean
+          description: Whether a collection partner is available for this case
+        jurisdiction:
+          $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.JurisdictionInfoApiDTO'
+        partner:
+          $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.PartnerInfoApiDTO'
+        powerOfAttorneyStatus:
+          $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.PowerOfAttorneyStatusApiDTO'
+        errorMessage:
+          type:
+          - string
+          - 'null'
+          description: Error message if IsEligible = false
+      additionalProperties: false
+      description: Response for case eligibility check - returns exact partner + PoA status.
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.JurisdictionInfoApiDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type:
+          - string
+          - 'null'
+        country:
+          type:
+          - string
+          - 'null'
+        countryAlpha2:
+          type:
+          - string
+          - 'null'
+        usStateAlpha2:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+      description: Jurisdiction information
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.PartnerInfoApiDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+      description: Partner information
+    Debitura.Web.ReferralPartnerApi.Models.Coverages.CoverageItemApiDTO:
+      type: object
+      properties:
+        jurisdictionId:
+          type: integer
+          format: int32
+        jurisdiction:
+          type:
+          - string
+          - 'null'
+        country:
+          type:
+          - string
+          - 'null'
+        countryId:
+          type: integer
+          format: int32
+        countryAlpha2:
+          type:
+          - string
+          - 'null'
+        usStateAlpha2:
+          type:
+          - string
+          - 'null'
+        partners:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Coverages.PartnerCoverageApiDTO'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Coverages.PartnerCoverageApiDTO:
+      type: object
+      properties:
+        partnerId:
+          type: string
+          format: uuid
+        partnerName:
+          type:
+          - string
+          - 'null'
+        conditions:
+          type:
+          - string
+          - 'null'
+          description: 'Human-readable description of when this partner applies.
+
+            Examples: "All cases", "B2B cases only", "Amount ≥ €1,000"'
+      additionalProperties: false
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: This is for clients who manage their own account. They can get the API key in the platform and set it as the 'XApiKey' in the header.
+      name: XApiKey
+      in: header
+    Bearer:
+      type: http
+      description: This is for referral partners, who are sending in clients to the platform. They get the bearer token from the referral partner Api and can be inserted here.
+      scheme: bearer
+      bearerFormat: JWT
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com
+x-refined-from:
+- debitura-customer-api.json
+- debitura-referral-partner-api.json

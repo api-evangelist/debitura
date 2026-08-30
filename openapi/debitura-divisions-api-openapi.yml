@@ -1,0 +1,671 @@
+openapi: 3.2.0
+info:
+  title: Debitura Customer Divisions API
+  description: 'Welcome to the Debitura Customer API, your gateway to seamlessly integrating your debt collection workflow with our platform. Debitura connects customers with trusted debt collection firms specializing in pre-legal debt recovery. With this API, you can easily upload cases, track their status, and manage your debt collection process efficiently. For any support or inquiries, please reach out to us at contact@debitura.com. To setup an API key, log into your Debitura account and go here: https://app.debitura.com/CreditorApiKey
+
+
+    📖 Full documentation, guides, and integration walkthroughs: https://docs.debitura.com/clients
+
+
+    NOTE: if you''re representing a platform and want to provide this feature for your customers, you need a different API. Please contact us.'
+  contact:
+    name: Debitura Support
+    url: https://www.debitura.com/integration/debt-collection-api
+    email: contact@debitura.com
+  version: v1
+servers:
+- url: https://customer-api.debitura.com
+  description: Production
+security:
+- ApiKey: []
+- Bearer: []
+tags:
+- name: Divisions
+  description: Divisions
+paths:
+  /divisions:
+    post:
+      tags:
+      - Divisions
+      summary: Create a new division.
+      description: 'Creates a new division for the authenticated creditor.
+
+
+        Divisions allow creditors to organize cases under different business units, branches, or departments.
+
+
+        **Required Fields:**
+
+        - companyName - Name of the division
+
+        - city - City where the division is located
+
+        - countryCode - ISO 3166-1 alpha-2 country code (e.g. ''US'', ''DE'', ''DK'')
+
+
+        **Optional Fields:**
+
+        - registrationNumber - Company registration number (CVR, VAT, etc.)
+
+        - address, zipCode, state - Full address details
+
+        - officeEmail, officePhone - Contact information'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        description: 'Optional idempotency key (max 255 characters) for safely retrying this request. If a previous request used the same key with an identical body, the original terminal response is replayed verbatim. Reusing the key with a different body returns 422 with `Type: "IdempotencyConflict"`. Field-level 400 validation errors are not stored, so you may fix the request and retry with the same key.'
+        schema:
+          maxLength: 255
+          type: string
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.CreateDivisionRequestDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.CreateDivisionRequestDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.CreateDivisionRequestDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.CreateDivisionRequestDto'
+      responses:
+        '201':
+          description: Division created successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+        '400':
+          description: Invalid request
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '422':
+          description: Business rule violation
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+    get:
+      tags:
+      - Divisions
+      summary: List divisions for the authenticated creditor.
+      description: 'Returns a paginated list of divisions for the authenticated creditor.
+
+
+        By default, archived divisions are excluded. Set `includeArchived=true` to include them.'
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 1
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 10
+      - name: includeArchived
+        in: query
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: List of divisions
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionListDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionListDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionListDto'
+  /divisions/{id}:
+    get:
+      tags:
+      - Divisions
+      summary: Get a single division by ID.
+      description: Returns details of a specific division. The division must belong to the authenticated creditor.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Division found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+        '404':
+          description: Division not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+    put:
+      tags:
+      - Divisions
+      summary: Update a division.
+      description: 'Replaces all fields of a division. All required fields must be provided.
+
+
+        **Required Fields:**
+
+        - companyName - Name of the division
+
+        - city - City where the division is located
+
+        - countryCode - ISO 3166-1 alpha-2 country code (e.g. ''US'', ''DE'', ''DK'')'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.UpdateDivisionRequestDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.UpdateDivisionRequestDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.UpdateDivisionRequestDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.UpdateDivisionRequestDto'
+      responses:
+        '200':
+          description: Division updated successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+        '400':
+          description: Invalid request
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '404':
+          description: Division not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+    delete:
+      tags:
+      - Divisions
+      summary: Delete a division.
+      description: 'Deletes a division.
+
+
+        **Important:** A division cannot be deleted if it is referenced by active cases.
+
+        If you need to deactivate a division that has cases, use the archive endpoint instead.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Division deleted successfully
+        '404':
+          description: Division not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '422':
+          description: Division cannot be deleted because it has active cases
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+  /divisions/{id}/archive:
+    post:
+      tags:
+      - Divisions
+      summary: Archive a division.
+      description: 'Archives a division, making it inactive. Archived divisions are excluded from list results by default.
+
+
+        **Important:** This action is irreversible. Archived divisions can still be referenced by existing cases.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Division archived successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+        '404':
+          description: Division not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '422':
+          description: Division is already archived
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+  /divisions/{id}:archive:
+    post:
+      tags:
+      - Divisions
+      summary: Archive a division.
+      description: 'Archives a division, making it inactive. Archived divisions are excluded from list results by default.
+
+
+        **Important:** This action is irreversible. Archived divisions can still be referenced by existing cases.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Division archived successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+        '404':
+          description: Division not found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+        '422':
+          description: Division is already archived
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+components:
+  schemas:
+    Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyName:
+          type:
+          - string
+          - 'null'
+        registrationNumber:
+          type:
+          - string
+          - 'null'
+        address:
+          type:
+          - string
+          - 'null'
+        zipCode:
+          type:
+          - string
+          - 'null'
+        state:
+          type:
+          - string
+          - 'null'
+        city:
+          type:
+          - string
+          - 'null'
+        country:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionCountryDto'
+        officeEmail:
+          type:
+          - string
+          - 'null'
+        officePhone:
+          type:
+          - string
+          - 'null'
+        isArchived:
+          type: boolean
+        createdUtc:
+          type: string
+          format: date-time
+        updatedUtc:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Domain.Model.Base.PageData:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        currentPage:
+          type: integer
+          format: int32
+        responseCount:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int32
+          readOnly: true
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Divisions.UpdateDivisionRequestDto:
+      required:
+      - city
+      - companyName
+      - countryCode
+      type: object
+      properties:
+        companyName:
+          maxLength: 200
+          minLength: 0
+          type: string
+        registrationNumber:
+          maxLength: 50
+          minLength: 0
+          type:
+          - string
+          - 'null'
+        address:
+          type:
+          - string
+          - 'null'
+        zipCode:
+          maxLength: 50
+          minLength: 0
+          type:
+          - string
+          - 'null'
+        state:
+          type:
+          - string
+          - 'null'
+        city:
+          minLength: 1
+          type: string
+        countryCode:
+          maxLength: 2
+          minLength: 2
+          type: string
+        officeEmail:
+          maxLength: 250
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          format: email
+        officePhone:
+          maxLength: 50
+          minLength: 0
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionListDto:
+      required:
+      - page
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
+        divisions:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Divisions.CreateDivisionRequestDto:
+      required:
+      - city
+      - companyName
+      - countryCode
+      type: object
+      properties:
+        companyName:
+          maxLength: 200
+          minLength: 0
+          type: string
+        registrationNumber:
+          maxLength: 50
+          minLength: 0
+          type:
+          - string
+          - 'null'
+        address:
+          type:
+          - string
+          - 'null'
+        zipCode:
+          maxLength: 50
+          minLength: 0
+          type:
+          - string
+          - 'null'
+        state:
+          type:
+          - string
+          - 'null'
+        city:
+          minLength: 1
+          type: string
+        countryCode:
+          maxLength: 2
+          minLength: 2
+          type: string
+        officeEmail:
+          maxLength: 250
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          format: email
+        officePhone:
+          maxLength: 50
+          minLength: 0
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionCountryDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type:
+          - string
+          - 'null'
+        alpha2:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: This is for clients who manage their own account. They can get the API key in the platform and set it as the 'XApiKey' in the header.
+      name: XApiKey
+      in: header
+    Bearer:
+      type: http
+      description: This is for referral partners, who are sending in clients to the platform. They get the bearer token from the referral partner Api and can be inserted here.
+      scheme: bearer
+      bearerFormat: JWT
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com

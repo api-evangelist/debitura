@@ -1,0 +1,272 @@
+openapi: 3.2.0
+info:
+  title: Debitura Collection Partner Ingestion Jobs API
+  description: 'Welcome to the Debitura Collection Partner API, your gateway to automating debt collection workflows on the world''s leading platform for cross-border debt recovery.
+
+
+    As a trusted partner in Debitura''s network of 500+ collection agencies and law firms across 183 jurisdictions, this API provides the following capabilities:
+
+
+    **Managing Assigned Cases** - For exclusive partners with designated jurisdictions:
+
+    - Retrieve and manage cases assigned to your agency
+
+    - Track case details, timelines, and communications
+
+    - Update case status and payment information
+
+
+    **Submitting Cases to the Network** - Available to all partners:
+
+    - Submit new cases on behalf of your clients to our global network
+
+    - Track status of cases submitted to partners worldwide
+
+    - Provide global coverage to your existing clients and earn a 20% revenue share
+
+    - Manage cross-border debt collection through one unified platform
+
+
+    All operations follow our standardized Debt Collection Agreement and no-cure-no-pay model. The API provides the same functionality available through our user-friendly partner portal at https://partner.debitura.com.
+
+
+    For support or inquiries, please reach out to us at contact@debitura.com. To obtain your API key, log into the partner portal and navigate to: https://partner.debitura.com/CollectionPartnerApiKey/Index
+
+
+    📖 Full documentation, guides, and integration walkthroughs: https://docs.debitura.com/collection-partners
+
+
+    NOTE: Authentication requires the XApiKey header with your partner-specific API key. Available features depend on your partnership agreement.'
+  contact:
+    name: Debitura Support
+    url: https://www.debitura.com/integration
+    email: contact@debitura.com
+  version: v1
+servers:
+- url: https://collectionpartner-api.debitura.com
+  description: Production
+security:
+- ApiKey: []
+tags:
+- name: IngestionJobs
+  description: IngestionJobs
+paths:
+  /ingestion-jobs:
+    post:
+      tags:
+      - IngestionJobs
+      summary: Enqueue a batch of partner ingest events (notes, payments, status updates).
+      description: "Creates one AsyncJob of type PartnerIngestDispatch and one AsyncJobOperation per row.\nThe job is processed asynchronously; poll GET /ingestion-jobs/{jobId} for progress.\n            \nCurrently supported row types: Note (type = 0).\nPayment and StatusUpdate types are reserved for future use and will return 400 if submitted."
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        description: 'Optional idempotency key (max 255 characters) for safely retrying this request. If a previous request used the same key with an identical body, the original terminal response is replayed verbatim. Reusing the key with a different body returns 422 with `Type: "IdempotencyConflict"`. Field-level 400 validation errors are not stored, so you may fix the request and retry with the same key.'
+        schema:
+          maxLength: 255
+          type: string
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobRequest'
+      responses:
+        '202':
+          description: Job accepted
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobResponse'
+        '400':
+          description: Invalid request
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+  /ingestion-jobs/{jobId}:
+    get:
+      tags:
+      - IngestionJobs
+      summary: Poll the status of a previously submitted ingestion job.
+      description: Returns current status and per-operation counts for the job.
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Job found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobStatusResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobStatusResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobStatusResponse'
+        '404':
+          description: Job not found or not owned by this partner
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+components:
+  schemas:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        rowsQueued:
+          type: integer
+          format: int32
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Domain.Model.AsyncJobs.AsyncJobStatus:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      type: integer
+      format: int32
+    Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobRow:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/Debitura.Domain.Model.PartnerIngest.PartnerIngestEventType'
+        caseId:
+          type: string
+          description: The case this event belongs to.
+          format: uuid
+        description:
+          type:
+          - string
+          - 'null'
+          description: Note text (required for Note events).
+        eventDate:
+          type:
+          - string
+          - 'null'
+          description: When the event occurred. Omit to use the current time.
+          format: date-time
+        externalRef:
+          type:
+          - string
+          - 'null'
+          description: Your system's reference for this event (optional, for idempotency tracking).
+      additionalProperties: false
+    Debitura.Domain.Model.PartnerIngest.PartnerIngestEventType:
+      enum:
+      - 0
+      type: integer
+      format: int32
+    Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobStatusResponse:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Debitura.Domain.Model.AsyncJobs.AsyncJobStatus'
+        rowsTotal:
+          type: integer
+          format: int32
+        rowsSucceeded:
+          type: integer
+          format: int32
+        rowsFailed:
+          type: integer
+          format: int32
+      additionalProperties: false
+    Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobRequest:
+      type: object
+      properties:
+        rows:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobRow'
+          description: 'The list of events to enqueue (max recommended: 1000 rows per call).'
+      additionalProperties: false
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Collection Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com

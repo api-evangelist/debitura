@@ -1,0 +1,157 @@
+openapi: 3.2.0
+info:
+  title: Debitura Referral Partner Filter Options API
+  description: 'Welcome to the Debitura Referral API. This API allows you to set up new clients and track your revenue share with Debitura. You can also generate bearer tokens for use in the Customer API to create cases, check case status, and access all other endpoints. To get access to this API, please contact us at contact@debitura.com.
+
+
+    📖 Full documentation, guides, and integration walkthroughs: https://docs.debitura.com/referral-partners'
+  contact:
+    name: Debitura Support
+    url: https://www.debitura.com/integration
+    email: contact@debitura.com
+  version: v1
+servers:
+- url: https://referral-api.debitura.com
+  description: Production
+security:
+- ApiKey: []
+tags:
+- name: FilterOptions
+  description: Referral Partners
+paths:
+  /referral-partner/filter-options:
+    get:
+      tags:
+      - FilterOptions
+      summary: Get available filter options for cases and earnings
+      description: 'Returns distinct filter options available for the authenticated referral partner''s cases and earnings pages.
+
+
+        **Countries** — Distinct debtor countries from the referral partner''s case history, sorted alphabetically.
+
+
+        **CarveoutPartners** — Collection partners from the referral partner''s active JurisdictionPricingZone records (DateDeleted == null and DateDeactivated == null), sorted alphabetically.
+
+
+        Use the returned IDs as values for the CountryIds and CollectionPartnerIds query parameters on the cases and reporting/transactions endpoints.'
+      responses:
+        '200':
+          description: Filter options retrieved successfully
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.GetFilterOptionsResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.GetFilterOptionsResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.GetFilterOptionsResponse'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+components:
+  schemas:
+    Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.FilterOptionCountry:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.GetFilterOptionsResponse:
+      type: object
+      properties:
+        countries:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.FilterOptionCountry'
+          description: Distinct debtor countries from the referral partner's case history, sorted by name.
+        carveoutPartners:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.FilterOptionCarveoutPartner'
+          description: Collection partners from the referral partner's active JurisdictionPricingZone records, sorted by name.
+      additionalProperties: false
+      description: 'Response model for the filter-options endpoint, providing distinct filter values
+
+        available for the authenticated referral partner''s cases and earnings.'
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.FilterOptionCarveoutPartner:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      description: Referral Partner API Key (use XApiKey header)
+      name: XApiKey
+      in: header
+externalDocs:
+  description: Debitura developer documentation
+  url: https://docs.debitura.com
