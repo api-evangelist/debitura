@@ -1,0 +1,51 @@
+generated: '2026-09-11'
+method: probed
+source: https://mcp.debitura.com/mcp
+status: published
+server:
+  name: debitura
+  transport: http
+  url: https://mcp.debitura.com/mcp
+deployment:
+  mode: remote
+  endpoint: https://mcp.debitura.com/mcp
+  verified: probed
+  probe: live
+  checked: '2026-09-11'
+  source: docs-check 2026-09-11 (endpoint found in the provider's own documentation, then probed)
+tools_count: 16
+tools:
+- name: ping
+  description: ''
+- name: list_cases
+  description: ''
+- name: get_case
+  description: ''
+- name: get_case_activity
+  description: ''
+- name: get_case_messages
+  description: ''
+- name: get_case_payments
+  description: ''
+- name: get_case_contract_status
+  description: ''
+- name: preview_case
+  description: ''
+- name: list_team_members
+  description: ''
+- name: list_case_files
+  description: ''
+- name: get_account_summary
+  description: ''
+- name: list_tasks
+  description: ''
+- name: get_case_tasks
+  description: ''
+- name: create_case
+  description: ''
+- name: upload_case_file
+  description: ''
+- name: send_case_message
+  description: ''
+tools_source: live tools/list via initialize handshake, 2026-09-11 (signals/audit_mcp_authorship.py --probe)
+authorship: provider
