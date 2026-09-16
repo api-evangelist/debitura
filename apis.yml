@@ -1,15 +1,14 @@
 name: Debitura
-description: >-
-  Debitura is an API-first international debt collection platform covering cross-border B2B and B2C
-  receivables. It publishes three separate public REST APIs, one per role in the network rather than
-  one API with role-gated endpoints: the Customer API for creditors uploading invoices to collection
-  and tracking cases, the Referral Partner API for platforms embedding collection as a referral and
-  tracking revenue share, and the Collection Partner API for collection agencies operating cases on
-  the platform. All three are OpenAPI 3.0.4, each on its own host, and each authenticates with an
-  API key in the XApiKey header; the Customer API additionally accepts a bearer token, and the
-  Referral Partner API exposes OAuth operations for minting them. Webhooks appear in all three, each
-  with a paired test surface for exercising events before going live. Debitura publishes its own
-  APIs.json at docs.debitura.com, which is how this profile was built.
+description: 'Debitura is an API-first international debt collection platform covering cross-border B2B
+  and B2C receivables. It publishes three separate public REST APIs, one per role in the network rather
+  than one API with role-gated endpoints: the Customer API for creditors uploading invoices to collection
+  and tracking cases, the Referral Partner API for platforms embedding collection as a referral and tracking
+  revenue share, and the Collection Partner API for collection agencies operating cases on the platform.
+  All three are OpenAPI 3.0.4, each on its own host, and each authenticates with an API key in the XApiKey
+  header; the Customer API additionally accepts a bearer token, and the Referral Partner API exposes OAuth
+  operations for minting them. Webhooks appear in all three, each with a paired test surface for exercising
+  events before going live. Debitura publishes its own APIs.json at docs.debitura.com, which is how this
+  profile was built.'
 url: https://raw.githubusercontent.com/api-evangelist/debitura/refs/heads/main/apis.yml
 deliveryModel:
   model: saas
@@ -24,24 +23,24 @@ deliveryModel:
   generated: '2026-08-28'
   method: derived
 created: '2026-08-01'
-modified: '2026-08-01'
+modified: '2026-09-16'
 specificationVersion: '0.23'
 tags:
-  - Debt Collection
-  - Accounts Receivable
-  - Debt Recovery
-  - Fintech
-  - Payments
-  - Invoicing
-  - Webhook
+- Debt Collection
+- Accounts Receivable
+- Debt Recovery
+- Fintech
+- Payments
+- Invoicing
+- Webhook
 tags_raw:
-  - Debt Collection
-  - Accounts Receivable
-  - Debt Recovery
-  - FinTech
-  - Payments
-  - Invoicing
-  - Webhooks
+- Debt Collection
+- Accounts Receivable
+- Debt Recovery
+- FinTech
+- Payments
+- Invoicing
+- Webhooks
 apis:
 - aid: debitura:debitura-cases-api
   name: Debitura Cases API
@@ -99,9 +98,8 @@ apis:
     url: https://docs.debitura.com/collection-partners
 - aid: debitura:debitura-coverage-api
   name: Debitura Coverage API
-  description: >-
-    Jurisdiction coverage — query which countries and debt types Debitura can collect in, and check case
-    eligibility.
+  description: Jurisdiction coverage — query which countries and debt types Debitura can collect in, and
+    check case eligibility.
   humanURL: https://docs.debitura.com/clients
   baseURL: https://customer-api.debitura.com
   tags:
@@ -399,10 +397,9 @@ apis:
     url: https://docs.debitura.com/collection-partners
 - aid: debitura:debitura-webhooks-api
   name: Debitura Webhooks API
-  description: >-
-    Manage webhook subscriptions and inspect the delivery event log. Create subscriptions to receive real-time
-    notifications for case lifecycle events, payments, and chats. Use GET /webhooks/events to verify deliveries
-    and POST /webhooks/events/{id}/replay to re-deliver a specific event.
+  description: Manage webhook subscriptions and inspect the delivery event log. Create subscriptions to
+    receive real-time notifications for case lifecycle events, payments, and chats. Use GET /webhooks/events
+    to verify deliveries and POST /webhooks/events/{id}/replay to re-deliver a specific event.
   humanURL: https://docs.debitura.com/clients
   baseURL: https://customer-api.debitura.com
   tags:
@@ -421,35 +418,36 @@ apis:
   - type: Documentation
     url: https://docs.debitura.com/collection-partners
 properties:
-  - type: Documentation
-    url: https://docs.debitura.com
-  - type: APIsJSON
-    url: https://docs.debitura.com/apis.json
+- type: Documentation
+  url: https://docs.debitura.com
+- type: APIsJSON
+  url: https://docs.debitura.com/apis.json
 maintainers:
-  - FN: Debitura
-    url: https://debitura.com
-    email: robin@debitura.com
+- FN: Debitura
+  url: https://debitura.com
+  email: robin@debitura.com
 x-evidence:
   source: https://docs.debitura.com/apis.json
   source_specification_version: '0.20'
   harvested: '2026-08-01'
   request: api-evangelist/api-evangelist-network#1
   probes:
-    - https://docs.debitura.com/apis.json -> HTTP 200 (2026-08-01)
-    - https://docs.debitura.com/openapi/customer-api.json -> HTTP 200, 44 paths / 53 ops / 81 schemas
-    - https://docs.debitura.com/openapi/referral-partner-api.json -> HTTP 200, 17 paths / 22 ops / 81 schemas
-    - https://docs.debitura.com/openapi/collection-partner-api.json -> HTTP 200, 38 paths / 48 ops / 68 schemas
-  note: >-
-    Built from the provider's own published APIs.json. Every API, documentation URL, OpenAPI URL and
-    the signup link come from that document; operation, path and schema counts were measured from
-    the fetched specs. Pricing, plans and rate limits are not asserted — nothing published was found
-    to support them, so they are left for the enrichment pipeline rather than guessed.
+  - https://docs.debitura.com/apis.json -> HTTP 200 (2026-08-01)
+  - https://docs.debitura.com/openapi/customer-api.json -> HTTP 200, 44 paths / 53 ops / 81 schemas
+  - https://docs.debitura.com/openapi/referral-partner-api.json -> HTTP 200, 17 paths / 22 ops / 81 schemas
+  - https://docs.debitura.com/openapi/collection-partner-api.json -> HTTP 200, 38 paths / 48 ops / 68
+    schemas
+  note: Built from the provider's own published APIs.json. Every API, documentation URL, OpenAPI URL and
+    the signup link come from that document; operation, path and schema counts were measured from the
+    fetched specs. Pricing, plans and rate limits are not asserted — nothing published was found to support
+    them, so they are left for the enrichment pipeline rather than guessed.
 x-refine-exempt:
-  reason: >-
-    NOT split one-per-tag. Debitura ships three APIs on three different hosts that share tag names
-    (Cases, Webhooks, Me, Users, Coverage). refine-openapis merges a shared tag across source specs
-    into one document, which collapses the three hosts into whichever server it processed last — the
-    merged Cases document carried 31 operations from all three APIs under a single
-    collectionpartner-api server, so two thirds of them pointed at a host that does not serve them.
-    The specs are registered whole, exactly as Debitura publishes them, until the splitter can carry
-    per-operation servers. See api-evangelist/roadmap#6.
+  reason: NOT split one-per-tag. Debitura ships three APIs on three different hosts that share tag names
+    (Cases, Webhooks, Me, Users, Coverage). refine-openapis merges a shared tag across source specs into
+    one document, which collapses the three hosts into whichever server it processed last — the merged
+    Cases document carried 31 operations from all three APIs under a single collectionpartner-api server,
+    so two thirds of them pointed at a host that does not serve them. The specs are registered whole,
+    exactly as Debitura publishes them, until the splitter can carry per-operation servers. See api-evangelist/roadmap#6.
+common:
+- type: Website
+  url: https://debitura.com
