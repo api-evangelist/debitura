@@ -365,6 +365,8 @@ apis:
   humanURL: https://docs.debitura.com/clients
   baseURL: https://customer-api.debitura.com
   tags:
+  - Authentication
+  tags_raw:
   - OAuth
   properties:
   - type: OpenAPI
