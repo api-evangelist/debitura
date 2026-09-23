@@ -131,38 +131,10 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      operationId: postOauthToken
+      x-operation-id-source: derived
 components:
   schemas:
-    Debitura.Web.ReferralPartnerApi.Models.AccessTokens.AccessTokenResponse:
-      type: object
-      properties:
-        accessToken:
-          type:
-          - string
-          - 'null'
-          description: 'The JWT bearer token to use in Authorization header.
-
-            Format: "Bearer {access_token}"'
-        expiresIn:
-          type: integer
-          description: Token lifetime in seconds (typically 1800 for 30 minutes).
-          format: int32
-        creditorId:
-          type: string
-          description: The Debitura creditor ID that this token grants access to.
-          format: uuid
-        externalTenantId:
-          type:
-          - string
-          - 'null'
-          description: The partner's external tenant ID for reference.
-        tokenType:
-          type:
-          - string
-          - 'null'
-          description: Token type - always "Bearer" for JWT tokens.
-      additionalProperties: false
-      description: Response containing a short-lived JWT bearer token for accessing the Customer API.
     Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:
@@ -221,6 +193,36 @@ components:
           description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
       description: Represents a business error in the API response.
+    Debitura.Web.ReferralPartnerApi.Models.AccessTokens.AccessTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type:
+          - string
+          - 'null'
+          description: 'The JWT bearer token to use in Authorization header.
+
+            Format: "Bearer {access_token}"'
+        expiresIn:
+          type: integer
+          description: Token lifetime in seconds (typically 1800 for 30 minutes).
+          format: int32
+        creditorId:
+          type: string
+          description: The Debitura creditor ID that this token grants access to.
+          format: uuid
+        externalTenantId:
+          type:
+          - string
+          - 'null'
+          description: The partner's external tenant ID for reference.
+        tokenType:
+          type:
+          - string
+          - 'null'
+          description: Token type - always "Bearer" for JWT tokens.
+      additionalProperties: false
+      description: Response containing a short-lived JWT bearer token for accessing the Customer API.
   securitySchemes:
     ApiKey:
       type: apiKey

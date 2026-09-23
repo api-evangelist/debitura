@@ -18,7 +18,7 @@ paths:
     get:
       tags:
       - Webhooks
-      summary: List all webhook subscriptions for the authenticated collection partner.
+      summary: List all webhook subscriptions for the authenticated collection partner
       description: Returns all webhook subscriptions for the authenticated collection partner. Secrets are never returned in list operations.
       responses:
         '200':
@@ -43,11 +43,38 @@ paths:
           description: API key is missing or invalid
       security:
       - ApiKey: []
+      operationId: getWebhooks
+      x-operation-id-source: derived
     post:
       tags:
       - Webhooks
-      summary: Create a new webhook subscription.
-      description: "Creates a new webhook subscription for receiving real-time event notifications.\n\n**Available Events (assigned/working-partner role):**\n- `case.assigned` - Case validated by Debitura and assigned to your agency\n- `case.updated` - Case lifecycle changed (e.g., Active → Paused). Does not cover engagement phase\n  changes (Pre-legal/Legal/Enforcement) — poll `GET /cases/{id}` or `GET /cases/{id}/timeline` for\n  the current phase; there is no phase-change event today.\n- `case.closed` - Case closed\n- `payment.created` - Payment registered on case\n- `payment.deleted` - Payment reversed (deleted) on case\n- `chat.created` - Chat message created on case\n\n**Security:** Response includes Base64-encoded signing secret (shown only once). Store it to verify HMAC-SHA256 signatures on deliveries.\n\n**Requirements:** HTTPS URL required. Deliveries retry with exponential backoff (8 attempts). Webhook auto-disables after max failures."
+      summary: Create a new webhook subscription
+      description: 'Creates a new webhook subscription for receiving real-time event notifications.
+
+
+        **Available Events (assigned/working-partner role):**
+
+        - `case.assigned` - Case validated by Debitura and assigned to your agency
+
+        - `case.updated` - Case lifecycle changed (e.g., Active → Paused). Does not cover engagement phase
+
+        changes (Pre-legal/Legal/Enforcement) — poll `GET /cases/{id}` or `GET /cases/{id}/timeline` for
+
+        the current phase; there is no phase-change event today.
+
+        - `case.closed` - Case closed
+
+        - `payment.created` - Payment registered on case
+
+        - `payment.deleted` - Payment reversed (deleted) on case
+
+        - `chat.created` - Chat message created on case
+
+
+        **Security:** Response includes Base64-encoded signing secret (shown only once). Store it to verify HMAC-SHA256 signatures on deliveries.
+
+
+        **Requirements:** HTTPS URL required. Deliveries retry with exponential backoff (8 attempts). Webhook auto-disables after max failures.'
       requestBody:
         description: The webhook creation request, including the target URL and event types to subscribe to.
         content:
@@ -104,6 +131,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postWebhooks
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -111,7 +140,7 @@ paths:
     get:
       tags:
       - Webhooks
-      summary: Get a specific webhook subscription by ID.
+      summary: Get a specific webhook subscription by ID
       description: Returns details of a specific webhook subscription. Secret is never returned in this operation.
       parameters:
       - name: id
@@ -150,10 +179,12 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getWebhooksById
+      x-operation-id-source: derived
     put:
       tags:
       - Webhooks
-      summary: Update an existing webhook subscription.
+      summary: Update an existing webhook subscription
       description: Updates webhook URL, events, or active status. Set RegenerateSecret=true to rotate signing secret (returned in response). Use IsActive=true to re-enable auto-disabled webhooks after fixing delivery issues. Secret only included if RegenerateSecret=true.
       parameters:
       - name: id
@@ -219,10 +250,12 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: putWebhooksById
+      x-operation-id-source: derived
     delete:
       tags:
       - Webhooks
-      summary: Delete a webhook subscription.
+      summary: Delete a webhook subscription
       description: Permanently deletes webhook subscription. Cannot be undone. Consider setting IsActive=false to temporarily disable instead.
       parameters:
       - name: id
@@ -251,10 +284,12 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: deleteWebhooksById
+      x-operation-id-source: derived
     patch:
       tags:
       - Webhooks
-      summary: Update an existing webhook subscription.
+      summary: Update an existing webhook subscription
       description: 'Partially updates an existing webhook subscription using HTTP PATCH.
 
 
@@ -328,6 +363,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: patchWebhooksById
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -335,7 +372,7 @@ paths:
     post:
       tags:
       - Webhooks
-      summary: Send a test event to the webhook endpoint.
+      summary: Send a test event to the webhook endpoint
       description: 'Sends a synthetic case.created test event to the webhook endpoint.
 
 
@@ -384,6 +421,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: postWebhooksByIdTest
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -391,7 +430,7 @@ paths:
     post:
       tags:
       - Webhooks
-      summary: Send a test event to the webhook endpoint.
+      summary: Send a test event to the webhook endpoint
       description: 'Sends a synthetic case.created test event to the webhook endpoint.
 
 
@@ -440,6 +479,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: postWebhooks{id}:test
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -447,12 +488,19 @@ paths:
     post:
       tags:
       - Webhooks
-      summary: '[Deprecated] This endpoint is misnamed and does not actually replay events.
+      summary: '[Deprecated] This endpoint is misnamed and does not actually replay events.'
+      description: 'This endpoint was never fully implemented — it counts cases created
 
-        Use `GET /webhooks/events?caseId={id}` to inspect delivery history,
+        since `sinceUtc` and returns the count as `eventsReplayed`, but does not
 
-        then `POST /webhooks/events/{eventId}/replay` to re-deliver a specific event.'
-      description: "This endpoint was never fully implemented — it counts cases created\nsince `sinceUtc` and returns the count as `eventsReplayed`, but does not\nre-enqueue or redeliver any events. The name \"replay\" collides with the real\n`POST /webhooks/events/{eventId}/replay` endpoint which actually re-delivers.\n            \nThis endpoint is kept for backward compatibility (additive-only rule) but is deprecated.\nIntegrators should migrate to the event-log + replay-by-id pattern described above."
+        re-enqueue or redeliver any events. The name "replay" collides with the real
+
+        `POST /webhooks/events/{eventId}/replay` endpoint which actually re-delivers.
+
+
+        This endpoint is kept for backward compatibility (additive-only rule) but is deprecated.
+
+        Integrators should migrate to the event-log + replay-by-id pattern described above.'
       parameters:
       - name: id
         in: path
@@ -515,6 +563,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: postWebhooksByIdReplay
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -522,12 +572,19 @@ paths:
     post:
       tags:
       - Webhooks
-      summary: '[Deprecated] This endpoint is misnamed and does not actually replay events.
+      summary: '[Deprecated] This endpoint is misnamed and does not actually replay events.'
+      description: 'This endpoint was never fully implemented — it counts cases created
 
-        Use `GET /webhooks/events?caseId={id}` to inspect delivery history,
+        since `sinceUtc` and returns the count as `eventsReplayed`, but does not
 
-        then `POST /webhooks/events/{eventId}/replay` to re-deliver a specific event.'
-      description: "This endpoint was never fully implemented — it counts cases created\nsince `sinceUtc` and returns the count as `eventsReplayed`, but does not\nre-enqueue or redeliver any events. The name \"replay\" collides with the real\n`POST /webhooks/events/{eventId}/replay` endpoint which actually re-delivers.\n            \nThis endpoint is kept for backward compatibility (additive-only rule) but is deprecated.\nIntegrators should migrate to the event-log + replay-by-id pattern described above."
+        re-enqueue or redeliver any events. The name "replay" collides with the real
+
+        `POST /webhooks/events/{eventId}/replay` endpoint which actually re-delivers.
+
+
+        This endpoint is kept for backward compatibility (additive-only rule) but is deprecated.
+
+        Integrators should migrate to the event-log + replay-by-id pattern described above.'
       parameters:
       - name: id
         in: path
@@ -590,6 +647,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: postWebhooks{id}:replay
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -622,6 +681,8 @@ paths:
           description: API key is missing or invalid
       security:
       - ApiKey: []
+      operationId: getV1Webhooks
+      x-operation-id-source: derived
     post:
       tags:
       - Webhooks
@@ -699,6 +760,8 @@ paths:
           description: API key is missing or invalid
       security:
       - ApiKey: []
+      operationId: postV1Webhooks
+      x-operation-id-source: derived
     servers:
     - url: https://referral-api.debitura.com
       description: Production
@@ -744,6 +807,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getV1WebhooksById
+      x-operation-id-source: derived
     put:
       tags:
       - Webhooks
@@ -811,6 +876,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: putV1WebhooksById
+      x-operation-id-source: derived
     delete:
       tags:
       - Webhooks
@@ -842,6 +909,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: deleteV1WebhooksById
+      x-operation-id-source: derived
     servers:
     - url: https://referral-api.debitura.com
       description: Production
@@ -944,11 +1013,59 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postV1WebhooksTest
+      x-operation-id-source: derived
     servers:
     - url: https://referral-api.debitura.com
       description: Production
 components:
   schemas:
+    Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest:
+      type: object
+      properties:
+        url:
+          maxLength: 1024
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          format: uri
+        events:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+        isActive:
+          type:
+          - boolean
+          - 'null'
+        regenerateSecret:
+          type: boolean
+        isTestMode:
+          type:
+          - boolean
+          - 'null'
+      additionalProperties: false
+    Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest:
+      required:
+      - events
+      - url
+      type: object
+      properties:
+        url:
+          maxLength: 1024
+          minLength: 0
+          type: string
+          format: uri
+        events:
+          minItems: 1
+          type: array
+          items:
+            type: string
+        isTestMode:
+          type: boolean
+      additionalProperties: false
     Debitura.Domain.Model.Webhooks.Dtos.WebhookDto:
       type: object
       properties:
@@ -1026,52 +1143,17 @@ components:
           description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
       description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
-    Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest:
+    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto:
       required:
-      - events
-      - url
+      - sinceUtc
       type: object
       properties:
-        url:
-          maxLength: 1024
-          minLength: 0
+        sinceUtc:
           type: string
-          format: uri
-        events:
-          minItems: 1
-          type: array
-          items:
-            type: string
-        isTestMode:
-          type: boolean
+          description: Replay all case.created events since this timestamp (UTC).
+          format: date-time
       additionalProperties: false
-    Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest:
-      type: object
-      properties:
-        url:
-          maxLength: 1024
-          minLength: 0
-          type:
-          - string
-          - 'null'
-          format: uri
-        events:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-        isActive:
-          type:
-          - boolean
-          - 'null'
-        regenerateSecret:
-          type: boolean
-        isTestMode:
-          type:
-          - boolean
-          - 'null'
-      additionalProperties: false
+      description: Request to replay events from a specific timestamp.
     Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.TestResultDto:
       type: object
       properties:
@@ -1113,17 +1195,138 @@ components:
           format: int32
       additionalProperties: false
       description: Result of a webhook event replay operation.
-    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto:
-      required:
-      - sinceUtc
+    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookResponse:
       type: object
       properties:
-        sinceUtc:
-          type: string
-          description: Replay all case.created events since this timestamp (UTC).
-          format: date-time
+        eventType:
+          type:
+          - string
+          - 'null'
+        enqueuedCount:
+          type: integer
+          format: int32
+        message:
+          type:
+          - string
+          - 'null'
       additionalProperties: false
-      description: Request to replay events from a specific timestamp.
+    Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest_2:
+      type: object
+      properties:
+        url:
+          maxLength: 1024
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          description: 'The new HTTPS URL where webhook events will be delivered.
+
+            Optional — only provide if changing the URL.'
+          format: uri
+        events:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: 'Updated list of event types to subscribe to.
+
+            Optional — only provide if changing the events.
+
+            Note: Not supported by the ExternalCustomerAPI — that endpoint returns 400 if this field is set.'
+        isActive:
+          type:
+          - boolean
+          - 'null'
+          description: 'Set to true to enable the webhook, false to disable it.
+
+            Optional — only provide if changing the active status.'
+        regenerateSecret:
+          type: boolean
+          description: 'Set to true to regenerate the webhook secret.
+
+            A new secret will be returned in the response.'
+        isTestMode:
+          type:
+          - boolean
+          - 'null'
+          description: 'When set, updates the classification of the subscription.
+
+            True maps to `DataClassification.Test`; false maps to `DataClassification.Production`.
+
+            Omit to leave the current classification unchanged.'
+      additionalProperties: false
+      description: Request to update an existing webhook subscription.
+    Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest_2:
+      required:
+      - events
+      - url
+      type: object
+      properties:
+        url:
+          maxLength: 1024
+          minLength: 0
+          type: string
+          description: 'The HTTPS URL where webhook events will be delivered.
+
+            Must be a valid HTTPS URL.'
+          format: uri
+        events:
+          minItems: 1
+          type: array
+          items:
+            type: string
+          description: Array of event types to subscribe to.
+        isTestMode:
+          type: boolean
+          description: 'When true, the subscription is created with `DataClassification.Test`,
+
+            meaning it will only receive events for test-classified data.
+
+            Defaults to false (Production classification).'
+      additionalProperties: false
+      description: Request to create a new webhook subscription.
+    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookRequest:
+      required:
+      - eventType
+      type: object
+      properties:
+        eventType:
+          minLength: 1
+          type: string
+          description: The webhook event type to trigger (e.g. "case.updated", "client.linked")
+        caseId:
+          type:
+          - string
+          - 'null'
+          description: Required for case.created, case.updated, and case.closed events
+          format: uuid
+        externalTenantId:
+          type:
+          - string
+          - 'null'
+          description: Required for client.* events (client.linked, client.link_declined, client.onboarding.*)
+        oldLifecycle:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.updated: the "from" lifecycle (defaults to current case lifecycle)'
+        newLifecycle:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.updated: the "to" lifecycle (defaults to "Closed")'
+        closeCode:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.closed: the close code (defaults to "Paid")'
+        closeComment:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.closed: a close comment'
+      additionalProperties: false
     Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2:
       type: object
       properties:
@@ -1175,138 +1378,6 @@ components:
             Computed as `Classification != DataClassification.Production`.'
       additionalProperties: false
       description: Represents a webhook subscription configuration.
-    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookRequest:
-      required:
-      - eventType
-      type: object
-      properties:
-        eventType:
-          minLength: 1
-          type: string
-          description: The webhook event type to trigger (e.g. "case.updated", "client.linked")
-        caseId:
-          type:
-          - string
-          - 'null'
-          description: Required for case.created, case.updated, and case.closed events
-          format: uuid
-        externalTenantId:
-          type:
-          - string
-          - 'null'
-          description: Required for client.* events (client.linked, client.link_declined, client.onboarding.*)
-        oldLifecycle:
-          type:
-          - string
-          - 'null'
-          description: 'Optional override for case.updated: the "from" lifecycle (defaults to current case lifecycle)'
-        newLifecycle:
-          type:
-          - string
-          - 'null'
-          description: 'Optional override for case.updated: the "to" lifecycle (defaults to "Closed")'
-        closeCode:
-          type:
-          - string
-          - 'null'
-          description: 'Optional override for case.closed: the close code (defaults to "Paid")'
-        closeComment:
-          type:
-          - string
-          - 'null'
-          description: 'Optional override for case.closed: a close comment'
-      additionalProperties: false
-    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookResponse:
-      type: object
-      properties:
-        eventType:
-          type:
-          - string
-          - 'null'
-        enqueuedCount:
-          type: integer
-          format: int32
-        message:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
-    Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest_2:
-      required:
-      - events
-      - url
-      type: object
-      properties:
-        url:
-          maxLength: 1024
-          minLength: 0
-          type: string
-          description: 'The HTTPS URL where webhook events will be delivered.
-
-            Must be a valid HTTPS URL.'
-          format: uri
-        events:
-          minItems: 1
-          type: array
-          items:
-            type: string
-          description: Array of event types to subscribe to.
-        isTestMode:
-          type: boolean
-          description: 'When true, the subscription is created with `DataClassification.Test`,
-
-            meaning it will only receive events for test-classified data.
-
-            Defaults to false (Production classification).'
-      additionalProperties: false
-      description: Request to create a new webhook subscription.
-    Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest_2:
-      type: object
-      properties:
-        url:
-          maxLength: 1024
-          minLength: 0
-          type:
-          - string
-          - 'null'
-          description: 'The new HTTPS URL where webhook events will be delivered.
-
-            Optional — only provide if changing the URL.'
-          format: uri
-        events:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: 'Updated list of event types to subscribe to.
-
-            Optional — only provide if changing the events.
-
-            Note: Not supported by the ExternalCustomerAPI — that endpoint returns 400 if this field is set.'
-        isActive:
-          type:
-          - boolean
-          - 'null'
-          description: 'Set to true to enable the webhook, false to disable it.
-
-            Optional — only provide if changing the active status.'
-        regenerateSecret:
-          type: boolean
-          description: 'Set to true to regenerate the webhook secret.
-
-            A new secret will be returned in the response.'
-        isTestMode:
-          type:
-          - boolean
-          - 'null'
-          description: 'When set, updates the classification of the subscription.
-
-            True maps to `DataClassification.Test`; false maps to `DataClassification.Production`.
-
-            Omit to leave the current classification unchanged.'
-      additionalProperties: false
-      description: Request to update an existing webhook subscription.
   securitySchemes:
     ApiKey:
       type: apiKey

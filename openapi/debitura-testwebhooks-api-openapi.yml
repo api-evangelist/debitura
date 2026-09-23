@@ -16,7 +16,7 @@ paths:
     post:
       tags:
       - TestWebhooks
-      summary: Fire a named webhook event type for a test case.
+      summary: Fire a named webhook event type for a test case
       description: 'Fires a real current-state webhook event for any registered Collection Partner event type against a test case — even if the case hasn''t naturally reached the state that would produce that event.
 
 
@@ -141,6 +141,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postTestWebhooksFire
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -180,28 +182,6 @@ components:
           example: 6b7a1f23-9c48-4e72-a901-1d2b3e4f5a6b
       additionalProperties: false
       description: Request body for POST /test/webhooks/fire.
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
-      type: object
-      properties:
-        error:
-          type:
-          - string
-          - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
-      additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
     Debitura.Web.ExternalApi.Contracts.V1.Cases.FireWebhookResponse:
       type: object
       properties:
@@ -242,6 +222,28 @@ components:
           description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
       description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
   securitySchemes:
     ApiKey:
       type: apiKey

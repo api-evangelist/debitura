@@ -1,0 +1,73 @@
+{
+  "provider": "debitura",
+  "sources": [
+    "_original/debitura-collection-partner-api.json",
+    "_original/debitura-customer-api.json",
+    "_original/debitura-referral-partner-api.json"
+  ],
+  "outputs": [
+    "debitura-cases-api-openapi.yml",
+    "debitura-ingestionjobs-api-openapi.yml",
+    "debitura-managedcases-api-openapi.yml",
+    "debitura-me-api-openapi.yml",
+    "debitura-testcases-api-openapi.yml",
+    "debitura-testwebhooks-api-openapi.yml",
+    "debitura-users-api-openapi.yml",
+    "debitura-webhookevents-api-openapi.yml",
+    "debitura-webhooks-api-openapi.yml",
+    "debitura-contracts-api-openapi.yml",
+    "debitura-coverage-api-openapi.yml",
+    "debitura-divisions-api-openapi.yml",
+    "debitura-payments-api-openapi.yml",
+    "debitura-tasks-api-openapi.yml",
+    "debitura-clients-api-openapi.yml",
+    "debitura-filteroptions-api-openapi.yml",
+    "debitura-oauth-api-openapi.yml",
+    "debitura-previewcases-api-openapi.yml",
+    "debitura-referralpartners-api-openapi.yml",
+    "debitura-reporting-api-openapi.yml"
+  ],
+  "archived": [
+    "deleted 3 superseded output(s) from the previous generation"
+  ],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (3 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "debitura-collection-partner-api.json: upgraded openapi 3.0.4 -> OpenAPI 3.2.0",
+    "debitura-customer-api.json: upgraded openapi 3.0.4 -> OpenAPI 3.2.0",
+    "debitura-referral-partner-api.json: upgraded openapi 3.0.4 -> OpenAPI 3.2.0",
+    "tag 'Cases' spans 3 source specs (debitura-collection-partner-api.json, debitura-customer-api.json, debitura-referral-partner-api.json): per-path servers applied",
+    "tag 'Me' spans 2 source specs (debitura-collection-partner-api.json, debitura-customer-api.json): per-path servers applied",
+    "tag 'TestCases' spans 2 source specs (debitura-collection-partner-api.json, debitura-customer-api.json): per-path servers applied",
+    "tag 'TestWebhooks' spans 2 source specs (debitura-collection-partner-api.json, debitura-customer-api.json): per-path servers applied",
+    "tag 'Users' spans 2 source specs (debitura-collection-partner-api.json, debitura-customer-api.json): per-path servers applied",
+    "tag 'WebhookEvents' spans 2 source specs (debitura-collection-partner-api.json, debitura-customer-api.json): per-path servers applied",
+    "tag 'Webhooks' spans 3 source specs (debitura-collection-partner-api.json, debitura-customer-api.json, debitura-referral-partner-api.json): per-path servers applied",
+    "tag 'Coverage' spans 2 source specs (debitura-customer-api.json, debitura-referral-partner-api.json): per-path servers applied",
+    "superseded outputs removed: debitura-o-auth-api-openapi.yml, debitura-test-cases-api-openapi.yml, debitura-webhook-events-api-openapi.yml",
+    "apis.yml register: written (+3 apis, 20 total)"
+  ],
+  "skipped": [
+    "debitura-cases-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-clients-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-contracts-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-coverage-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-divisions-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-filteroptions-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-ingestionjobs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-managedcases-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-me-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-o-auth-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-payments-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-previewcases-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-referralpartners-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-reporting-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-tasks-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-test-cases-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-testwebhooks-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-users-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-webhook-events-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-webhooks-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}

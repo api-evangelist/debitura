@@ -102,11 +102,44 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getMe
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
 components:
   schemas:
+    Debitura.Domain.Model.InvoicePayments.Payouts.CommissionType:
+      enum:
+      - 0
+      - 1
+      type: integer
+      format: int32
+    Microsoft.AspNetCore.Mvc.ProblemDetails:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+        title:
+          type:
+          - string
+          - 'null'
+        status:
+          type:
+          - integer
+          - 'null'
+          format: int32
+        detail:
+          type:
+          - string
+          - 'null'
+        instance:
+          type:
+          - string
+          - 'null'
+      additionalProperties: {}
     Debitura.Web.CollectionPartnerApi.Models.Me.CollectionPartnerMeResponse:
       type: object
       properties:
@@ -211,6 +244,12 @@ components:
           $ref: '#/components/schemas/Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode'
       additionalProperties: false
       description: Response containing collection partner profile information.
+    Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode:
+      enum:
+      - 0
+      - 1
+      type: integer
+      format: int32
     Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
@@ -253,43 +292,6 @@ components:
           description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
       description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
-    Microsoft.AspNetCore.Mvc.ProblemDetails:
-      type: object
-      properties:
-        type:
-          type:
-          - string
-          - 'null'
-        title:
-          type:
-          - string
-          - 'null'
-        status:
-          type:
-          - integer
-          - 'null'
-          format: int32
-        detail:
-          type:
-          - string
-          - 'null'
-        instance:
-          type:
-          - string
-          - 'null'
-      additionalProperties: {}
-    Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode:
-      enum:
-      - 0
-      - 1
-      type: integer
-      format: int32
-    Debitura.Domain.Model.InvoicePayments.Payouts.CommissionType:
-      enum:
-      - 0
-      - 1
-      type: integer
-      format: int32
     Debitura.Web.ExternalCustomerAPI.Models.Me.CreditorMeApiDTO:
       required:
       - companyName

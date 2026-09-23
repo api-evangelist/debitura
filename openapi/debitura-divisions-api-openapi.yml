@@ -1,13 +1,7 @@
 openapi: 3.2.0
 info:
   title: Debitura Customer Divisions API
-  description: 'Welcome to the Debitura Customer API, your gateway to seamlessly integrating your debt collection workflow with our platform. Debitura connects customers with trusted debt collection firms specializing in pre-legal debt recovery. With this API, you can easily upload cases, track their status, and manage your debt collection process efficiently. For any support or inquiries, please reach out to us at contact@debitura.com. To setup an API key, log into your Debitura account and go here: https://app.debitura.com/CreditorApiKey
-
-
-    📖 Full documentation, guides, and integration walkthroughs: https://docs.debitura.com/clients
-
-
-    NOTE: if you''re representing a platform and want to provide this feature for your customers, you need a different API. Please contact us.'
+  description: Welcome to the Debitura Customer API, your gateway to seamlessly integrating your debt collection workflow with our platform.
   contact:
     name: Debitura Support
     url: https://www.debitura.com/integration/debt-collection-api
@@ -27,7 +21,7 @@ paths:
     post:
       tags:
       - Divisions
-      summary: Create a new division.
+      summary: Create a new division
       description: 'Creates a new division for the authenticated creditor.
 
 
@@ -108,10 +102,12 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      operationId: postDivisions
+      x-operation-id-source: derived
     get:
       tags:
       - Divisions
-      summary: List divisions for the authenticated creditor.
+      summary: List divisions for the authenticated creditor
       description: 'Returns a paginated list of divisions for the authenticated creditor.
 
 
@@ -147,11 +143,13 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionListDto'
+      operationId: getDivisions
+      x-operation-id-source: derived
   /divisions/{id}:
     get:
       tags:
       - Divisions
-      summary: Get a single division by ID.
+      summary: Get a single division by ID
       description: Returns details of a specific division. The division must belong to the authenticated creditor.
       parameters:
       - name: id
@@ -185,10 +183,12 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      operationId: getDivisionsById
+      x-operation-id-source: derived
     put:
       tags:
       - Divisions
-      summary: Update a division.
+      summary: Update a division
       description: 'Replaces all fields of a division. All required fields must be provided.
 
 
@@ -257,10 +257,12 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      operationId: putDivisionsById
+      x-operation-id-source: derived
     delete:
       tags:
       - Divisions
-      summary: Delete a division.
+      summary: Delete a division
       description: 'Deletes a division.
 
 
@@ -301,11 +303,13 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      operationId: deleteDivisionsById
+      x-operation-id-source: derived
   /divisions/{id}/archive:
     post:
       tags:
       - Divisions
-      summary: Archive a division.
+      summary: Archive a division
       description: 'Archives a division, making it inactive. Archived divisions are excluded from list results by default.
 
 
@@ -354,11 +358,13 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      operationId: postDivisionsByIdArchive
+      x-operation-id-source: derived
   /divisions/{id}:archive:
     post:
       tags:
       - Divisions
-      summary: Archive a division.
+      summary: Archive a division
       description: 'Archives a division, making it inactive. Archived divisions are excluded from list results by default.
 
 
@@ -407,6 +413,8 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      operationId: postDivisions{id}:archive
+      x-operation-id-source: derived
 components:
   schemas:
     Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto:
@@ -460,48 +468,73 @@ components:
           - 'null'
           format: date-time
       additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+    Debitura.Web.ExternalApi.Contracts.V1.Divisions.CreateDivisionRequestDto:
+      required:
+      - city
+      - companyName
+      - countryCode
       type: object
       properties:
-        type:
+        companyName:
+          maxLength: 200
+          minLength: 0
+          type: string
+        registrationNumber:
+          maxLength: 50
+          minLength: 0
           type:
           - string
           - 'null'
-          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
-        message:
+        address:
           type:
           - string
           - 'null'
-          description: A human-readable description of the error.
-        solutionUrl:
+        zipCode:
+          maxLength: 50
+          minLength: 0
           type:
           - string
           - 'null'
-          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+        state:
+          type:
+          - string
+          - 'null'
+        city:
+          minLength: 1
+          type: string
+        countryCode:
+          maxLength: 2
+          minLength: 2
+          type: string
+        officeEmail:
+          maxLength: 250
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          format: email
+        officePhone:
+          maxLength: 50
+          minLength: 0
+          type:
+          - string
+          - 'null'
       additionalProperties: false
-      description: Represents a business error in the API response.
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+    Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionCountryDto:
       type: object
       properties:
-        error:
+        id:
+          type: integer
+          format: int32
+        name:
           type:
           - string
           - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
+        alpha2:
           type:
           - string
           - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
     Debitura.Domain.Model.Base.PageData:
       type: object
       properties:
@@ -588,73 +621,48 @@ components:
           items:
             $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
       additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Divisions.CreateDivisionRequestDto:
-      required:
-      - city
-      - companyName
-      - countryCode
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
-        companyName:
-          maxLength: 200
-          minLength: 0
-          type: string
-        registrationNumber:
-          maxLength: 50
-          minLength: 0
+        type:
           type:
           - string
           - 'null'
-        address:
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
           type:
           - string
           - 'null'
-        zipCode:
-          maxLength: 50
-          minLength: 0
+          description: A human-readable description of the error.
+        solutionUrl:
           type:
           - string
           - 'null'
-        state:
-          type:
-          - string
-          - 'null'
-        city:
-          minLength: 1
-          type: string
-        countryCode:
-          maxLength: 2
-          minLength: 2
-          type: string
-        officeEmail:
-          maxLength: 250
-          minLength: 0
-          type:
-          - string
-          - 'null'
-          format: email
-        officePhone:
-          maxLength: 50
-          minLength: 0
-          type:
-          - string
-          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionCountryDto:
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:
-        id:
-          type: integer
-          format: int32
-        name:
+        error:
           type:
           - string
           - 'null'
-        alpha2:
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
           type:
           - string
           - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
   securitySchemes:
     ApiKey:
       type: apiKey

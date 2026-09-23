@@ -9,14 +9,14 @@ servers:
 - url: https://customer-api.debitura.com
   description: Production
 tags:
-- name: WebhookEvents
+- name: Webhook Events
   description: Webhooks
 paths:
   /webhooks/events:
     get:
       tags:
-      - WebhookEvents
-      summary: List webhook events dispatched for a case.
+      - Webhook Events
+      summary: List webhook events dispatched for a case
       description: 'Returns all webhook events dispatched for the given case, scoped to your webhook subscriptions.
 
         Results are ordered newest-first.
@@ -85,14 +85,16 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getWebhooksEvents
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
   /webhooks/events/{id}/replay:
     post:
       tags:
-      - WebhookEvents
-      summary: Replay a specific webhook event.
+      - Webhook Events
+      summary: Replay a specific webhook event
       description: 'Re-enqueues the exact payload from a previously recorded event to its original subscription.
 
 
@@ -163,6 +165,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postWebhooksEventsByIdReplay
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -186,28 +190,6 @@ components:
           description: The event type that was replayed (e.g. "case.updated").
       additionalProperties: false
       description: Result of replaying a specific webhook event.
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
-      type: object
-      properties:
-        error:
-          type:
-          - string
-          - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
-      additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
     Debitura.Web.CollectionPartnerApi.Models.Webhooks.WebhookEventDto:
       type: object
       properties:
@@ -286,6 +268,46 @@ components:
           description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
       description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayEventResultDto:
+      type: object
+      properties:
+        eventId:
+          type: string
+          description: The ID of the event that was replayed.
+          format: uuid
+        subscriptionId:
+          type: string
+          description: The subscription the event was re-enqueued to.
+          format: uuid
+        eventType:
+          type:
+          - string
+          - 'null'
+          description: The event type that was replayed.
+      additionalProperties: false
+      description: Result of replaying a specific webhook event.
     Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.WebhookEventDto:
       type: object
       properties:
@@ -344,24 +366,6 @@ components:
           description: Error message from the last failed delivery attempt. Null on successful delivery.
       additionalProperties: false
       description: Represents a recorded webhook delivery event.
-    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayEventResultDto:
-      type: object
-      properties:
-        eventId:
-          type: string
-          description: The ID of the event that was replayed.
-          format: uuid
-        subscriptionId:
-          type: string
-          description: The subscription the event was re-enqueued to.
-          format: uuid
-        eventType:
-          type:
-          - string
-          - 'null'
-          description: The event type that was replayed.
-      additionalProperties: false
-      description: Result of replaying a specific webhook event.
   securitySchemes:
     ApiKey:
       type: apiKey

@@ -18,8 +18,64 @@ paths:
     get:
       tags:
       - Cases
-      summary: List collection cases.
-      description: "Returns a paginated list of cases where you are the **collection partner** (actively collecting the debt).\n\n**What is a Collection Partner?**\nA collection partner is an agency or law firm that performs the actual debt recovery work. When you appear as the collection partner on a case, you are responsible for:\n- Contacting the debtor and attempting recovery\n- Managing the case lifecycle and status updates\n- Recording payments and fees\n- Uploading documents and evidence\n- Communicating with the creditor through the case chat\n\n**Note:** This endpoint shows cases where you are collecting. For cases you submitted on behalf of your own clients (where you are the managing partner), use the `/managed-cases` endpoint instead.\n\n**Pagination:**\n- page (default: 1) - Page number, starting from 1\n- pageSize (default: 10, max: 100) - Number of results per page\n\n**Filters:**\n- statuses - Filter by case lifecycle status (comma-separated list)\n  Valid values: PendingVerification, NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed\n  **Note:** Partner-specific statuses only. Internal platform statuses like 'PendingContractSigning' or 'PendingVerificationInternal' are not available here — cases in those stages are hidden from every collection-partner-facing endpoint until Debitura's internal verification clears, regardless of assignment.\n- divisionIds - Filter by creditor division IDs (comma-separated GUIDs)\n- debtorIds - Filter by specific debtor IDs (comma-separated GUIDs)\n- ids - Filter by specific case IDs (comma-separated GUIDs)\n- includeTestCases - When true, includes test/demo cases owned by the caller. Defaults to false.\n\n**Sorting:**\n- sort - Sort field and direction (format: 'field:direction')\n  Examples: 'date:desc', 'amount:asc', 'debtorName:asc'\n\n**Response:**\n- Returns InvoiceListApiDTO with page metadata and cases array\n- Page metadata includes: totalResults, currentPage, skipped, pageSize"
+      summary: List collection cases
+      description: 'Returns a paginated list of cases where you are the **collection partner** (actively collecting the debt).
+
+
+        **What is a Collection Partner?**
+
+        A collection partner is an agency or law firm that performs the actual debt recovery work. When you appear as the collection partner on a case, you are responsible for:
+
+        - Contacting the debtor and attempting recovery
+
+        - Managing the case lifecycle and status updates
+
+        - Recording payments and fees
+
+        - Uploading documents and evidence
+
+        - Communicating with the creditor through the case chat
+
+
+        **Note:** This endpoint shows cases where you are collecting. For cases you submitted on behalf of your own clients (where you are the managing partner), use the `/managed-cases` endpoint instead.
+
+
+        **Pagination:**
+
+        - page (default: 1) - Page number, starting from 1
+
+        - pageSize (default: 10, max: 100) - Number of results per page
+
+
+        **Filters:**
+
+        - statuses - Filter by case lifecycle status (comma-separated list)
+
+        Valid values: PendingVerification, NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed
+
+        **Note:** Partner-specific statuses only. Internal platform statuses like ''PendingContractSigning'' or ''PendingVerificationInternal'' are not available here — cases in those stages are hidden from every collection-partner-facing endpoint until Debitura''s internal verification clears, regardless of assignment.
+
+        - divisionIds - Filter by creditor division IDs (comma-separated GUIDs)
+
+        - debtorIds - Filter by specific debtor IDs (comma-separated GUIDs)
+
+        - ids - Filter by specific case IDs (comma-separated GUIDs)
+
+        - includeTestCases - When true, includes test/demo cases owned by the caller. Defaults to false.
+
+
+        **Sorting:**
+
+        - sort - Sort field and direction (format: ''field:direction'')
+
+        Examples: ''date:desc'', ''amount:asc'', ''debtorName:asc''
+
+
+        **Response:**
+
+        - Returns InvoiceListApiDTO with page metadata and cases array
+
+        - Page metadata includes: totalResults, currentPage, skipped, pageSize'
       parameters:
       - name: Page
         in: query
@@ -108,11 +164,62 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCases
+      x-operation-id-source: derived
     post:
       tags:
       - Cases
       summary: Create collection case
-      description: "Creates a new collection case for debt collection.\n\n**Test Mode:**\n- Set isTest=true to create a test case (case IS created in the database but marked as test data)\n- Test cases are excluded from production metrics and can be easily filtered or deleted\n- Use test mode for integration testing and development\n\n**Debtor Rules:**\n- debtor.type must be \"Company\" or \"Private\"\n  - Company → debtor.name is mandatory (company name)\n  - Private → debtor.name is mandatory (person's full name)\n\n**Geographic Rules:**\n- debtor.countryAlpha2 (ISO 3166-1 alpha-2) is always required\n- debtor.state is a free-text region description\n- For US debtors: debtor.stateAlpha2 (two-letter state code) is also required – debtor.state is ignored in that scenario\n\n**Optional Parameters:**\n- creditorDivisionId - Assign case to a specific division (for multi-division creditors)\n- collectionPartnerId - Override automatic partner assignment with a specific collection partner\n- skipDebituraVerification - Skip internal verification steps (advanced use)\n- skipCreationEmails - Deprecated: accepted for backwards compatibility but ignored server-side. Creation emails are always suppressed in favour of the hourly CasesStarted digest\n- allowPendingContracts - Accept cases with unsigned contracts in 'PendingContractSigning' status instead of returning 422\n\n**Error Responses:**\n- 400: Field validation errors (returns JSON object with field names as keys and error arrays as values)\n- 422: Business rule violations (returns BusinessErrorResponseApiDTO with type, message, and solutionUrl)\n- 500: Server errors"
+      description: 'Creates a new collection case for debt collection.
+
+
+        **Test Mode:**
+
+        - Set isTest=true to create a test case (case IS created in the database but marked as test data)
+
+        - Test cases are excluded from production metrics and can be easily filtered or deleted
+
+        - Use test mode for integration testing and development
+
+
+        **Debtor Rules:**
+
+        - debtor.type must be "Company" or "Private"
+
+        - Company → debtor.name is mandatory (company name)
+
+        - Private → debtor.name is mandatory (person''s full name)
+
+
+        **Geographic Rules:**
+
+        - debtor.countryAlpha2 (ISO 3166-1 alpha-2) is always required
+
+        - debtor.state is a free-text region description
+
+        - For US debtors: debtor.stateAlpha2 (two-letter state code) is also required – debtor.state is ignored in that scenario
+
+
+        **Optional Parameters:**
+
+        - creditorDivisionId - Assign case to a specific division (for multi-division creditors)
+
+        - collectionPartnerId - Override automatic partner assignment with a specific collection partner
+
+        - skipDebituraVerification - Skip internal verification steps (advanced use)
+
+        - skipCreationEmails - Deprecated: accepted for backwards compatibility but ignored server-side. Creation emails are always suppressed in favour of the hourly CasesStarted digest
+
+        - allowPendingContracts - Accept cases with unsigned contracts in ''PendingContractSigning'' status instead of returning 422
+
+
+        **Error Responses:**
+
+        - 400: Field validation errors (returns JSON object with field names as keys and error arrays as values)
+
+        - 422: Business rule violations (returns BusinessErrorResponseApiDTO with type, message, and solutionUrl)
+
+        - 500: Server errors'
       parameters:
       - name: Idempotency-Key
         in: header
@@ -185,6 +292,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postCases
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -262,6 +371,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesById
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -326,6 +437,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesCaseReferenceByCaseReference
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -333,7 +446,7 @@ paths:
     get:
       tags:
       - Cases
-      summary: Fetch a single case by the collection partner's own reference ID.
+      summary: Fetch a single case by the collection partner's own reference ID
       description: 'Returns detailed case information using the collection partner''s own reference (the `CollectionPartnerReference` field set during case activation).
 
 
@@ -395,6 +508,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesByPartnerReferenceByReference
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -402,7 +517,7 @@ paths:
     get:
       tags:
       - Cases
-      summary: Batch lookup of cases by the collection partner's own reference IDs.
+      summary: Batch lookup of cases by the collection partner's own reference IDs
       description: 'Returns a dictionary mapping each partner reference to its corresponding case details.
 
 
@@ -462,6 +577,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesByPartnerReference
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -469,7 +586,7 @@ paths:
     get:
       tags:
       - Cases
-      summary: Fetch a single case by creditor reference, scoped to a specific creditor and partner.
+      summary: Fetch a single case by creditor reference, scoped to a specific creditor and…
       description: 'Returns detailed case information using the creditor''s own reference (`CreditorReference`) scoped to a specific creditor.
 
 
@@ -535,6 +652,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesByCreditorReference
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -624,6 +743,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesByIdTimeline
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -715,6 +836,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesByIdChats
+      x-operation-id-source: derived
     post:
       tags:
       - Cases
@@ -821,6 +944,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postCasesByIdChats
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -917,11 +1042,74 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesByIdPayments
+      x-operation-id-source: derived
     post:
       tags:
       - Cases
       summary: Create a payment on a case
-      description: "Records a payment received for a collection case.\n\n**Use Case:**\nUse this endpoint when you receive a payment from the debtor. Provide the payment amount and, in the normal case, nothing else for the split — **omit both PayoutCreditor and PayoutCollectionPartner** and Debitura computes the creditor/partner split server-side from the case's pricing terms (success fee). This is the default and recommended usage for almost every integration.\n\n**Advanced override — PayoutCreditor / PayoutCollectionPartner:**\nSupplying both fields lets you dictate the split explicitly instead of using the computed one. This is an **advanced, opt-in override** for legitimate edge cases (e.g. a negotiated split where the collection partner already holds funds) — it is not the normal path and most integrations should never set it. When supplied:\n- Both fields are required together, and MUST sum to PaymentAmount (within 0.01 tolerance).\n- The response's `Warnings` array surfaces (without blocking the request) if the split allocates zero to the creditor, or if the case had no outstanding balance before this payment — both are signs of a misconfigured or duplicate payment and should be reviewed.\n\n**Currency:** Payment must be in the same currency as the invoice. The currency is automatically determined from the case.\n\n**PaymentRecipient Options:**\n- **Creditor** - Payment was received by the creditor (your client). When using this option, you MUST also specify CommissionPaymentStatus.\n- **CollectionPartner** - Payment was received by you (the collection partner). Commission is automatically marked as Paid since you already have the funds.\n\n**CommissionPaymentStatus:**\nThis field tracks whether the collection partner's commission has been paid. It's only required when PaymentRecipient is 'Creditor'.\n- **Paid** - The creditor has already paid your commission\n- **Unpaid** - The creditor has not yet paid your commission\n\nNote: When PaymentRecipient is 'CollectionPartner', this field is automatically set to 'Paid' since you already have the money.\n\n**Critical Validation:**\n- PayoutCreditor and PayoutCollectionPartner are optional but must be supplied together. When supplied, they MUST equal PaymentAmount (within 0.01 tolerance). When omitted (recommended), the split is computed from the case terms.\n- An explicit split that zeroes the creditor, or that is supplied on an already-settled (zero-remainder) case, is accepted but surfaced as a warning in the response — not blocked.\n- CommissionPaymentStatus is required only if PaymentRecipient is 'Creditor'\n\n**Payment Flow:**\n1. Full Payment (payment >= outstanding):\n   - If CloseCase=true → closes case with 'Paid' status\n   - If CloseCase=false → case remains open\n\n2. Partial Payment (payment < outstanding):\n   - The payment is recorded regardless of CloseCase. The case is NOT closed (CloseCase is honoured only when the payment fully settles the balance) and no error is returned.\n   - To close on a partial payment, use the close endpoint with the PartiallyPaid close code."
+      description: 'Records a payment received for a collection case.
+
+
+        **Use Case:**
+
+        Use this endpoint when you receive a payment from the debtor. Provide the payment amount and, in the normal case, nothing else for the split — **omit both PayoutCreditor and PayoutCollectionPartner** and Debitura computes the creditor/partner split server-side from the case''s pricing terms (success fee). This is the default and recommended usage for almost every integration.
+
+
+        **Advanced override — PayoutCreditor / PayoutCollectionPartner:**
+
+        Supplying both fields lets you dictate the split explicitly instead of using the computed one. This is an **advanced, opt-in override** for legitimate edge cases (e.g. a negotiated split where the collection partner already holds funds) — it is not the normal path and most integrations should never set it. When supplied:
+
+        - Both fields are required together, and MUST sum to PaymentAmount (within 0.01 tolerance).
+
+        - The response''s `Warnings` array surfaces (without blocking the request) if the split allocates zero to the creditor, or if the case had no outstanding balance before this payment — both are signs of a misconfigured or duplicate payment and should be reviewed.
+
+
+        **Currency:** Payment must be in the same currency as the invoice. The currency is automatically determined from the case.
+
+
+        **PaymentRecipient Options:**
+
+        - **Creditor** - Payment was received by the creditor (your client). When using this option, you MUST also specify CommissionPaymentStatus.
+
+        - **CollectionPartner** - Payment was received by you (the collection partner). Commission is automatically marked as Paid since you already have the funds.
+
+
+        **CommissionPaymentStatus:**
+
+        This field tracks whether the collection partner''s commission has been paid. It''s only required when PaymentRecipient is ''Creditor''.
+
+        - **Paid** - The creditor has already paid your commission
+
+        - **Unpaid** - The creditor has not yet paid your commission
+
+
+        Note: When PaymentRecipient is ''CollectionPartner'', this field is automatically set to ''Paid'' since you already have the money.
+
+
+        **Critical Validation:**
+
+        - PayoutCreditor and PayoutCollectionPartner are optional but must be supplied together. When supplied, they MUST equal PaymentAmount (within 0.01 tolerance). When omitted (recommended), the split is computed from the case terms.
+
+        - An explicit split that zeroes the creditor, or that is supplied on an already-settled (zero-remainder) case, is accepted but surfaced as a warning in the response — not blocked.
+
+        - CommissionPaymentStatus is required only if PaymentRecipient is ''Creditor''
+
+
+        **Payment Flow:**
+
+        1. Full Payment (payment >= outstanding):
+
+        - If CloseCase=true → closes case with ''Paid'' status
+
+        - If CloseCase=false → case remains open
+
+
+        2. Partial Payment (payment < outstanding):
+
+        - The payment is recorded regardless of CloseCase. The case is NOT closed (CloseCase is honoured only when the payment fully settles the balance) and no error is returned.
+
+        - To close on a partial payment, use the close endpoint with the PartiallyPaid close code.'
       parameters:
       - name: id
         in: path
@@ -1024,6 +1212,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postCasesByIdPayments
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -1147,6 +1337,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesByIdFiles
+      x-operation-id-source: derived
     post:
       tags:
       - Cases
@@ -1306,6 +1498,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postCasesByIdFiles
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -1404,6 +1598,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postCasesByIdNotes
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -1524,6 +1720,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: putCasesByIdPaymentsByPaymentId
+      x-operation-id-source: derived
     delete:
       tags:
       - Cases
@@ -1618,6 +1816,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: deleteCasesByIdPaymentsByPaymentId
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -1738,6 +1938,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postCasesByIdClose
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -1851,6 +2053,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postCasesByIdStart
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -1970,6 +2174,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: putCasesByIdFees
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -2025,6 +2231,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesByIdExclusivePeriod
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -2089,6 +2297,8 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: getCasesByIdValidation
+      x-operation-id-source: derived
     servers:
     - url: https://collectionpartner-api.debitura.com
       description: Production
@@ -2097,7 +2307,90 @@ paths:
       tags:
       - Cases
       summary: Preview case eligibility and requirements
-      description: "Preview what would happen if you submitted a case, without actually creating it.\n\n**What This Endpoint Returns:**\n- IsEligible - Whether the case can be submitted (partner available)\n- PartnerAssignment - Which collection partner would handle the case\n- RequiredActions - What contracts/documents need to be signed before submission\n  - Standard Debt Collection Agreement (SDCA)\n  - Power of Attorney (PoA) for the assigned partner\n- PricingPreview - Estimated success fee with age-based surcharges\n- Jurisdiction - Geographic details\n\n**Use This To:**\n1. Check if a jurisdiction is supported before submitting\n2. Determine which documents need signing before case creation\n3. Get signing URLs to guide users through required actions\n4. Estimate pricing including age surcharges\n\n**Required Fields:**\n- AmountToRecover - Total principal amount\n- CurrencyCode - ISO 4217 currency code (e.g., 'DKK', 'EUR', 'USD')\n- Debtor.Type - 'Company' or 'Private'\n- Debtor.CountryAlpha2 - ISO 3166-1 alpha-2 country code\n- Debtor.StateAlpha2 - Required for US cases only (e.g., 'CA', 'NY')\n\n**Optional Fields (Multi-Invoice Age Pricing):**\n- AmountToRecoverOver12Months - Portion over 12 months overdue\n- AmountToRecoverOver24Months - Portion over 24 months overdue\n(Both must be provided together if used)\n- AmountToRecoverOver6Months - Portion over 6 months overdue (optional, improves pricing tier accuracy at the 180-day threshold; requires Over12/Over24)\n\n**Solution URLs Are Context-Aware:**\n- Bearer token (referral partner) → referral onboarding URLs\n- XApiKey (creditor) → standard creditor app URLs\n\n**Important Notes:**\n- This endpoint does NOT create a case - it only previews what would happen\n- The preview uses the same eligibility logic as POST /cases\n- If multiple partners match (system limitation), the first match is returned\n- All required actions must be completed before calling POST /cases\n\n**Example Workflow:**\n```\n1. POST /cases/preview → Check eligibility and get signing URLs\n2. User completes required actions (signs SDCA, signs PoA)\n3. POST /cases → Create the actual case\n```"
+      description: 'Preview what would happen if you submitted a case, without actually creating it.
+
+
+        **What This Endpoint Returns:**
+
+        - IsEligible - Whether the case can be submitted (partner available)
+
+        - PartnerAssignment - Which collection partner would handle the case
+
+        - RequiredActions - What contracts/documents need to be signed before submission
+
+        - Standard Debt Collection Agreement (SDCA)
+
+        - Power of Attorney (PoA) for the assigned partner
+
+        - PricingPreview - Estimated success fee with age-based surcharges
+
+        - Jurisdiction - Geographic details
+
+
+        **Use This To:**
+
+        1. Check if a jurisdiction is supported before submitting
+
+        2. Determine which documents need signing before case creation
+
+        3. Get signing URLs to guide users through required actions
+
+        4. Estimate pricing including age surcharges
+
+
+        **Required Fields:**
+
+        - AmountToRecover - Total principal amount
+
+        - CurrencyCode - ISO 4217 currency code (e.g., ''DKK'', ''EUR'', ''USD'')
+
+        - Debtor.Type - ''Company'' or ''Private''
+
+        - Debtor.CountryAlpha2 - ISO 3166-1 alpha-2 country code
+
+        - Debtor.StateAlpha2 - Required for US cases only (e.g., ''CA'', ''NY'')
+
+
+        **Optional Fields (Multi-Invoice Age Pricing):**
+
+        - AmountToRecoverOver12Months - Portion over 12 months overdue
+
+        - AmountToRecoverOver24Months - Portion over 24 months overdue
+
+        (Both must be provided together if used)
+
+        - AmountToRecoverOver6Months - Portion over 6 months overdue (optional, improves pricing tier accuracy at the 180-day threshold; requires Over12/Over24)
+
+
+        **Solution URLs Are Context-Aware:**
+
+        - Bearer token (referral partner) → referral onboarding URLs
+
+        - XApiKey (creditor) → standard creditor app URLs
+
+
+        **Important Notes:**
+
+        - This endpoint does NOT create a case - it only previews what would happen
+
+        - The preview uses the same eligibility logic as POST /cases
+
+        - If multiple partners match (system limitation), the first match is returned
+
+        - All required actions must be completed before calling POST /cases
+
+
+        **Example Workflow:**
+
+        ```
+
+        1. POST /cases/preview → Check eligibility and get signing URLs
+
+        2. User completes required actions (signs SDCA, signs PoA)
+
+        3. POST /cases → Create the actual case
+
+        ```'
       requestBody:
         content:
           application/json-patch+json:
@@ -2152,6 +2445,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: postCasesPreview
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -2207,6 +2502,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: getCasesByCreditorReferenceByCreditorReference
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -2279,6 +2576,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: getCasesByIdContractStatus
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -2335,6 +2634,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: getCasesByIdQuoteRequests
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -2397,6 +2698,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: getCasesByIdQuoteRequestsByQuoteRequestId
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -2459,6 +2762,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: getCasesByIdQuoteRequestsByQuoteRequestIdQuotes
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -2539,6 +2844,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: getCasesByIdQuoteRequestsByQuoteRequestIdQuotesByQuoteId
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -2625,6 +2932,8 @@ paths:
       security:
       - ApiKey: []
       - Bearer: []
+      operationId: getCasesByIdTasks
+      x-operation-id-source: derived
     servers:
     - url: https://customer-api.debitura.com
       description: Production
@@ -2632,7 +2941,7 @@ paths:
     post:
       tags:
       - Cases
-      summary: Upload a file to a case. Optionally posts a system chat message to notify the collection partner.
+      summary: Upload a file to a case.
       description: 'Uploads a file and associates it with a case owned by one of the referral partner''s clients.
 
 
@@ -2741,655 +3050,13 @@ paths:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
       security:
       - ApiKey: []
+      operationId: postCasesByCaseIdFiles
+      x-operation-id-source: derived
     servers:
     - url: https://referral-api.debitura.com
       description: Production
 components:
   schemas:
-    Debitura.Web.ExternalApi.Contracts.V1.Users.UserRelationDto:
-      required:
-      - email
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int32
-        dateCreated:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        dateUpdated:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        firstName:
-          type:
-          - string
-          - 'null'
-        lastName:
-          type:
-          - string
-          - 'null'
-        email:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.ExclusivePeriodDto:
-      type: object
-      properties:
-        engagementStartDate:
-          type: string
-          description: Start date of the initial exclusivity engagement.
-          format: date-time
-        currentEndDate:
-          type: string
-          description: Current end date of the exclusive period (after any extensions).
-          format: date-time
-        daysRemaining:
-          type: integer
-          description: 'Days remaining until the period ends. Negative when the period has naturally expired.
-
-            Zero when the engagement was terminated early (partner change or withdrawal),
-
-            regardless of the original end date.'
-          format: int32
-        status:
-          type:
-          - string
-          - 'null'
-          description: 'Current status of the exclusive period: Active, Expired, or Terminated.
-
-            Active — partner has exclusive rights.
-
-            Expired — period ended naturally (time elapsed or case resolved).
-
-            Terminated — period was ended early (partner change, withdrawal, etc.).'
-        extensions:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ExclusivePeriodExtensionDto'
-          description: 'Each extension event that occurred within the current engagement, in chronological order.
-
-            Empty for cases that have never had an extension triggered.'
-      additionalProperties: false
-      description: 'Full exclusive collection period chain for a case.
-
-        Returned by GET /cases/{id}/exclusive-period.'
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.TimelineActorDto:
-      required:
-      - type
-      type: object
-      properties:
-        type:
-          type:
-          - string
-          - 'null'
-          description: 'The type of actor. One of: "System", "Creditor user", "Partner user".'
-        name:
-          type:
-          - string
-          - 'null'
-          description: Display name of the actor, if available.
-      additionalProperties: false
-      description: Represents the actor (person or system) that performed a timeline action.
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.PriceChangeConfirmationResponse:
-      type: object
-      properties:
-        caseId:
-          type: string
-          description: The case ID.
-          format: uuid
-        confirmationRequired:
-          type: boolean
-          description: 'Always `true` on this response. Lets clients branch on the response shape without
-
-            inspecting the HTTP status code.'
-        isIntentionalRate:
-          type: boolean
-          description: 'True when the rate is a deliberately-set rate (accepted quote or manual override) rather than a plain
-
-            bracket crossing. When true the client resolves the 409 with `KeepIntentionalRate = true` only
-
-            (the rate is preserve-only; `ConfirmPriceChange = true` is rejected with 400). When false only
-
-            `ConfirmPriceChange = true` applies (re-price). Lets the consumer branch without parsing
-
-            Debitura.Web.ExternalApi.Contracts.V1.Cases.PriceChangeConfirmationResponse.Message.'
-        currentSuccessFee:
-          type:
-          - number
-          - 'null'
-          description: The success fee percentage currently on the case (before the edit).
-          format: double
-        proposedSuccessFee:
-          type: number
-          description: The success fee percentage that would apply if the edit is confirmed.
-          format: double
-        warning:
-          type:
-          - string
-          - 'null'
-          description: 'Optional warning surfaced alongside the confirmation — e.g. when the principal is lowered on a
-
-            case that already has payments (partner-rules.md suggests registering a payment instead).
-
-            Null when there is no warning.'
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable explanation of why confirmation is required.
-      additionalProperties: false
-      description: 'Returned with HTTP 409 when a principal edit would move the case success fee by more than the
-
-        allowed threshold (>0.1 percentage points), or would affect a deliberately-set rate. The edit is
-
-        NOT applied; the partner reviews the proposed rate change and resubmits the same request to resolve it.
-
-        For a plain bracket crossing (Debitura.Web.ExternalApi.Contracts.V1.Cases.PriceChangeConfirmationResponse.IsIntentionalRate false) resubmit with
-
-        `ConfirmPriceChange = true` to re-price. For a deliberately-set rate (Debitura.Web.ExternalApi.Contracts.V1.Cases.PriceChangeConfirmationResponse.IsIntentionalRate
-
-        true) the rate is preserve-only: resubmit with `KeepIntentionalRate = true` to apply the edit and
-
-        keep it — partners cannot override it, and sending `ConfirmPriceChange = true` on such a case is
-
-        rejected with HTTP 400 (DEB-4765 (b)). See partner-rules.md (price-change confirmation) and DEB-4759.'
-    Debitura.Domain.Model.CommunicationCenter.Chats.ChatRole:
-      enum:
-      - 0
-      - 1
-      - 2
-      type: integer
-      format: int32
-    Debitura.Web.ExternalApi.Contracts.V1.Files.CaseFileDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        dateCreated:
-          type: string
-          format: date-time
-        dateUpdated:
-          type: string
-          format: date-time
-        caseId:
-          type: string
-          format: uuid
-        entityType:
-          type:
-          - string
-          - 'null'
-        entityId:
-          type: string
-          format: uuid
-        fileName:
-          type:
-          - string
-          - 'null'
-        url:
-          type:
-          - string
-          - 'null'
-        description:
-          type:
-          - string
-          - 'null'
-        documentType:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.CloseCaseRequest:
-      required:
-      - closeCode
-      type: object
-      properties:
-        closeCode:
-          minLength: 1
-          type: string
-          description: "Close code/reason for closing the case.\n            \n**Valid close codes:**\n- **Paid**: Full payment received from debtor\n- **PartiallyPaid**: Some payment received but not full amount\n- **DebtorInsolventBankrupt**: Debtor declared bankruptcy or insolvent\n- **DebtorUntraceable**: Unable to locate or contact debtor\n- **DisputedLegalActionDeclinedByClient**: Debt disputed, creditor declined legal action\n- **WithdrawnByClient**: Creditor requested case withdrawal\n- **PreLegalExhaustedNoPayment**: All pre-legal attempts exhausted without payment\n- **StatuteOfLimitationsExpired**: Legal time limit to collect has passed\n- **SettlementRejectedByClient**: Proposed settlement rejected by creditor\n- **UnresponsiveClient**: Creditor not responding to collection partner\n- **UneconomicalToPursue**: Recovery cost exceeds claim value\n- **Other**: Other reason (please provide comment)"
-          example: Paid
-        comment:
-          maxLength: 2000
-          minLength: 0
-          type:
-          - string
-          - 'null'
-          description: Optional comment explaining the closure (recommended for 'Other' close code)
-          example: Case closed after full payment received via bank transfer on 2025-11-19
-      additionalProperties: false
-      description: Request to close a case
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.ClosedByDto:
-      required:
-      - userName
-      type: object
-      properties:
-        userId:
-          type: integer
-          format: int32
-        userName:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto:
-      type: object
-      properties:
-        combinedSigningUrl:
-          type:
-          - string
-          - 'null'
-          description: 'Single signing entry URL that walks the creditor through every
-
-            pending step (SDCA upgrade → PoA → JPA → KYC) on the Creditors app
-
-            and returns to the partner-supplied returnUrl when done.'
-      additionalProperties: false
-      description: "Partner-facing handoff metadata for a creditor's pending signing chain.\nReturned on POST /cases responses (422 with pending-signing errors,\nor 200 with AllowPendingContracts=true when signings remain).\n            \nDesigned as an envelope so future fields (expiration, suggested email\ncopy, etc.) can be added without polluting the parent DTO."
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.CollectionPartnerDto:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-        officeEmail:
-          type:
-          - string
-          - 'null'
-        officePhone:
-          type:
-          - string
-          - 'null'
-        publicSite:
-          type:
-          - string
-          - 'null'
-        surveyCadenceMode:
-          $ref: '#/components/schemas/Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode'
-      additionalProperties: false
-      description: V1 Collection Partner DTO for external partner APIs
-    Debitura.Web.ExternalApi.Contracts.V1.Payments.CreatePaymentResponse:
-      required:
-      - caseReference
-      - commissionPaymentStatus
-      - paymentRecipient
-      type: object
-      properties:
-        paymentId:
-          type: string
-          format: uuid
-        caseReference:
-          type:
-          - string
-          - 'null'
-        date:
-          type: string
-          format: date-time
-        paymentAmount:
-          type: number
-          format: double
-        payoutCreditor:
-          type: number
-          format: double
-        payoutCollectionPartner:
-          type: number
-          format: double
-        paymentRecipient:
-          type:
-          - string
-          - 'null'
-        commissionPaymentStatus:
-          type:
-          - string
-          - 'null'
-        closeCase:
-          type: boolean
-        caseClosed:
-          type: boolean
-        closeCode:
-          type:
-          - string
-          - 'null'
-        remainingAmount:
-          type: number
-          format: double
-        warnings:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: 'Non-blocking warnings about this payment. Always present (empty when there is nothing to flag).
-
-            Currently populated only when an explicit PayoutCreditor/PayoutCollectionPartner override was
-
-            supplied and (a) it allocates zero to the creditor, or (b) the case already had no outstanding
-
-            balance before this payment — both are signs of a misconfigured or duplicate payment. The
-
-            payment is still recorded; these are advisory only, not errors. Review and resolve out of band
-
-            if unexpected (e.g. via the case''s Payments view in the Partner Portal, or by contacting
-
-            Debitura support).'
-      additionalProperties: false
-      description: Response after creating a payment
-    Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentRelatedInvoiceDto:
-      required:
-      - reference
-      - status
-      type: object
-      properties:
-        status:
-          type:
-          - string
-          - 'null'
-        reference:
-          type:
-          - string
-          - 'null'
-        invoiceId:
-          type: string
-          format: uuid
-      additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.AssignedUserDto:
-      type: object
-      properties:
-        email:
-          type:
-          - string
-          - 'null'
-          description: The assigned user's email address.
-        name:
-          type:
-          - string
-          - 'null'
-          description: The assigned user's full name.
-      additionalProperties: false
-      description: Represents the creditor team member assigned to a case.
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.UpdateCaseFeesRequest:
-      type: object
-      properties:
-        grossAmount:
-          maximum: 1.7976931348623157e+308
-          minimum: 0
-          type:
-          - number
-          - 'null'
-          description: 'Principal claim amount (gross amount) in the case currency.
-
-            Optional — omit to leave the principal unchanged (fees-only update, backward-compatible).
-
-            Both increases and decreases are allowed; must be ≥ 0.'
-          format: double
-          example: 1000.0
-        interestFees:
-          maximum: 1.7976931348623157e+308
-          minimum: 0
-          type: number
-          description: Interest fees on this case, in the case currency.
-          format: double
-          example: 25.5
-        reminderFees:
-          maximum: 1.7976931348623157e+308
-          minimum: 0
-          type: number
-          description: Reminder fees on this case, in the case currency.
-          format: double
-          example: 10.0
-        collectionFees:
-          maximum: 1.7976931348623157e+308
-          minimum: 0
-          type: number
-          description: Collection fees on this case, in the case currency.
-          format: double
-          example: 50.0
-        confirmPriceChange:
-          type: boolean
-          description: "The \"Change to standard\" resolution. When a principal edit on a <em>standard-rate</em> case would\nmove the success fee by more than 0.1 percentage points (a bracket crossing), the first request\nreturns HTTP 409 with the proposed old/new rate instead of applying the change. Resubmit the same\nrequest with this set to `true` to confirm and apply the re-price. Leaving it `false`\n(the default) on an unaffected edit has no effect. See partner-rules.md (price change confirmation\nrequired if the success fee changes by >0.1%).\n            \nIMPORTANT (DEB-4765 (b)): on a case with a deliberately-set rate (an accepted quote or a manual\noverride), partners can never override a special agreement via this API. Sending this flag on such a\ncase is REJECTED with HTTP 400 — resubmit with Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.UpdateCaseFeesRequest.KeepIntentionalRate=`true` to apply\nthe edit and keep the special rate. Only the admin (internal) surface can change a special rate."
-          example: false
-        keepIntentionalRate:
-          type: boolean
-          description: 'The "Keep special rate" resolution. When the case carries a deliberately-set rate (an accepted
-
-            quote or a manual override) that the edit would otherwise prompt about, resubmit with this set to
-
-            `true` to apply the edit while preserving the existing rate. On this external Partner API a
-
-            special rate is preserve-only: this is the ONLY way to apply an edit to such a case — sending
-
-            Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.UpdateCaseFeesRequest.ConfirmPriceChange instead is rejected with HTTP 400. Ignored for a plain bracket
-
-            crossing on a non-intentional rate (use Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.UpdateCaseFeesRequest.ConfirmPriceChange there).'
-          example: false
-      additionalProperties: false
-      description: Request to update the fee amounts (and optionally the principal) on an active case.
-    Debitura.Web.ExternalApi.Contracts.V1.Notes.CreateNoteRequest:
-      required:
-      - description
-      type: object
-      properties:
-        description:
-          maxLength: 10000
-          minLength: 0
-          type: string
-          description: Note content
-          example: Called debtor on 2025-11-19. They acknowledged the debt and promised to pay within 7 days. Will follow up on 2025-11-26.
-        eventDate:
-          type:
-          - string
-          - 'null'
-          description: 'The date when the event actually occurred. Must not be in the future.
-
-            When provided, the note will appear at this date in the timeline instead of the upload time.
-
-            This is useful for importing historical events (e.g. a phone call that happened last week).
-
-            Omit or set to null to use the current time (default behaviour).'
-          format: date-time
-          example: '2025-11-14T09:30:00Z'
-      additionalProperties: false
-      description: Request to create a new note on a case
-    Debitura.Web.ExternalApi.Contracts.V1.Notes.NoteDto:
-      required:
-      - caseReference
-      - title
-      - visibility
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        caseReference:
-          type:
-          - string
-          - 'null'
-        title:
-          type:
-          - string
-          - 'null'
-        description:
-          type:
-          - string
-          - 'null'
-        visibility:
-          type:
-          - string
-          - 'null'
-        createdAt:
-          type: string
-          format: date-time
-        eventDate:
-          type:
-          - string
-          - 'null'
-          description: 'The event date provided at creation time. Null if no EventDate was supplied,
-
-            meaning the note was recorded in real-time (CreatedAt reflects the actual event time).'
-          format: date-time
-        createdBy:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Notes.NoteCreatedByDto'
-      additionalProperties: false
-      description: Note details response
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDivisionDto:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique identifier for the division
-          format: uuid
-        name:
-          type:
-          - string
-          - 'null'
-          description: Name of the division
-      additionalProperties: false
-      description: 'Creditor division information for external partner APIs.
-
-        Represents a specific division or department within a creditor organization.'
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
-      type: object
-      properties:
-        error:
-          type:
-          - string
-          - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
-      additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BankAccountDto:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Bank account identifier
-          format: int32
-        label:
-          type:
-          - string
-          - 'null'
-          description: User-friendly label (e.g., "Main EUR Account")
-        scheme:
-          type:
-          - string
-          - 'null'
-          description: 'Account scheme: IBAN, SWIFT, or LOCAL'
-        currencyCode:
-          type:
-          - string
-          - 'null'
-          description: Currency code (ISO 4217)
-        bankCountryCode:
-          type:
-          - string
-          - 'null'
-          description: Bank country code (ISO Alpha-2)
-        accountHolderName:
-          type:
-          - string
-          - 'null'
-          description: Account holder name (beneficiary)
-        iban:
-          type:
-          - string
-          - 'null'
-          description: IBAN (for IBAN scheme accounts)
-        bic:
-          type:
-          - string
-          - 'null'
-          description: BIC/SWIFT code (for IBAN and SWIFT scheme accounts)
-        accountNumber:
-          type:
-          - string
-          - 'null'
-          description: Account number (for SWIFT and LOCAL scheme accounts)
-        localIdentifier:
-          type:
-          - string
-          - 'null'
-          description: Local identifier (for LOCAL scheme accounts, e.g., sort code + account number)
-        localIdentifierType:
-          type:
-          - string
-          - 'null'
-          description: Type of local identifier (e.g., "Sort Code", "Routing Number")
-        bankName:
-          type:
-          - string
-          - 'null'
-          description: Bank name (optional)
-        bankAddress:
-          type:
-          - string
-          - 'null'
-          description: Bank address (optional)
-        bankCity:
-          type:
-          - string
-          - 'null'
-          description: Bank city (optional)
-        bankZipCode:
-          type:
-          - string
-          - 'null'
-          description: Bank zip/postal code (optional)
-        bankState:
-          type:
-          - string
-          - 'null'
-          description: Bank state/region (optional)
-      additionalProperties: false
-      description: 'Bank account information for partner API.
-
-        Full details provided as partners need this to:
-
-        1. Provide payment instructions to debtors (when debtor pays client directly)
-
-        2. Execute payouts to clients (when partner receives payment and pays out remainder)'
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceAllocationOutstandingDto:
-      type: object
-      properties:
-        principal:
-          type: number
-          format: double
-        interest:
-          type: number
-          format: double
-        reminderFees:
-          type: number
-          format: double
-        collectionFees:
-          type: number
-          format: double
-      additionalProperties: false
-      description: 'Additive external-API read model. Per-bucket outstanding on the debt ledger, produced by
-
-        the payment allocation engine (bucket total minus Σ active stored allocations — never re-derived
-
-        from a model). Mirrors the internal
-
-        `Debitura.Domain.Model.Receiveables.InvoiceEconomics.EconomicalAllocationOutstanding` shape.'
     Debitura.Web.ExternalApi.Contracts.V1.Payments.CreatePaymentRequest:
       required:
       - date
@@ -3454,23 +3121,161 @@ components:
         paymentRecipient: Creditor
         commissionPaymentStatus: Paid
         closeCase: false
-    Debitura.Domain.Services.CaseValidation.CaseValidationStatusDto:
+    Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentRelatedInvoiceDto:
+      required:
+      - reference
+      - status
+      type: object
+      properties:
+        status:
+          type:
+          - string
+          - 'null'
+        reference:
+          type:
+          - string
+          - 'null'
+        invoiceId:
+          type: string
+          format: uuid
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto:
+      type: object
+      properties:
+        combinedSigningUrl:
+          type:
+          - string
+          - 'null'
+          description: 'Single signing entry URL that walks the creditor through every
+
+            pending step (SDCA upgrade → PoA → JPA → KYC) on the Creditors app
+
+            and returns to the partner-supplied returnUrl when done.'
+      additionalProperties: false
+      description: "Partner-facing handoff metadata for a creditor's pending signing chain.\nReturned on POST /cases responses (422 with pending-signing errors,\nor 200 with AllowPendingContracts=true when signings remain).\n            \nDesigned as an envelope so future fields (expiration, suggested email\ncopy, etc.) can be added without polluting the parent DTO."
+    Debitura.Domain.Services.CaseValidation.CaseValidationLeanDto:
       type: object
       properties:
         needsInfo:
           type: boolean
-        creditorRespondedAt:
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.PriceChangeConfirmationResponse:
+      type: object
+      properties:
+        caseId:
+          type: string
+          description: The case ID.
+          format: uuid
+        confirmationRequired:
+          type: boolean
+          description: 'Always `true` on this response. Lets clients branch on the response shape without
+
+            inspecting the HTTP status code.'
+        isIntentionalRate:
+          type: boolean
+          description: 'True when the rate is a deliberately-set rate (accepted quote or manual override) rather than a plain
+
+            bracket crossing. When true the client resolves the 409 with `KeepIntentionalRate = true` only
+
+            (the rate is preserve-only; `ConfirmPriceChange = true` is rejected with 400). When false only
+
+            `ConfirmPriceChange = true` applies (re-price). Lets the consumer branch without parsing
+
+            Debitura.Web.ExternalApi.Contracts.V1.Cases.PriceChangeConfirmationResponse.Message.'
+        currentSuccessFee:
+          type:
+          - number
+          - 'null'
+          description: The success fee percentage currently on the case (before the edit).
+          format: double
+        proposedSuccessFee:
+          type: number
+          description: The success fee percentage that would apply if the edit is confirmed.
+          format: double
+        warning:
           type:
           - string
           - 'null'
-          format: date-time
-        items:
+          description: 'Optional warning surfaced alongside the confirmation — e.g. when the principal is lowered on a
+
+            case that already has payments (partner-rules.md suggests registering a payment instead).
+
+            Null when there is no warning.'
+        message:
           type:
-          - array
+          - string
           - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Domain.Services.CaseValidation.CaseValidationItemDto'
+          description: Human-readable explanation of why confirmation is required.
       additionalProperties: false
+      description: 'Returned with HTTP 409 when a principal edit would move the case success fee by more than the
+
+        allowed threshold (>0.1 percentage points), or would affect a deliberately-set rate. The edit is
+
+        NOT applied; the partner reviews the proposed rate change and resubmits the same request to resolve it.
+
+        For a plain bracket crossing (Debitura.Web.ExternalApi.Contracts.V1.Cases.PriceChangeConfirmationResponse.IsIntentionalRate false) resubmit with
+
+        `ConfirmPriceChange = true` to re-price. For a deliberately-set rate (Debitura.Web.ExternalApi.Contracts.V1.Cases.PriceChangeConfirmationResponse.IsIntentionalRate
+
+        true) the rate is preserve-only: resubmit with `KeepIntentionalRate = true` to apply the edit and
+
+        keep it — partners cannot override it, and sending `ConfirmPriceChange = true` on such a case is
+
+        rejected with HTTP 400 (DEB-4765 (b)). See partner-rules.md (price-change confirmation) and DEB-4759.'
+    Debitura.Web.ExternalApi.Contracts.V1.Payments.UpdatePaymentRequest:
+      required:
+      - date
+      - paymentAmount
+      - paymentRecipient
+      type: object
+      properties:
+        date:
+          type: string
+          description: Payment date (when payment was received). Provide date only without time component.
+          format: date-time
+          example: '2025-11-19'
+        paymentAmount:
+          maximum: 1.7976931348623157e+308
+          minimum: 0.01
+          type: number
+          description: "Total payment amount received.\n            \nWhen both PayoutCreditor and PayoutCollectionPartner are supplied they must sum to this amount.\nWhen both are omitted, the split is computed server-side from the case's pricing terms."
+          format: double
+          example: 5000.0
+        payoutCreditor:
+          maximum: 1.7976931348623157e+308
+          minimum: 0
+          type:
+          - number
+          - 'null'
+          description: "Amount to be paid out to creditor. **Optional.**\n            \nWhen omitted (along with PayoutCollectionPartner), the split is computed server-side from the\ncase's pricing terms (success fee). When supplied, PayoutCollectionPartner must also be supplied\nand the two must sum to PaymentAmount."
+          format: double
+          example: 4000.0
+        payoutCollectionPartner:
+          maximum: 1.7976931348623157e+308
+          minimum: 0
+          type:
+          - number
+          - 'null'
+          description: "Amount to be kept by collection partner (commission). **Optional.**\n            \nWhen omitted (along with PayoutCreditor), the split is computed server-side from the\ncase's pricing terms (success fee). When supplied, PayoutCreditor must also be supplied\nand the two must sum to PaymentAmount."
+          format: double
+          example: 1000.0
+        paymentRecipient:
+          minLength: 1
+          type: string
+          description: "Who received the payment.\n            \n**Valid values:**\n- **Creditor**: Payment was received by the creditor (client). When used, you must also specify CommissionPaymentStatus.\n- **CollectionPartner**: Payment was received by the collection partner. Commission is automatically marked as paid."
+          example: Creditor
+        commissionPaymentStatus:
+          type:
+          - string
+          - 'null'
+          description: "Commission payment status. **Required only if PaymentRecipient is Creditor.**\n            \nWhen PaymentRecipient is CollectionPartner, this field is ignored and commission is automatically marked as Paid.\n            \n**Valid values:** Paid, Unpaid."
+          example: Paid
+        reopenCaseIfNeeded:
+          type: boolean
+          description: "Consent to reopen the case if this edit lowers the payment so a previously closed (Paid)\ncase is left with a positive outstanding balance.\n            \nWhen the edit would reopen the case and this flag is `false` (default), the request is\nrejected with HTTP 409 Conflict. Resend with `true` to confirm the reopen — the case is\nreopened to Active and a `case.updated` webhook fires."
+          example: false
+      additionalProperties: false
+      description: "Request to edit an existing payment on a case. Mirrors the payout-split semantics of\nDebitura.Web.ExternalApi.Contracts.V1.Payments.CreatePaymentRequest.\n            \n**Currency:** A payment's currency cannot be changed — it is fixed to the case currency.\n            \n**Invoiced payments are frozen:** a payment whose payout has already been invoiced\n(Stripe/QBO) cannot be edited and returns HTTP 422."
     Debitura.Web.ExternalApi.Contracts.V1.Chats.ChatDto:
       type: object
       properties:
@@ -3606,6 +3411,324 @@ components:
         interestFees: 0
         reminderFees: 100
         collectionFees: 0
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the creditor
+          format: uuid
+        companyName:
+          type:
+          - string
+          - 'null'
+          description: Company name of the creditor
+        companyRegistrationNumber:
+          type:
+          - string
+          - 'null'
+          description: Company registration number (CVR, VAT number, etc.)
+        officeEmail:
+          type:
+          - string
+          - 'null'
+          description: Primary office email address
+        officePhone:
+          type:
+          - string
+          - 'null'
+          description: Primary office phone number
+        address:
+          type:
+          - string
+          - 'null'
+          description: Street address
+        city:
+          type:
+          - string
+          - 'null'
+          description: City
+        zipCode:
+          type:
+          - string
+          - 'null'
+          description: Postal/ZIP code
+        state:
+          type:
+          - string
+          - 'null'
+          description: State or region (if applicable)
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country name
+        division:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDivisionDto'
+      additionalProperties: false
+      description: 'Creditor (client) information for external partner APIs.
+
+        Represents the party that the debtor owes money to.'
+    Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode:
+      enum:
+      - 0
+      - 1
+      type: integer
+      format: int32
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CollectionPartnerDto:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+        officeEmail:
+          type:
+          - string
+          - 'null'
+        officePhone:
+          type:
+          - string
+          - 'null'
+        publicSite:
+          type:
+          - string
+          - 'null'
+        surveyCadenceMode:
+          $ref: '#/components/schemas/Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode'
+      additionalProperties: false
+      description: V1 Collection Partner DTO for external partner APIs
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.ExclusivePeriodDto:
+      type: object
+      properties:
+        engagementStartDate:
+          type: string
+          description: Start date of the initial exclusivity engagement.
+          format: date-time
+        currentEndDate:
+          type: string
+          description: Current end date of the exclusive period (after any extensions).
+          format: date-time
+        daysRemaining:
+          type: integer
+          description: 'Days remaining until the period ends. Negative when the period has naturally expired.
+
+            Zero when the engagement was terminated early (partner change or withdrawal),
+
+            regardless of the original end date.'
+          format: int32
+        status:
+          type:
+          - string
+          - 'null'
+          description: 'Current status of the exclusive period: Active, Expired, or Terminated.
+
+            Active — partner has exclusive rights.
+
+            Expired — period ended naturally (time elapsed or case resolved).
+
+            Terminated — period was ended early (partner change, withdrawal, etc.).'
+        extensions:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ExclusivePeriodExtensionDto'
+          description: 'Each extension event that occurred within the current engagement, in chronological order.
+
+            Empty for cases that have never had an extension triggered.'
+      additionalProperties: false
+      description: 'Full exclusive collection period chain for a case.
+
+        Returned by GET /cases/{id}/exclusive-period.'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.UpdateCaseFeesRequest:
+      type: object
+      properties:
+        grossAmount:
+          maximum: 1.7976931348623157e+308
+          minimum: 0
+          type:
+          - number
+          - 'null'
+          description: 'Principal claim amount (gross amount) in the case currency.
+
+            Optional — omit to leave the principal unchanged (fees-only update, backward-compatible).
+
+            Both increases and decreases are allowed; must be ≥ 0.'
+          format: double
+          example: 1000.0
+        interestFees:
+          maximum: 1.7976931348623157e+308
+          minimum: 0
+          type: number
+          description: Interest fees on this case, in the case currency.
+          format: double
+          example: 25.5
+        reminderFees:
+          maximum: 1.7976931348623157e+308
+          minimum: 0
+          type: number
+          description: Reminder fees on this case, in the case currency.
+          format: double
+          example: 10.0
+        collectionFees:
+          maximum: 1.7976931348623157e+308
+          minimum: 0
+          type: number
+          description: Collection fees on this case, in the case currency.
+          format: double
+          example: 50.0
+        confirmPriceChange:
+          type: boolean
+          description: "The \"Change to standard\" resolution. When a principal edit on a <em>standard-rate</em> case would\nmove the success fee by more than 0.1 percentage points (a bracket crossing), the first request\nreturns HTTP 409 with the proposed old/new rate instead of applying the change. Resubmit the same\nrequest with this set to `true` to confirm and apply the re-price. Leaving it `false`\n(the default) on an unaffected edit has no effect. See partner-rules.md (price change confirmation\nrequired if the success fee changes by >0.1%).\n            \nIMPORTANT (DEB-4765 (b)): on a case with a deliberately-set rate (an accepted quote or a manual\noverride), partners can never override a special agreement via this API. Sending this flag on such a\ncase is REJECTED with HTTP 400 — resubmit with Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.UpdateCaseFeesRequest.KeepIntentionalRate=`true` to apply\nthe edit and keep the special rate. Only the admin (internal) surface can change a special rate."
+          example: false
+        keepIntentionalRate:
+          type: boolean
+          description: 'The "Keep special rate" resolution. When the case carries a deliberately-set rate (an accepted
+
+            quote or a manual override) that the edit would otherwise prompt about, resubmit with this set to
+
+            `true` to apply the edit while preserving the existing rate. On this external Partner API a
+
+            special rate is preserve-only: this is the ONLY way to apply an edit to such a case — sending
+
+            Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.UpdateCaseFeesRequest.ConfirmPriceChange instead is rejected with HTTP 400. Ignored for a plain bracket
+
+            crossing on a non-intentional rate (use Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.UpdateCaseFeesRequest.ConfirmPriceChange there).'
+          example: false
+      additionalProperties: false
+      description: Request to update the fee amounts (and optionally the principal) on an active case.
+    Debitura.Web.ExternalApi.Contracts.V1.Notes.CreateNoteRequest:
+      required:
+      - description
+      type: object
+      properties:
+        description:
+          maxLength: 10000
+          minLength: 0
+          type: string
+          description: Note content
+          example: Called debtor on 2025-11-19. They acknowledged the debt and promised to pay within 7 days. Will follow up on 2025-11-26.
+        eventDate:
+          type:
+          - string
+          - 'null'
+          description: 'The date when the event actually occurred. Must not be in the future.
+
+            When provided, the note will appear at this date in the timeline instead of the upload time.
+
+            This is useful for importing historical events (e.g. a phone call that happened last week).
+
+            Omit or set to null to use the current time (default behaviour).'
+          format: date-time
+          example: '2025-11-14T09:30:00Z'
+      additionalProperties: false
+      description: Request to create a new note on a case
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.TimelineActorDto:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: 'The type of actor. One of: "System", "Creditor user", "Partner user".'
+        name:
+          type:
+          - string
+          - 'null'
+          description: Display name of the actor, if available.
+      additionalProperties: false
+      description: Represents the actor (person or system) that performed a timeline action.
+    Debitura.Domain.Services.CaseValidation.CaseValidationStatusDto:
+      type: object
+      properties:
+        needsInfo:
+          type: boolean
+        creditorRespondedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        items:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Domain.Services.CaseValidation.CaseValidationItemDto'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.StartCaseResponse:
+      type: object
+      properties:
+        caseId:
+          type: string
+          description: The case ID.
+          format: uuid
+        caseReference:
+          type:
+          - string
+          - 'null'
+          description: The Debitura case reference (e.g. 'Q8OAXF3W').
+        status:
+          type:
+          - string
+          - 'null'
+          description: The new lifecycle status of the case.
+        activatedAt:
+          type: string
+          description: UTC timestamp when the case was activated.
+          format: date-time
+        collectionPartnerReference:
+          type:
+          - string
+          - 'null'
+          description: Your internal reference number for this case, if provided.
+      additionalProperties: false
+      description: Response returned when a case is successfully activated.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceListDto:
+      required:
+      - page
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
+        cases:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
+      additionalProperties: false
+    Debitura.Domain.Model.CommunicationCenter.Chats.ChatRole:
+      enum:
+      - 0
+      - 1
+      - 2
+      type: integer
+      format: int32
     Debitura.Web.ExternalApi.Contracts.V1.Cases.CaseTimelineResponse:
       required:
       - items
@@ -3633,205 +3756,51 @@ components:
         Wraps the chronological event list with case-level context
 
         that cannot be expressed as a single timeline entry.'
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.CloseCaseResponse:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.TimelineItemDto:
       required:
-      - caseReference
-      - closeCode
-      - closeCodeDescription
-      type: object
-      properties:
-        caseReference:
-          type:
-          - string
-          - 'null'
-        closeCode:
-          type:
-          - string
-          - 'null'
-        closeCodeDescription:
-          type:
-          - string
-          - 'null'
-        comment:
-          type:
-          - string
-          - 'null'
-        closedAt:
-          type: string
-          format: date-time
-        closedBy:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ClosedByDto'
-        finalOutstandingAmount:
-          type: number
-          format: double
-        totalPayments:
-          type: number
-          format: double
-        totalRecovered:
-          type: number
-          format: double
-      additionalProperties: false
-      description: Response after closing a case
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
-      type: object
-      properties:
-        type:
-          type:
-          - string
-          - 'null'
-          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
-        message:
-          type:
-          - string
-          - 'null'
-          description: A human-readable description of the error.
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
-      additionalProperties: false
-      description: Represents a business error in the API response.
-    Debitura.Web.ExternalApi.Contracts.V1.Payments.UpdatePaymentRequest:
-      required:
-      - date
-      - paymentAmount
-      - paymentRecipient
+      - description
+      - title
+      - type
       type: object
       properties:
         date:
           type: string
-          description: Payment date (when payment was received). Provide date only without time component.
           format: date-time
-          example: '2025-11-19'
-        paymentAmount:
-          maximum: 1.7976931348623157e+308
-          minimum: 0.01
-          type: number
-          description: "Total payment amount received.\n            \nWhen both PayoutCreditor and PayoutCollectionPartner are supplied they must sum to this amount.\nWhen both are omitted, the split is computed server-side from the case's pricing terms."
-          format: double
-          example: 5000.0
-        payoutCreditor:
-          maximum: 1.7976931348623157e+308
-          minimum: 0
-          type:
-          - number
-          - 'null'
-          description: "Amount to be paid out to creditor. **Optional.**\n            \nWhen omitted (along with PayoutCollectionPartner), the split is computed server-side from the\ncase's pricing terms (success fee). When supplied, PayoutCollectionPartner must also be supplied\nand the two must sum to PaymentAmount."
-          format: double
-          example: 4000.0
-        payoutCollectionPartner:
-          maximum: 1.7976931348623157e+308
-          minimum: 0
-          type:
-          - number
-          - 'null'
-          description: "Amount to be kept by collection partner (commission). **Optional.**\n            \nWhen omitted (along with PayoutCreditor), the split is computed server-side from the\ncase's pricing terms (success fee). When supplied, PayoutCreditor must also be supplied\nand the two must sum to PaymentAmount."
-          format: double
-          example: 1000.0
-        paymentRecipient:
-          minLength: 1
-          type: string
-          description: "Who received the payment.\n            \n**Valid values:**\n- **Creditor**: Payment was received by the creditor (client). When used, you must also specify CommissionPaymentStatus.\n- **CollectionPartner**: Payment was received by the collection partner. Commission is automatically marked as paid."
-          example: Creditor
-        commissionPaymentStatus:
+        type:
           type:
           - string
           - 'null'
-          description: "Commission payment status. **Required only if PaymentRecipient is Creditor.**\n            \nWhen PaymentRecipient is CollectionPartner, this field is ignored and commission is automatically marked as Paid.\n            \n**Valid values:** Paid, Unpaid."
-          example: Paid
-        reopenCaseIfNeeded:
-          type: boolean
-          description: "Consent to reopen the case if this edit lowers the payment so a previously closed (Paid)\ncase is left with a positive outstanding balance.\n            \nWhen the edit would reopen the case and this flag is `false` (default), the request is\nrejected with HTTP 409 Conflict. Resend with `true` to confirm the reopen — the case is\nreopened to Active and a `case.updated` webhook fires."
-          example: false
+        title:
+          type:
+          - string
+          - 'null'
+        description:
+          type:
+          - string
+          - 'null'
+        actor:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.TimelineActorDto'
       additionalProperties: false
-      description: "Request to edit an existing payment on a case. Mirrors the payout-split semantics of\nDebitura.Web.ExternalApi.Contracts.V1.Payments.CreatePaymentRequest.\n            \n**Currency:** A payment's currency cannot be changed — it is fixed to the case currency.\n            \n**Invoiced payments are frozen:** a payment whose payout has already been invoiced\n(Stripe/QBO) cannot be edited and returns HTTP 422."
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.DebtorDto:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.CloseCaseRequest:
       required:
-      - name
-      - type
+      - closeCode
       type: object
       properties:
-        type:
+        closeCode:
           minLength: 1
           type: string
-          description: 'Debtor type. Valid values: "Company" or "Person"'
-          example: Company
-        name:
-          minLength: 1
-          type: string
-          description: Debtor name (company name or person's full name)
-          example: Pacific Trading LLC
-        contactPerson:
+          description: "Close code/reason for closing the case.\n            \n**Valid close codes:**\n- **Paid**: Full payment received from debtor\n- **PartiallyPaid**: Some payment received but not full amount\n- **DebtorInsolventBankrupt**: Debtor declared bankruptcy or insolvent\n- **DebtorUntraceable**: Unable to locate or contact debtor\n- **DisputedLegalActionDeclinedByClient**: Debt disputed, creditor declined legal action\n- **WithdrawnByClient**: Creditor requested case withdrawal\n- **PreLegalExhaustedNoPayment**: All pre-legal attempts exhausted without payment\n- **StatuteOfLimitationsExpired**: Legal time limit to collect has passed\n- **SettlementRejectedByClient**: Proposed settlement rejected by creditor\n- **UnresponsiveClient**: Creditor not responding to collection partner\n- **UneconomicalToPursue**: Recovery cost exceeds claim value\n- **Other**: Other reason (please provide comment)"
+          example: Paid
+        comment:
+          maxLength: 2000
+          minLength: 0
           type:
           - string
           - 'null'
-          description: Contact person at the company (required for companies, not used for persons)
-          example: John Smith
-        companyRegistrationNumber:
-          type:
-          - string
-          - 'null'
-          description: Company registration number (VAT number, CVR, org number, etc.)
-          example: 47-1234567
-        address:
-          type:
-          - string
-          - 'null'
-          description: Street address
-          example: 123 Market Street, Suite 400
-        zipCode:
-          type:
-          - string
-          - 'null'
-          description: Postal/ZIP code
-          example: '94105'
-        city:
-          type:
-          - string
-          - 'null'
-          description: City name
-          example: San Francisco
-        state:
-          type:
-          - string
-          - 'null'
-          description: State/region/province name
-          example: California
-        stateAlpha2:
-          type:
-          - string
-          - 'null'
-          description: 'US state: two-letter code (e.g., "CA"), ISO 3166-2 format (e.g., "US-CA"), or full name (e.g., "California")'
-          example: CA
-        countryAlpha2:
-          type:
-          - string
-          - 'null'
-          description: Country code (ISO 3166-1 alpha-2 format)
-          example: US
-        country:
-          type:
-          - string
-          - 'null'
-          description: Country name
-          example: United States
-        email:
-          type:
-          - string
-          - 'null'
-          description: Email address for debtor contact
-          example: accounts@pacifictrading.com
-        phone:
-          type:
-          - string
-          - 'null'
-          description: Phone number (include country code)
-          example: +1 415 555 0123
+          description: Optional comment explaining the closure (recommended for 'Other' close code)
+          example: Case closed after full payment received via bank transfer on 2025-11-19
       additionalProperties: false
-      description: 'V1 Debtor DTO for external partner APIs.
-
-        The debtor is the party that owes the debt.'
+      description: Request to close a case
     Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto:
       type: object
       properties:
@@ -4002,17 +3971,150 @@ components:
           $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceAllocationOutstandingDto'
       additionalProperties: false
       description: V1 Invoice DTO for external partner APIs
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.TimelineItemDto:
+    Debitura.Web.ExternalApi.Contracts.V1.Payments.CreatePaymentResponse:
       required:
-      - description
-      - title
-      - type
+      - caseReference
+      - commissionPaymentStatus
+      - paymentRecipient
       type: object
       properties:
+        paymentId:
+          type: string
+          format: uuid
+        caseReference:
+          type:
+          - string
+          - 'null'
         date:
           type: string
           format: date-time
-        type:
+        paymentAmount:
+          type: number
+          format: double
+        payoutCreditor:
+          type: number
+          format: double
+        payoutCollectionPartner:
+          type: number
+          format: double
+        paymentRecipient:
+          type:
+          - string
+          - 'null'
+        commissionPaymentStatus:
+          type:
+          - string
+          - 'null'
+        closeCase:
+          type: boolean
+        caseClosed:
+          type: boolean
+        closeCode:
+          type:
+          - string
+          - 'null'
+        remainingAmount:
+          type: number
+          format: double
+        warnings:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: 'Non-blocking warnings about this payment. Always present (empty when there is nothing to flag).
+
+            Currently populated only when an explicit PayoutCreditor/PayoutCollectionPartner override was
+
+            supplied and (a) it allocates zero to the creditor, or (b) the case already had no outstanding
+
+            balance before this payment — both are signs of a misconfigured or duplicate payment. The
+
+            payment is still recorded; these are advisory only, not errors. Review and resolve out of band
+
+            if unexpected (e.g. via the case''s Payments view in the Partner Portal, or by contacting
+
+            Debitura support).'
+      additionalProperties: false
+      description: Response after creating a payment
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.ClosedByDto:
+      required:
+      - userName
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int32
+        userName:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceAllocationOutstandingDto:
+      type: object
+      properties:
+        principal:
+          type: number
+          format: double
+        interest:
+          type: number
+          format: double
+        reminderFees:
+          type: number
+          format: double
+        collectionFees:
+          type: number
+          format: double
+      additionalProperties: false
+      description: 'Additive external-API read model. Per-bucket outstanding on the debt ledger, produced by
+
+        the payment allocation engine (bucket total minus Σ active stored allocations — never re-derived
+
+        from a model). Mirrors the internal
+
+        `Debitura.Domain.Model.Receiveables.InvoiceEconomics.EconomicalAllocationOutstanding` shape.'
+    Debitura.Web.ExternalApi.Contracts.V1.Users.UserRelationDto:
+      required:
+      - email
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        dateCreated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        dateUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        firstName:
+          type:
+          - string
+          - 'null'
+        lastName:
+          type:
+          - string
+          - 'null'
+        email:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Notes.NoteDto:
+      required:
+      - caseReference
+      - title
+      - visibility
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        caseReference:
           type:
           - string
           - 'null'
@@ -4024,95 +4126,168 @@ components:
           type:
           - string
           - 'null'
-        actor:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.TimelineActorDto'
-      additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.StartCaseResponse:
-      type: object
-      properties:
-        caseId:
-          type: string
-          description: The case ID.
-          format: uuid
-        caseReference:
+        visibility:
           type:
           - string
           - 'null'
-          description: The Debitura case reference (e.g. 'Q8OAXF3W').
-        status:
-          type:
-          - string
-          - 'null'
-          description: The new lifecycle status of the case.
-        activatedAt:
+        createdAt:
           type: string
-          description: UTC timestamp when the case was activated.
           format: date-time
-        collectionPartnerReference:
+        eventDate:
           type:
           - string
           - 'null'
-          description: Your internal reference number for this case, if provided.
+          description: 'The event date provided at creation time. Null if no EventDate was supplied,
+
+            meaning the note was recorded in real-time (CreatedAt reflects the actual event time).'
+          format: date-time
+        createdBy:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Notes.NoteCreatedByDto'
       additionalProperties: false
-      description: Response returned when a case is successfully activated.
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDto:
+      description: Note details response
+    Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto:
+      required:
+      - currency
+      - invoice
+      - method
+      - recipient
       type: object
       properties:
         id:
           type: string
-          description: Unique identifier for the creditor
           format: uuid
-        companyName:
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
           type:
           - string
           - 'null'
-          description: Company name of the creditor
-        companyRegistrationNumber:
+          format: date-time
+        date:
+          type: string
+          format: date-time
+        grossAmount:
+          type: number
+          format: double
+        recipient:
           type:
           - string
           - 'null'
-          description: Company registration number (CVR, VAT number, etc.)
-        officeEmail:
+        method:
           type:
           - string
           - 'null'
-          description: Primary office email address
-        officePhone:
+        currency:
           type:
           - string
           - 'null'
-          description: Primary office phone number
-        address:
-          type:
-          - string
-          - 'null'
-          description: Street address
-        city:
-          type:
-          - string
-          - 'null'
-          description: City
-        zipCode:
-          type:
-          - string
-          - 'null'
-          description: Postal/ZIP code
-        state:
-          type:
-          - string
-          - 'null'
-          description: State or region (if applicable)
-        country:
-          type:
-          - string
-          - 'null'
-          description: Country name
-        division:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDivisionDto'
+        invoice:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentRelatedInvoiceDto'
       additionalProperties: false
-      description: 'Creditor (client) information for external partner APIs.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CloseCaseResponse:
+      required:
+      - caseReference
+      - closeCode
+      - closeCodeDescription
+      type: object
+      properties:
+        caseReference:
+          type:
+          - string
+          - 'null'
+        closeCode:
+          type:
+          - string
+          - 'null'
+        closeCodeDescription:
+          type:
+          - string
+          - 'null'
+        comment:
+          type:
+          - string
+          - 'null'
+        closedAt:
+          type: string
+          format: date-time
+        closedBy:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ClosedByDto'
+        finalOutstandingAmount:
+          type: number
+          format: double
+        totalPayments:
+          type: number
+          format: double
+        totalRecovered:
+          type: number
+          format: double
+      additionalProperties: false
+      description: Response after closing a case
+    Debitura.Web.ExternalApi.Contracts.V1.Chats.SendChatRequest:
+      required:
+      - message
+      type: object
+      properties:
+        message:
+          maxLength: 10000
+          minLength: 0
+          type: string
+          description: The chat message content to send.
+          example: Please provide the signed contract for this case.
+        userId:
+          type:
+          - string
+          - 'null'
+          description: 'ID of the team member sending this message.
 
-        Represents the party that the debtor owes money to.'
+            Must be a valid user ID from GET /users belonging to your team.
+
+            Deprecated: use UserEmail instead. At least one of UserId or UserEmail must be provided.'
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          deprecated: true
+        userEmail:
+          type:
+          - string
+          - 'null'
+          description: 'Email address of the team member sending this message.
+
+            Must correspond to an active member of your team (same account as the API key).
+
+            Preferred over UserId. At least one of UserEmail or UserId must be provided.'
+          format: email
+          example: john.doe@example.com
+      additionalProperties: false
+      description: Request to send a chat message on a case.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.AssignedUserDto:
+      type: object
+      properties:
+        email:
+          type:
+          - string
+          - 'null'
+          description: The assigned user's email address.
+        name:
+          type:
+          - string
+          - 'null'
+          description: The assigned user's full name.
+      additionalProperties: false
+      description: Represents the creditor team member assigned to a case.
+    Debitura.Web.ExternalApi.Contracts.V1.Notes.NoteCreatedByDto:
+      required:
+      - userName
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int32
+        userName:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
     Debitura.Web.ExternalApi.Contracts.V1.Cases.UpdateCaseFeesResponse:
       type: object
       properties:
@@ -4154,25 +4329,143 @@ components:
           format: double
       additionalProperties: false
       description: Response returned when case fees (and optionally the principal) are successfully updated.
-    Debitura.Web.ExternalApi.Contracts.V1.Notes.NoteCreatedByDto:
-      required:
-      - userName
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BankAccountDto:
       type: object
       properties:
-        userId:
+        id:
           type: integer
+          description: Bank account identifier
           format: int32
-        userName:
+        label:
+          type:
+          - string
+          - 'null'
+          description: User-friendly label (e.g., "Main EUR Account")
+        scheme:
+          type:
+          - string
+          - 'null'
+          description: 'Account scheme: IBAN, SWIFT, or LOCAL'
+        currencyCode:
+          type:
+          - string
+          - 'null'
+          description: Currency code (ISO 4217)
+        bankCountryCode:
+          type:
+          - string
+          - 'null'
+          description: Bank country code (ISO Alpha-2)
+        accountHolderName:
+          type:
+          - string
+          - 'null'
+          description: Account holder name (beneficiary)
+        iban:
+          type:
+          - string
+          - 'null'
+          description: IBAN (for IBAN scheme accounts)
+        bic:
+          type:
+          - string
+          - 'null'
+          description: BIC/SWIFT code (for IBAN and SWIFT scheme accounts)
+        accountNumber:
+          type:
+          - string
+          - 'null'
+          description: Account number (for SWIFT and LOCAL scheme accounts)
+        localIdentifier:
+          type:
+          - string
+          - 'null'
+          description: Local identifier (for LOCAL scheme accounts, e.g., sort code + account number)
+        localIdentifierType:
+          type:
+          - string
+          - 'null'
+          description: Type of local identifier (e.g., "Sort Code", "Routing Number")
+        bankName:
+          type:
+          - string
+          - 'null'
+          description: Bank name (optional)
+        bankAddress:
+          type:
+          - string
+          - 'null'
+          description: Bank address (optional)
+        bankCity:
+          type:
+          - string
+          - 'null'
+          description: Bank city (optional)
+        bankZipCode:
+          type:
+          - string
+          - 'null'
+          description: Bank zip/postal code (optional)
+        bankState:
+          type:
+          - string
+          - 'null'
+          description: Bank state/region (optional)
+      additionalProperties: false
+      description: 'Bank account information for partner API.
+
+        Full details provided as partners need this to:
+
+        1. Provide payment instructions to debtors (when debtor pays client directly)
+
+        2. Execute payouts to clients (when partner receives payment and pays out remainder)'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.ExclusivePeriodExtensionDto:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: 'What triggered this extension: PromiseToPay, PaymentAgreement, Payment, or Manual.'
+        eventDate:
+          type: string
+          description: When the extension period started (i.e. when the trigger event occurred).
+          format: date-time
+        newEndDate:
+          type: string
+          description: The new period end date after this extension was applied.
+          format: date-time
+      additionalProperties: false
+      description: A single extension event in the exclusive period chain.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDivisionDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the division
+          format: uuid
+        name:
+          type:
+          - string
+          - 'null'
+          description: Name of the division
+      additionalProperties: false
+      description: 'Creditor division information for external partner APIs.
+
+        Represents a specific division or department within a creditor organization.'
+    Debitura.Domain.Services.CaseValidation.CaseValidationItemDto:
+      type: object
+      properties:
+        resolutionArea:
+          type:
+          - string
+          - 'null'
+        description:
           type:
           - string
           - 'null'
       additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto:
-      required:
-      - currency
-      - invoice
-      - method
-      - recipient
+    Debitura.Web.ExternalApi.Contracts.V1.Files.CaseFileDto:
       type: object
       properties:
         id:
@@ -4182,39 +4475,31 @@ components:
           type: string
           format: date-time
         dateUpdated:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        date:
           type: string
           format: date-time
-        grossAmount:
-          type: number
-          format: double
-        recipient:
+        caseId:
+          type: string
+          format: uuid
+        entityType:
           type:
           - string
           - 'null'
-        method:
+        entityId:
+          type: string
+          format: uuid
+        fileName:
           type:
           - string
           - 'null'
-        currency:
-          type:
-          - string
-          - 'null'
-        invoice:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentRelatedInvoiceDto'
-      additionalProperties: false
-    Debitura.Domain.Services.CaseValidation.CaseValidationItemDto:
-      type: object
-      properties:
-        resolutionArea:
+        url:
           type:
           - string
           - 'null'
         description:
+          type:
+          - string
+          - 'null'
+        documentType:
           type:
           - string
           - 'null'
@@ -4239,149 +4524,404 @@ components:
           format: int32
           readOnly: true
       additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceListDto:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.DebtorDto:
       required:
-      - page
+      - name
+      - type
       type: object
       properties:
-        page:
-          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
-        cases:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto'
-      additionalProperties: false
-    Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode:
-      enum:
-      - 0
-      - 1
-      type: integer
-      format: int32
-    Debitura.Domain.Services.CaseValidation.CaseValidationLeanDto:
-      type: object
-      properties:
-        needsInfo:
-          type: boolean
-      additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Chats.SendChatRequest:
-      required:
-      - message
-      type: object
-      properties:
-        message:
-          maxLength: 10000
-          minLength: 0
+        type:
+          minLength: 1
           type: string
-          description: The chat message content to send.
-          example: Please provide the signed contract for this case.
-        userId:
+          description: 'Debtor type. Valid values: "Company" or "Person"'
+          example: Company
+        name:
+          minLength: 1
+          type: string
+          description: Debtor name (company name or person's full name)
+          example: Pacific Trading LLC
+        contactPerson:
           type:
           - string
           - 'null'
-          description: 'ID of the team member sending this message.
-
-            Must be a valid user ID from GET /users belonging to your team.
-
-            Deprecated: use UserEmail instead. At least one of UserId or UserEmail must be provided.'
-          format: uuid
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-          deprecated: true
-        userEmail:
+          description: Contact person at the company (required for companies, not used for persons)
+          example: John Smith
+        companyRegistrationNumber:
           type:
           - string
           - 'null'
-          description: 'Email address of the team member sending this message.
-
-            Must correspond to an active member of your team (same account as the API key).
-
-            Preferred over UserId. At least one of UserEmail or UserId must be provided.'
-          format: email
-          example: john.doe@example.com
+          description: Company registration number (VAT number, CVR, org number, etc.)
+          example: 47-1234567
+        address:
+          type:
+          - string
+          - 'null'
+          description: Street address
+          example: 123 Market Street, Suite 400
+        zipCode:
+          type:
+          - string
+          - 'null'
+          description: Postal/ZIP code
+          example: '94105'
+        city:
+          type:
+          - string
+          - 'null'
+          description: City name
+          example: San Francisco
+        state:
+          type:
+          - string
+          - 'null'
+          description: State/region/province name
+          example: California
+        stateAlpha2:
+          type:
+          - string
+          - 'null'
+          description: 'US state: two-letter code (e.g., "CA"), ISO 3166-2 format (e.g., "US-CA"), or full name (e.g., "California")'
+          example: CA
+        countryAlpha2:
+          type:
+          - string
+          - 'null'
+          description: Country code (ISO 3166-1 alpha-2 format)
+          example: US
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country name
+          example: United States
+        email:
+          type:
+          - string
+          - 'null'
+          description: Email address for debtor contact
+          example: accounts@pacifictrading.com
+        phone:
+          type:
+          - string
+          - 'null'
+          description: Phone number (include country code)
+          example: +1 415 555 0123
       additionalProperties: false
-      description: Request to send a chat message on a case.
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.ExclusivePeriodExtensionDto:
+      description: 'V1 Debtor DTO for external partner APIs.
+
+        The debtor is the party that owes the debt.'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
         type:
           type:
           - string
           - 'null'
-          description: 'What triggered this extension: PromiseToPay, PaymentAgreement, Payment, or Manual.'
-        eventDate:
-          type: string
-          description: When the extension period started (i.e. when the trigger event occurred).
-          format: date-time
-        newEndDate:
-          type: string
-          description: The new period end date after this extension was applied.
-          format: date-time
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
-      description: A single extension event in the exclusive period chain.
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewCaseRequestApiViewModel:
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewDebtorDto:
       required:
-      - amountToRecover
-      - currencyCode
-      - debtor
+      - countryAlpha2
+      - type
       type: object
       properties:
-        amountToRecover:
-          type: number
-          description: "The TOTAL amount to recover for this case.\nThis represents the full principal amount across all invoices (if multiple invoices are bundled).\n            \nFor multi-invoice cases with different ages, you can optionally provide age breakdown fields\n(AmountToRecoverOver12Months and AmountToRecoverOver24Months) to enable blended age-based pricing.\n            \nIf age breakdown fields are omitted, the preview will show base pricing without age surcharge calculation."
-          format: double
-        currencyCode:
-          maxLength: 3
-          minLength: 3
+        type:
+          minLength: 1
           type: string
-          description: ISO 4217 currency code for the amount (e.g., "DKK", "EUR", "USD")
-        debtor:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewDebtorDto'
-        amountToRecoverOver6Months:
-          type:
-          - number
-          - 'null'
-          description: "OPTIONAL - MULTI-INVOICE AGE BUCKET PRICING (PRICING ZONE 180-DAY THRESHOLD)\n            \nThe portion of AmountToRecover that is more than 6 months (180 days) overdue.\nThis includes amounts that are 12+ and 24+ months overdue.\n            \nThis field is optional and can only be provided alongside AmountToRecoverOver12Months\nand AmountToRecoverOver24Months. It enables precise pricing tier selection based on\nthe 180-day threshold. When omitted, the system falls back to deriving the threshold\nfrom AmountToRecoverOver12Months.\n            \nValidation rules:\n- Must be ≤ AmountToRecover\n- Must be ≥ AmountToRecoverOver12Months"
-          format: double
-        amountToRecoverOver12Months:
-          type:
-          - number
-          - 'null'
-          description: "OPTIONAL - MULTI-INVOICE AGE BUCKET PRICING\n            \nThe portion of AmountToRecover that is more than 12 months overdue.\nThis includes amounts that are 24+ months overdue.\n            \nIf provided, AmountToRecoverOver24Months must also be provided.\nBoth fields must be provided together or both omitted.\n            \nUsed to calculate blended age uplift for multi-invoice cases:\n- Amount under 12 months = AmountToRecover - AmountToRecoverOver12Months\n- Amount 12-24 months = AmountToRecoverOver12Months - AmountToRecoverOver24Months\n- Amount over 24 months = AmountToRecoverOver24Months\n            \nBlended uplift formula: ((A12-A24)×10 + A24×20) / AmountToRecover\nwhere A12 = AmountToRecoverOver12Months, A24 = AmountToRecoverOver24Months\n            \nValidation rules:\n- Must be ≤ AmountToRecover\n- Must be ≥ AmountToRecoverOver24Months"
-          format: double
-        amountToRecoverOver24Months:
-          type:
-          - number
-          - 'null'
-          description: "OPTIONAL - MULTI-INVOICE AGE BUCKET PRICING\n            \nThe portion of AmountToRecover that is more than 24 months overdue.\n            \nIf provided, AmountToRecoverOver12Months must also be provided.\nBoth fields must be provided together or both omitted.\n            \nUsed to calculate blended age uplift for multi-invoice cases.\nSee AmountToRecoverOver12Months for full details on the calculation.\n            \nValidation rules:\n- Must be ≤ AmountToRecoverOver12Months\n- Must be ≤ AmountToRecover"
-          format: double
-        dueDate:
+          description: 'Debtor type. Valid values: "Company" or "Private"
+
+            This affects partner selection as different partners may specialize in B2B vs B2C collection.'
+        countryAlpha2:
+          maxLength: 2
+          minLength: 2
+          type: string
+          description: 'Country code (ISO 3166-1 alpha-2 format, e.g., "DK", "US", "PL")
+
+            Used to determine jurisdiction and available collection partners.'
+        stateAlpha2:
+          maxLength: 2
+          minLength: 2
           type:
           - string
           - 'null'
-          description: 'Optional invoice due date. Mutually exclusive with age bucket fields.
+          description: 'US state code (e.g., "CA", "NY")
 
-            If provided, Debitura computes the age surcharge internally — no need to calculate age buckets.
+            REQUIRED for United States cases only, as US partner coverage is state-specific.
 
-            Cannot be a future date.'
-          format: date-time
-        returnUrl:
-          maxLength: 2048
-          type:
-          - string
-          - 'null'
-          description: "Optional: URL the creditor user should land on after completing any\npending signing chain (SDCA upgrade / PoA / JPA / KYC) on the\nDebitura Creditors app. Embedded, URL-encoded, into\n`PreviewCaseResponseApiViewModel.Result.SigningHandoff.CombinedSigningUrl`\n(when at least one signing-related required action is present) and into\n`BusinessErrorResponseApiDTO.SigningHandoff.CombinedSigningUrl` /\n`InvoiceDto.SigningHandoff.CombinedSigningUrl` on POST `/cases`.\n            \nMust be an absolute http(s) URL. Values that fail validation\n(relative URLs, non-http schemes, header-injection characters) are\nsilently dropped — the combined URL is still emitted but without\nthe returnUrl query parameter, and the Creditors app falls back to\nits own safe in-app default landing.\n            \nAdditive. Existing integrations\nthat omit this field see the same behaviour as before."
+            Optional for other countries.'
       additionalProperties: false
-      description: "Request model for previewing case eligibility, partner assignment, and required actions\nbefore actually creating a collection case.\n            \nThis endpoint allows you to check:\n- Whether a case would be eligible for collection (partner coverage available)\n- Which partner would be assigned\n- What documents need to be signed (SDCA, Power of Attorney)\n- Estimated pricing with age-based surcharges\n            \nUse this to guide users through document signing before final case submission."
-      example:
-        amountToRecover: 50000
-        currencyCode: USD
-        amountToRecoverOver12Months: 30000
-        amountToRecoverOver24Months: 15000
-        debtor:
-          type: Company
-          countryAlpha2: US
-          stateAlpha2: CA
+      description: 'Simplified debtor information for case preview.
+
+        Only includes the minimum fields required for partner routing and eligibility checking.'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO:
+      type: object
+      properties:
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: List of business errors that must be resolved before the case can be created.
+        signingHandoff:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto'
+      additionalProperties: false
+      description: Response returned when business rule violations prevent case creation.
+    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskActionDto:
+      type: object
+      properties:
+        method:
+          type:
+          - string
+          - 'null'
+          description: HTTP method to use, e.g. `"POST"`.
+        path:
+          type:
+          - string
+          - 'null'
+          description: 'Path template for the resolving call, e.g. `"/cases/{caseId}/chats"`.
+
+            Relative to the API''s base URL.'
+      additionalProperties: false
+      description: "A machine-readable hint pointing at the existing API call that resolves a task, e.g.\n`{ \"method\": \"POST\", \"path\": \"/cases/{caseId}/chats\" }` for a chat-driven task.\n            \nPath uses the same `{param}` placeholder style as this API's own\ndocumented routes — substitute in the real IDs before calling."
+    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadListDto:
+      required:
+      - quoteRequests
+      type: object
+      properties:
+        quoteRequests:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadDto'
+      additionalProperties: false
+      description: V1 Lead list response for external customer APIs
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.PartnerAssignmentDto:
+      type: object
+      properties:
+        collectionPartnerId:
+          type: string
+          description: Unique identifier for the collection partner.
+          format: uuid
+        partnerName:
+          type:
+          - string
+          - 'null'
+          description: Display name of the collection partner company.
+        partnerCountry:
+          type:
+          - string
+          - 'null'
+          description: ISO 3166-1 alpha-2 country code for the partner's primary country.
+      additionalProperties: false
+      description: Information about the collection partner assigned to this case.
+    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadDetailDto:
+      required:
+      - leadFlowStatus
+      - quoteType
+      - status
+      type: object
+      properties:
+        quoteRequestId:
+          type: string
+          format: uuid
+        caseId:
+          type: string
+          format: uuid
+        status:
+          type:
+          - string
+          - 'null'
+        leadFlowStatus:
+          type:
+          - string
+          - 'null'
+        quoteType:
+          type:
+          - string
+          - 'null'
+        maxQuotes:
+          type: integer
+          format: int32
+        currentQuotesCount:
+          type: integer
+          format: int32
+        isMaxBidCountReached:
+          type: boolean
+        outcome:
+          type:
+          - string
+          - 'null'
+        request:
+          type:
+          - string
+          - 'null'
+        existingFees:
+          type:
+          - string
+          - 'null'
+        dateCreated:
+          type: string
+          format: date-time
+        dateQualified:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        leadsDoneOffered:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        dateReminderSent:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        dateReminderTwoSent:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        dateOutcomeSelected:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      additionalProperties: false
+      description: V1 Lead detail DTO for external customer APIs (detailed view)
+    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadDto:
+      required:
+      - leadFlowStatus
+      - quoteType
+      - status
+      type: object
+      properties:
+        quoteRequestId:
+          type: string
+          format: uuid
+        caseId:
+          type: string
+          format: uuid
+        status:
+          type:
+          - string
+          - 'null'
+        leadFlowStatus:
+          type:
+          - string
+          - 'null'
+        quoteType:
+          type:
+          - string
+          - 'null'
+        maxQuotes:
+          type: integer
+          format: int32
+        currentQuotesCount:
+          type: integer
+          format: int32
+        outcome:
+          type:
+          - string
+          - 'null'
+        purpose:
+          type:
+          - string
+          - 'null'
+          description: 'Why this lead exists: PhaseChange (legal/enforcement escalation that advances the case
+
+            phase) or AdditionalService (in-phase add-on). Null for legacy leads created before the field existed.'
+        dateCreated:
+          type: string
+          format: date-time
+        dateQualified:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        leadsDoneOffered:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        dateReminderSent:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        dateReminderTwoSent:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        dateOutcomeSelected:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      additionalProperties: false
+      description: V1 Lead DTO for external customer APIs (summary view)
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.PreviewResultDto:
+      type: object
+      properties:
+        isEligible:
+          type: boolean
+          description: 'Whether the case is eligible for collection (i.e., a collection partner is available).
+
+            If false, check IneligibilityReason for details.'
+        ineligibilityReason:
+          type:
+          - string
+          - 'null'
+          description: 'Explanation of why the case is not eligible (only present when IsEligible = false).
+
+            Common reasons: "We don''t have an exclusive pre-legal partner in the provided jurisdiction."'
+        partnerAssignment:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.PartnerAssignmentDto'
+        requiredActions:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.RequiredActionDto'
+          description: 'List of actions required before the case can be submitted (e.g., sign contracts).
+
+            Empty if no actions are required.
+
+            Each action includes a solution URL to complete the requirement.'
+        jurisdiction:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.JurisdictionDto'
+        pricingPreview:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.PricingPreviewDto'
+        requiresKycVerification:
+          type: boolean
+          description: 'Whether the resolved collection partner requires KYC verification before cases can be submitted.
+
+            When true, the creditor must complete KYC verification before case creation will succeed.'
+        hasKycOnFile:
+          type: boolean
+          description: 'Whether the creditor already has KYC verification on file with Debitura.
+
+            When RequiresKycVerification is true and HasKycOnFile is false, a MissingKycVerification
+
+            required action will be present in the RequiredActions list.'
+        signingHandoff:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto'
+      additionalProperties: false
+      description: Detailed preview result for a case submission.
     Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuoteDto:
       required:
       - agreementType
@@ -4463,79 +5003,256 @@ components:
           format: date-time
       additionalProperties: false
       description: V1 Lead Quote DTO for external customer APIs (summary view)
-    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuoteListDto:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewCaseRequestApiViewModel:
       required:
-      - quotes
+      - amountToRecover
+      - currencyCode
+      - debtor
       type: object
       properties:
-        quotes:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuoteDto'
-      additionalProperties: false
-      description: V1 Lead Quote list response for external customer APIs
-    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuotePricingDto:
-      type: object
-      properties:
-        hourlyRate:
-          type:
-          - number
-          - 'null'
-          format: double
-        hourlyEstimated:
-          type:
-          - number
-          - 'null'
-          format: double
-        flatFeeEstimate:
-          type:
-          - number
-          - 'null'
-          format: double
-        successFeeFee:
-          type:
-          - number
-          - 'null'
-          format: double
-        hybridEstimate:
-          type:
-          - number
-          - 'null'
-          format: double
-        costProcessMisc:
+        amountToRecover:
           type: number
+          description: "The TOTAL amount to recover for this case.\nThis represents the full principal amount across all invoices (if multiple invoices are bundled).\n            \nFor multi-invoice cases with different ages, you can optionally provide age breakdown fields\n(AmountToRecoverOver12Months and AmountToRecoverOver24Months) to enable blended age-based pricing.\n            \nIf age breakdown fields are omitted, the preview will show base pricing without age surcharge calculation."
           format: double
+        currencyCode:
+          maxLength: 3
+          minLength: 3
+          type: string
+          description: ISO 4217 currency code for the amount (e.g., "DKK", "EUR", "USD")
+        debtor:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewDebtorDto'
+        amountToRecoverOver6Months:
+          type:
+          - number
+          - 'null'
+          description: "OPTIONAL - MULTI-INVOICE AGE BUCKET PRICING (PRICING ZONE 180-DAY THRESHOLD)\n            \nThe portion of AmountToRecover that is more than 6 months (180 days) overdue.\nThis includes amounts that are 12+ and 24+ months overdue.\n            \nThis field is optional and can only be provided alongside AmountToRecoverOver12Months\nand AmountToRecoverOver24Months. It enables precise pricing tier selection based on\nthe 180-day threshold. When omitted, the system falls back to deriving the threshold\nfrom AmountToRecoverOver12Months.\n            \nValidation rules:\n- Must be ≤ AmountToRecover\n- Must be ≥ AmountToRecoverOver12Months"
+          format: double
+        amountToRecoverOver12Months:
+          type:
+          - number
+          - 'null'
+          description: "OPTIONAL - MULTI-INVOICE AGE BUCKET PRICING\n            \nThe portion of AmountToRecover that is more than 12 months overdue.\nThis includes amounts that are 24+ months overdue.\n            \nIf provided, AmountToRecoverOver24Months must also be provided.\nBoth fields must be provided together or both omitted.\n            \nUsed to calculate blended age uplift for multi-invoice cases:\n- Amount under 12 months = AmountToRecover - AmountToRecoverOver12Months\n- Amount 12-24 months = AmountToRecoverOver12Months - AmountToRecoverOver24Months\n- Amount over 24 months = AmountToRecoverOver24Months\n            \nBlended uplift formula: ((A12-A24)×10 + A24×20) / AmountToRecover\nwhere A12 = AmountToRecoverOver12Months, A24 = AmountToRecoverOver24Months\n            \nValidation rules:\n- Must be ≤ AmountToRecover\n- Must be ≥ AmountToRecoverOver24Months"
+          format: double
+        amountToRecoverOver24Months:
+          type:
+          - number
+          - 'null'
+          description: "OPTIONAL - MULTI-INVOICE AGE BUCKET PRICING\n            \nThe portion of AmountToRecover that is more than 24 months overdue.\n            \nIf provided, AmountToRecoverOver12Months must also be provided.\nBoth fields must be provided together or both omitted.\n            \nUsed to calculate blended age uplift for multi-invoice cases.\nSee AmountToRecoverOver12Months for full details on the calculation.\n            \nValidation rules:\n- Must be ≤ AmountToRecoverOver12Months\n- Must be ≤ AmountToRecover"
+          format: double
+        dueDate:
+          type:
+          - string
+          - 'null'
+          description: 'Optional invoice due date. Mutually exclusive with age bucket fields.
+
+            If provided, Debitura computes the age surcharge internally — no need to calculate age buckets.
+
+            Cannot be a future date.'
+          format: date-time
+        returnUrl:
+          maxLength: 2048
+          type:
+          - string
+          - 'null'
+          description: "Optional: URL the creditor user should land on after completing any\npending signing chain (SDCA upgrade / PoA / JPA / KYC) on the\nDebitura Creditors app. Embedded, URL-encoded, into\n`PreviewCaseResponseApiViewModel.Result.SigningHandoff.CombinedSigningUrl`\n(when at least one signing-related required action is present) and into\n`BusinessErrorResponseApiDTO.SigningHandoff.CombinedSigningUrl` /\n`InvoiceDto.SigningHandoff.CombinedSigningUrl` on POST `/cases`.\n            \nMust be an absolute http(s) URL. Values that fail validation\n(relative URLs, non-http schemes, header-injection characters) are\nsilently dropped — the combined URL is still emitted but without\nthe returnUrl query parameter, and the Creditors app falls back to\nits own safe in-app default landing.\n            \nAdditive. Existing integrations\nthat omit this field see the same behaviour as before."
       additionalProperties: false
-      description: Nested pricing details for a lead quote
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.RequiredActionDto:
+      description: "Request model for previewing case eligibility, partner assignment, and required actions\nbefore actually creating a collection case.\n            \nThis endpoint allows you to check:\n- Whether a case would be eligible for collection (partner coverage available)\n- Which partner would be assigned\n- What documents need to be signed (SDCA, Power of Attorney)\n- Estimated pricing with age-based surcharges\n            \nUse this to guide users through document signing before final case submission."
+      example:
+        amountToRecover: 50000
+        currencyCode: USD
+        amountToRecoverOver12Months: 30000
+        amountToRecoverOver24Months: 15000
+        debtor:
+          type: Company
+          countryAlpha2: US
+          stateAlpha2: CA
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CaseContractStatusApiDTO:
       type: object
       properties:
-        type:
+        sdca:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ContractItemDto'
+        poa:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ContractItemDto'
+        pricingAppendix:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ContractItemDto'
+        collectionPartnerName:
           type:
           - string
           - 'null'
-          description: 'The type of action required.
+          description: Name of the assigned collection partner, if any.
+        needsPoaSigning:
+          type: boolean
+          description: 'Whether the creditor needs to sign (or re-sign) a Power of Attorney.
 
-            Common values: "MissingDebtCollectionContract", "MissingPowerOfAttorney"'
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable description of what is required.
+            True when: POA is missing or stale, OR the debtor''s country has an active jurisdiction pricing zone
+
+            and the Jurisdiction Pricing Appendix (presented as POA) is missing or stale.'
+      additionalProperties: false
+      description: Contract signing status for a case, showing SDCA and PoA status with signing URLs.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.ContractItemDto:
+      type: object
+      properties:
+        signed:
+          type: boolean
+          description: Whether the contract has been signed.
+        requiresResigning:
+          type: boolean
+          description: Whether the contract needs to be re-signed (e.g., due to contract template updates).
         solutionUrl:
           type:
           - string
           - 'null'
-          description: "URL where the user can complete this <i>specific</i> action (e.g., contract signing page).\nThe URL is context-aware: referral partner tokens get referral onboarding URLs,\nregular API keys get standard creditor app URLs.\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\naction in one chain — instead of forwarding one URL per `RequiredActionDto` —\nshould use Debitura.Web.ExternalApi.Contracts.V1.Cases.PreviewResultDto.SigningHandoff's\n`CombinedSigningUrl`. The two are complementary: `SolutionUrl` is granular\nper-action; `CombinedSigningUrl` is the chain-walking alternative for\nsigning-related actions."
-        isBlocking:
-          type: boolean
-          description: 'Whether this action must be completed before case submission.
+          description: 'URL where the creditor can sign or re-sign the contract.
 
-            Currently all returned actions are blocking (true).'
+            Null if the contract is signed and current.
+
+            The URL is context-aware: referral partner tokens get referral onboarding URLs,
+
+            regular API keys get standard creditor app URLs.'
       additionalProperties: false
-      description: An action required before the case can be submitted (e.g., signing a contract).
+      description: Status of an individual contract (SDCA, PoA, or Pricing Appendix).
+    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuoteDetailDto:
+      required:
+      - agreementType
+      - currency
+      - partnerName
+      - pricing
+      - status
+      type: object
+      properties:
+        quoteId:
+          type: string
+          format: uuid
+        quoteRequestId:
+          type: string
+          format: uuid
+        partnerId:
+          type: string
+          format: uuid
+        partnerName:
+          type:
+          - string
+          - 'null'
+        status:
+          type:
+          - string
+          - 'null'
+        agreementType:
+          type:
+          - string
+          - 'null'
+        pricing:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuotePricingDto'
+        currency:
+          type:
+          - string
+          - 'null'
+        proposedSolution:
+          type:
+          - string
+          - 'null'
+        feeComments:
+          type:
+          - string
+          - 'null'
+        partnerWhyUsSection:
+          type:
+          - string
+          - 'null'
+        fullQuoteLink:
+          type:
+          - string
+          - 'null'
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      additionalProperties: false
+      description: V1 Lead Quote detail DTO for external customer APIs (detailed view)
+    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The task's unique ID.
+          format: uuid
+        type:
+          type:
+          - string
+          - 'null'
+          description: 'Stable string code for the task type (e.g. `"ReplyToChat"`). This is the public,
+
+            additive-safe contract — it does NOT track the internal integer enum used in storage.'
+        typeLabel:
+          type:
+          - string
+          - 'null'
+          description: Human-readable label for Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.Type (e.g. "Reply to chat").
+        title:
+          type:
+          - string
+          - 'null'
+          description: Short task title, as shown in the Creditor app.
+        description:
+          type:
+          - string
+          - 'null'
+          description: Optional longer description of what the task requires.
+        status:
+          type:
+          - string
+          - 'null'
+          description: Either `"Open"` or `"Solved"`.
+        caseId:
+          type:
+          - string
+          - 'null'
+          description: 'The case (collection case / invoice) this task belongs to, when applicable.
+
+            Null for account-level tasks not tied to a single case (e.g. SignContract, AssignBankAccount).'
+          format: uuid
+        caseReference:
+          type:
+          - string
+          - 'null'
+          description: Your reference for Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.CaseId, if any.
+        leadId:
+          type:
+          - string
+          - 'null'
+          description: The lead this task belongs to (e.g. SelectQuoteWinner), if applicable.
+          format: uuid
+        deadline:
+          type:
+          - string
+          - 'null'
+          description: When this task is due, if a deadline is set.
+          format: date-time
+        dateCreated:
+          type: string
+          description: When the task was created.
+          format: date-time
+        dateSolved:
+          type:
+          - string
+          - 'null'
+          description: When the task was resolved, if it has been.
+          format: date-time
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: 'Absolute URL — identical to the one the Creditor app itself links to — where a human can
+
+            resolve this task. Always present, regardless of whether Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.Action is populated.'
+        action:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskActionDto'
+      additionalProperties: false
+      description: "A creditor-facing action item (\"task\") — something the platform needs the client to do\nbefore a case can proceed (e.g. reply to a chat, sign a contract, assign a bank account).\n            \nEvery task carries a Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.SolutionUrl — an absolute link identical to the one used\ninside the Creditor app — so a human can resolve any task in one click, even task types that\nare not yet directly API-actionable. Tasks that ARE directly API-actionable additionally carry\na non-null Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.Action pointing at the exact API call that resolves them."
     Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.CreateCollectionCaseRequestApiViewModel:
       required:
       - currencyCode
@@ -4688,200 +5405,6 @@ components:
           countryAlpha2: PT
           email: billing@acme‑corp.com
           phone: +351 123 456 789
-    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadDetailDto:
-      required:
-      - leadFlowStatus
-      - quoteType
-      - status
-      type: object
-      properties:
-        quoteRequestId:
-          type: string
-          format: uuid
-        caseId:
-          type: string
-          format: uuid
-        status:
-          type:
-          - string
-          - 'null'
-        leadFlowStatus:
-          type:
-          - string
-          - 'null'
-        quoteType:
-          type:
-          - string
-          - 'null'
-        maxQuotes:
-          type: integer
-          format: int32
-        currentQuotesCount:
-          type: integer
-          format: int32
-        isMaxBidCountReached:
-          type: boolean
-        outcome:
-          type:
-          - string
-          - 'null'
-        request:
-          type:
-          - string
-          - 'null'
-        existingFees:
-          type:
-          - string
-          - 'null'
-        dateCreated:
-          type: string
-          format: date-time
-        dateQualified:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        leadsDoneOffered:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        dateReminderSent:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        dateReminderTwoSent:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        dateOutcomeSelected:
-          type:
-          - string
-          - 'null'
-          format: date-time
-      additionalProperties: false
-      description: V1 Lead detail DTO for external customer APIs (detailed view)
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.JurisdictionDto:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Internal jurisdiction identifier.
-          format: int32
-        name:
-          type:
-          - string
-          - 'null'
-          description: Display name of the jurisdiction (e.g., "Denmark", "United States - California").
-        countryAlpha2:
-          type:
-          - string
-          - 'null'
-          description: ISO 3166-1 alpha-2 country code.
-        stateAlpha2:
-          type:
-          - string
-          - 'null'
-          description: ISO 3166-2 state/region code (only for countries with state-level routing like the US).
-      additionalProperties: false
-      description: Geographic jurisdiction information for the case.
-    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadListDto:
-      required:
-      - quoteRequests
-      type: object
-      properties:
-        quoteRequests:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadDto'
-      additionalProperties: false
-      description: V1 Lead list response for external customer APIs
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.PreviewDebtorDto:
-      required:
-      - countryAlpha2
-      - type
-      type: object
-      properties:
-        type:
-          minLength: 1
-          type: string
-          description: 'Debtor type. Valid values: "Company" or "Private"
-
-            This affects partner selection as different partners may specialize in B2B vs B2C collection.'
-        countryAlpha2:
-          maxLength: 2
-          minLength: 2
-          type: string
-          description: 'Country code (ISO 3166-1 alpha-2 format, e.g., "DK", "US", "PL")
-
-            Used to determine jurisdiction and available collection partners.'
-        stateAlpha2:
-          maxLength: 2
-          minLength: 2
-          type:
-          - string
-          - 'null'
-          description: 'US state code (e.g., "CA", "NY")
-
-            REQUIRED for United States cases only, as US partner coverage is state-specific.
-
-            Optional for other countries.'
-      additionalProperties: false
-      description: 'Simplified debtor information for case preview.
-
-        Only includes the minimum fields required for partner routing and eligibility checking.'
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.PreviewResultDto:
-      type: object
-      properties:
-        isEligible:
-          type: boolean
-          description: 'Whether the case is eligible for collection (i.e., a collection partner is available).
-
-            If false, check IneligibilityReason for details.'
-        ineligibilityReason:
-          type:
-          - string
-          - 'null'
-          description: 'Explanation of why the case is not eligible (only present when IsEligible = false).
-
-            Common reasons: "We don''t have an exclusive pre-legal partner in the provided jurisdiction."'
-        partnerAssignment:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.PartnerAssignmentDto'
-        requiredActions:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.RequiredActionDto'
-          description: 'List of actions required before the case can be submitted (e.g., sign contracts).
-
-            Empty if no actions are required.
-
-            Each action includes a solution URL to complete the requirement.'
-        jurisdiction:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.JurisdictionDto'
-        pricingPreview:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.PricingPreviewDto'
-        requiresKycVerification:
-          type: boolean
-          description: 'Whether the resolved collection partner requires KYC verification before cases can be submitted.
-
-            When true, the creditor must complete KYC verification before case creation will succeed.'
-        hasKycOnFile:
-          type: boolean
-          description: 'Whether the creditor already has KYC verification on file with Debitura.
-
-            When RequiresKycVerification is true and HasKycOnFile is false, a MissingKycVerification
-
-            required action will be present in the RequiredActions list.'
-        signingHandoff:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto'
-      additionalProperties: false
-      description: Detailed preview result for a case submission.
     Debitura.Web.ExternalApi.Contracts.V1.Cases.PricingPreviewDto:
       type: object
       properties:
@@ -4934,56 +5457,6 @@ components:
             Example: "9.5% success fee — BD Legal custom collection rates (EU zone, $1,000–$7,999 tier)"'
       additionalProperties: false
       description: Estimated pricing for the case, including age-based surcharges.
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.PartnerAssignmentDto:
-      type: object
-      properties:
-        collectionPartnerId:
-          type: string
-          description: Unique identifier for the collection partner.
-          format: uuid
-        partnerName:
-          type:
-          - string
-          - 'null'
-          description: Display name of the collection partner company.
-        partnerCountry:
-          type:
-          - string
-          - 'null'
-          description: ISO 3166-1 alpha-2 country code for the partner's primary country.
-      additionalProperties: false
-      description: Information about the collection partner assigned to this case.
-    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskActionDto:
-      type: object
-      properties:
-        method:
-          type:
-          - string
-          - 'null'
-          description: HTTP method to use, e.g. `"POST"`.
-        path:
-          type:
-          - string
-          - 'null'
-          description: 'Path template for the resolving call, e.g. `"/cases/{caseId}/chats"`.
-
-            Relative to the API''s base URL.'
-      additionalProperties: false
-      description: "A machine-readable hint pointing at the existing API call that resolves a task, e.g.\n`{ \"method\": \"POST\", \"path\": \"/cases/{caseId}/chats\" }` for a chat-driven task.\n            \nPath uses the same `{param}` placeholder style as this API's own\ndocumented routes — substitute in the real IDs before calling."
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO:
-      type: object
-      properties:
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: List of business errors that must be resolved before the case can be created.
-        signingHandoff:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto'
-      additionalProperties: false
-      description: Response returned when business rule violations prevent case creation.
     Debitura.Web.ExternalApi.Contracts.V1.Cases.PreviewCaseResponseApiViewModel:
       type: object
       properties:
@@ -4993,351 +5466,103 @@ components:
       description: 'Response from previewing a case, showing eligibility, partner assignment,
 
         required actions, and pricing estimates.'
-    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.JurisdictionDto:
       type: object
       properties:
         id:
-          type: string
-          description: The task's unique ID.
-          format: uuid
-        type:
-          type:
-          - string
-          - 'null'
-          description: 'Stable string code for the task type (e.g. `"ReplyToChat"`). This is the public,
-
-            additive-safe contract — it does NOT track the internal integer enum used in storage.'
-        typeLabel:
-          type:
-          - string
-          - 'null'
-          description: Human-readable label for Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.Type (e.g. "Reply to chat").
-        title:
-          type:
-          - string
-          - 'null'
-          description: Short task title, as shown in the Creditor app.
-        description:
-          type:
-          - string
-          - 'null'
-          description: Optional longer description of what the task requires.
-        status:
-          type:
-          - string
-          - 'null'
-          description: Either `"Open"` or `"Solved"`.
-        caseId:
-          type:
-          - string
-          - 'null'
-          description: 'The case (collection case / invoice) this task belongs to, when applicable.
-
-            Null for account-level tasks not tied to a single case (e.g. SignContract, AssignBankAccount).'
-          format: uuid
-        caseReference:
-          type:
-          - string
-          - 'null'
-          description: Your reference for Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.CaseId, if any.
-        leadId:
-          type:
-          - string
-          - 'null'
-          description: The lead this task belongs to (e.g. SelectQuoteWinner), if applicable.
-          format: uuid
-        deadline:
-          type:
-          - string
-          - 'null'
-          description: When this task is due, if a deadline is set.
-          format: date-time
-        dateCreated:
-          type: string
-          description: When the task was created.
-          format: date-time
-        dateSolved:
-          type:
-          - string
-          - 'null'
-          description: When the task was resolved, if it has been.
-          format: date-time
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: 'Absolute URL — identical to the one the Creditor app itself links to — where a human can
-
-            resolve this task. Always present, regardless of whether Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.Action is populated.'
-        action:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskActionDto'
-      additionalProperties: false
-      description: "A creditor-facing action item (\"task\") — something the platform needs the client to do\nbefore a case can proceed (e.g. reply to a chat, sign a contract, assign a bank account).\n            \nEvery task carries a Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.SolutionUrl — an absolute link identical to the one used\ninside the Creditor app — so a human can resolve any task in one click, even task types that\nare not yet directly API-actionable. Tasks that ARE directly API-actionable additionally carry\na non-null Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.Action pointing at the exact API call that resolves them."
-    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuoteDetailDto:
-      required:
-      - agreementType
-      - currency
-      - partnerName
-      - pricing
-      - status
-      type: object
-      properties:
-        quoteId:
-          type: string
-          format: uuid
-        quoteRequestId:
-          type: string
-          format: uuid
-        partnerId:
-          type: string
-          format: uuid
-        partnerName:
-          type:
-          - string
-          - 'null'
-        status:
-          type:
-          - string
-          - 'null'
-        agreementType:
-          type:
-          - string
-          - 'null'
-        pricing:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuotePricingDto'
-        currency:
-          type:
-          - string
-          - 'null'
-        proposedSolution:
-          type:
-          - string
-          - 'null'
-        feeComments:
-          type:
-          - string
-          - 'null'
-        partnerWhyUsSection:
-          type:
-          - string
-          - 'null'
-        fullQuoteLink:
-          type:
-          - string
-          - 'null'
-        dateCreated:
-          type: string
-          format: date-time
-        dateUpdated:
-          type:
-          - string
-          - 'null'
-          format: date-time
-      additionalProperties: false
-      description: V1 Lead Quote detail DTO for external customer APIs (detailed view)
-    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadDto:
-      required:
-      - leadFlowStatus
-      - quoteType
-      - status
-      type: object
-      properties:
-        quoteRequestId:
-          type: string
-          format: uuid
-        caseId:
-          type: string
-          format: uuid
-        status:
-          type:
-          - string
-          - 'null'
-        leadFlowStatus:
-          type:
-          - string
-          - 'null'
-        quoteType:
-          type:
-          - string
-          - 'null'
-        maxQuotes:
           type: integer
+          description: Internal jurisdiction identifier.
           format: int32
-        currentQuotesCount:
-          type: integer
-          format: int32
-        outcome:
-          type:
-          - string
-          - 'null'
-        purpose:
-          type:
-          - string
-          - 'null'
-          description: 'Why this lead exists: PhaseChange (legal/enforcement escalation that advances the case
-
-            phase) or AdditionalService (in-phase add-on). Null for legacy leads created before the field existed.'
-        dateCreated:
-          type: string
-          format: date-time
-        dateQualified:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        leadsDoneOffered:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        dateReminderSent:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        dateReminderTwoSent:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        dateOutcomeSelected:
-          type:
-          - string
-          - 'null'
-          format: date-time
-      additionalProperties: false
-      description: V1 Lead DTO for external customer APIs (summary view)
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.CaseContractStatusApiDTO:
-      type: object
-      properties:
-        sdca:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ContractItemDto'
-        poa:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ContractItemDto'
-        pricingAppendix:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.ContractItemDto'
-        collectionPartnerName:
-          type:
-          - string
-          - 'null'
-          description: Name of the assigned collection partner, if any.
-        needsPoaSigning:
-          type: boolean
-          description: 'Whether the creditor needs to sign (or re-sign) a Power of Attorney.
-
-            True when: POA is missing or stale, OR the debtor''s country has an active jurisdiction pricing zone
-
-            and the Jurisdiction Pricing Appendix (presented as POA) is missing or stale.'
-      additionalProperties: false
-      description: Contract signing status for a case, showing SDCA and PoA status with signing URLs.
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.ContractItemDto:
-      type: object
-      properties:
-        signed:
-          type: boolean
-          description: Whether the contract has been signed.
-        requiresResigning:
-          type: boolean
-          description: Whether the contract needs to be re-signed (e.g., due to contract template updates).
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: 'URL where the creditor can sign or re-sign the contract.
-
-            Null if the contract is signed and current.
-
-            The URL is context-aware: referral partner tokens get referral onboarding URLs,
-
-            regular API keys get standard creditor app URLs.'
-      additionalProperties: false
-      description: Status of an individual contract (SDCA, PoA, or Pricing Appendix).
-    Debitura.Domain.Services.CaseValidation.CaseValidationStatusDto_2:
-      type: object
-      properties:
-        needsInfo:
-          type: boolean
-          description: 'True when the latest validation run requires creditor action.
-
-            Reads Debitura.Domain.Model.Receiveables.Invoices.Invoice.ValidationNeedsInfo directly — do not re-derive from items.'
-        creditorRespondedAt:
-          type:
-          - string
-          - 'null'
-          description: 'When the creditor (or managing partner) last explicitly responded to a needs-info request.
-
-            Null when the creditor has not yet responded, or after the case passes validation.'
-          format: date-time
-        items:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Domain.Services.CaseValidation.CaseValidationItemDto_2'
-          description: 'Creditor-facing action items from the latest validation run.
-
-            Empty when Debitura.Domain.Services.CaseValidation.CaseValidationStatusDto.NeedsInfo is false or no run exists.'
-      additionalProperties: false
-      description: 'Sanitized, creditor-safe projection of a case''s current validation status.
-
-        Safe to expose on any external surface — never contains Rationale, InternalValidationComment,
-
-        InternalReview/AdminReview areas, Confidence, or EvaluationMethod.'
-    Debitura.Web.ReferralPartnerApi.Models.Cases.ContactUser:
-      type: object
-      properties:
-        email:
-          type:
-          - string
-          - 'null'
         name:
           type:
           - string
           - 'null'
-      additionalProperties: false
-      description: A user contact associated with a creditor.
-    Debitura.Web.ReferralPartnerApi.Models.Cases.ClientContacts:
-      type: object
-      properties:
-        onboardingUser:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.ContactUser'
-        officeEmail:
+          description: Display name of the jurisdiction (e.g., "Denmark", "United States - California").
+        countryAlpha2:
           type:
           - string
           - 'null'
-          description: The creditor's office email address (company-level contact).
-        otherUsers:
+          description: ISO 3166-1 alpha-2 country code.
+        stateAlpha2:
+          type:
+          - string
+          - 'null'
+          description: ISO 3166-2 state/region code (only for countries with state-level routing like the US).
+      additionalProperties: false
+      description: Geographic jurisdiction information for the case.
+    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuotePricingDto:
+      type: object
+      properties:
+        hourlyRate:
+          type:
+          - number
+          - 'null'
+          format: double
+        hourlyEstimated:
+          type:
+          - number
+          - 'null'
+          format: double
+        flatFeeEstimate:
+          type:
+          - number
+          - 'null'
+          format: double
+        successFeeFee:
+          type:
+          - number
+          - 'null'
+          format: double
+        hybridEstimate:
+          type:
+          - number
+          - 'null'
+          format: double
+        costProcessMisc:
+          type: number
+          format: double
+      additionalProperties: false
+      description: Nested pricing details for a lead quote
+    Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuoteListDto:
+      required:
+      - quotes
+      type: object
+      properties:
+        quotes:
           type:
           - array
           - 'null'
           items:
-            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.ContactUser'
-          description: Other users linked to this creditor account (excludes the onboarding user).
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Leads.LeadQuoteDto'
       additionalProperties: false
-      description: 'Contact information for a client, including the original onboarding user,
-
-        the company office email, and all other users linked to the creditor.'
-    Debitura.Domain.Services.CaseValidation.CaseValidationItemDto_2:
+      description: V1 Lead Quote list response for external customer APIs
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.RequiredActionDto:
       type: object
       properties:
-        resolutionArea:
+        type:
           type:
           - string
           - 'null'
-          description: 'Enum name of the resolution area (e.g. "ProvideDocuments", "CorrectDebtorAddress").
+          description: 'The type of action required.
 
-            Always a Debitura.Domain.Services.CaseValidation.CaseValidationHelpers.CreditorFacingAreas member — never
-
-            "InternalReview" or "AdminReview".'
-        description:
+            Common values: "MissingDebtCollectionContract", "MissingPowerOfAttorney"'
+        message:
           type:
           - string
           - 'null'
-          description: 'Creditor-safe description of what needs to be fixed.
+          description: Human-readable description of what is required.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "URL where the user can complete this <i>specific</i> action (e.g., contract signing page).\nThe URL is context-aware: referral partner tokens get referral onboarding URLs,\nregular API keys get standard creditor app URLs.\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\naction in one chain — instead of forwarding one URL per `RequiredActionDto` —\nshould use Debitura.Web.ExternalApi.Contracts.V1.Cases.PreviewResultDto.SigningHandoff's\n`CombinedSigningUrl`. The two are complementary: `SolutionUrl` is granular\nper-action; `CombinedSigningUrl` is the chain-walking alternative for\nsigning-related actions."
+        isBlocking:
+          type: boolean
+          description: 'Whether this action must be completed before case submission.
 
-            Source: Debitura.Domain.Model.Receiveables.CaseValidation.CaseValidationRuleResult.CuratedDescription — scoring stripped.'
+            Currently all returned actions are blocking (true).'
       additionalProperties: false
-      description: A single creditor-facing action item within Debitura.Domain.Services.CaseValidation.CaseValidationStatusDto.
+      description: An action required before the case can be submitted (e.g., signing a contract).
     Debitura.Web.ReferralPartnerApi.Models.Cases.CasePotentialRevenue:
       type: object
       properties:
@@ -5373,47 +5598,6 @@ components:
       description: 'Breakdown of potential revenue if the full case amount is collected.
 
         All amounts are in USD; percentages are displayed as whole numbers (e.g. 9.5 = 9.5%).'
-    Debitura.Web.ReferralPartnerApi.Models.Cases.GetCasesResponse:
-      type: object
-      properties:
-        page:
-          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData_2'
-        cases:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.CaseItem'
-        summary:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.CasesSummary'
-      additionalProperties: false
-      description: Response model for listing cases linked to a referral partner
-    Debitura.Domain.Model.Base.PageData_2:
-      type: object
-      properties:
-        totalResults:
-          type: integer
-          description: Total number of records for the query (filtered or all as applicable).
-          format: int32
-        pageSize:
-          type: integer
-          description: How many records are returned per page.
-          format: int32
-        currentPage:
-          type: integer
-          description: Which page number is being shown, calculated from the number of skipped items.
-          format: int32
-        responseCount:
-          type: integer
-          description: How many records are present in the current page.
-          format: int32
-        totalPages:
-          type: integer
-          description: Total number of pages available given Debitura.Domain.Model.Base.PageData.TotalResults and Debitura.Domain.Model.Base.PageData.PageSize.
-          format: int32
-          readOnly: true
-      additionalProperties: false
-      description: Paging metadata describing a paged result set.
     Debitura.Web.ReferralPartnerApi.Models.Cases.CaseItem:
       type: object
       properties:
@@ -5508,34 +5692,6 @@ components:
         Follows the same field conventions as InvoiceDto (ExternalApi.Contracts)
 
         but scoped to what referral partners need, with ExternalTenantId on Client.'
-    Debitura.Web.ReferralPartnerApi.Models.Cases.CasesSummary:
-      type: object
-      properties:
-        totalCases:
-          type: integer
-          format: int32
-        casesThisMonth:
-          type: integer
-          format: int32
-        byLifecycle:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.LifecycleBreakdown'
-      additionalProperties: false
-    Debitura.Web.ReferralPartnerApi.Models.Cases.LifecycleBreakdown:
-      type: object
-      properties:
-        active:
-          type: integer
-          format: int32
-        pending:
-          type: integer
-          format: int32
-        closed:
-          type: integer
-          format: int32
-        paused:
-          type: integer
-          format: int32
-      additionalProperties: false
     Debitura.Web.ReferralPartnerApi.Models.Cases.CaseClientInfo:
       type: object
       properties:
@@ -5555,21 +5711,22 @@ components:
           $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.ClientContacts'
       additionalProperties: false
       description: Client (creditor) info with referral-partner-specific ExternalTenantId.
-    Debitura.Web.ReferralPartnerApi.Models.Cases.CaseDebtorInfo:
+    Debitura.Web.ReferralPartnerApi.Models.Cases.LifecycleBreakdown:
       type: object
       properties:
-        name:
-          type:
-          - string
-          - 'null'
-          description: Debtor display name (company name, or person name if individual).
-        country:
-          type:
-          - string
-          - 'null'
-          description: Debtor's country (full name, e.g. "United Kingdom", "Denmark").
+        active:
+          type: integer
+          format: int32
+        pending:
+          type: integer
+          format: int32
+        closed:
+          type: integer
+          format: int32
+        paused:
+          type: integer
+          format: int32
       additionalProperties: false
-      description: Debtor info for the case.
     Debitura.Web.ReferralPartnerApi.Models.Cases.GetCaseDetailResponse:
       type: object
       properties:
@@ -5656,6 +5813,160 @@ components:
       description: 'Response model for retrieving a single case with potential revenue breakdown.
 
         Extends CaseItem fields with revenue data for referral partners.'
+    Debitura.Domain.Services.CaseValidation.CaseValidationStatusDto_2:
+      type: object
+      properties:
+        needsInfo:
+          type: boolean
+          description: 'True when the latest validation run requires creditor action.
+
+            Reads Debitura.Domain.Model.Receiveables.Invoices.Invoice.ValidationNeedsInfo directly — do not re-derive from items.'
+        creditorRespondedAt:
+          type:
+          - string
+          - 'null'
+          description: 'When the creditor (or managing partner) last explicitly responded to a needs-info request.
+
+            Null when the creditor has not yet responded, or after the case passes validation.'
+          format: date-time
+        items:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Domain.Services.CaseValidation.CaseValidationItemDto_2'
+          description: 'Creditor-facing action items from the latest validation run.
+
+            Empty when Debitura.Domain.Services.CaseValidation.CaseValidationStatusDto.NeedsInfo is false or no run exists.'
+      additionalProperties: false
+      description: 'Sanitized, creditor-safe projection of a case''s current validation status.
+
+        Safe to expose on any external surface — never contains Rationale, InternalValidationComment,
+
+        InternalReview/AdminReview areas, Confidence, or EvaluationMethod.'
+    Debitura.Domain.Services.CaseValidation.CaseValidationItemDto_2:
+      type: object
+      properties:
+        resolutionArea:
+          type:
+          - string
+          - 'null'
+          description: 'Enum name of the resolution area (e.g. "ProvideDocuments", "CorrectDebtorAddress").
+
+            Always a Debitura.Domain.Services.CaseValidation.CaseValidationHelpers.CreditorFacingAreas member — never
+
+            "InternalReview" or "AdminReview".'
+        description:
+          type:
+          - string
+          - 'null'
+          description: 'Creditor-safe description of what needs to be fixed.
+
+            Source: Debitura.Domain.Model.Receiveables.CaseValidation.CaseValidationRuleResult.CuratedDescription — scoring stripped.'
+      additionalProperties: false
+      description: A single creditor-facing action item within Debitura.Domain.Services.CaseValidation.CaseValidationStatusDto.
+    Debitura.Web.ReferralPartnerApi.Models.Cases.ClientContacts:
+      type: object
+      properties:
+        onboardingUser:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.ContactUser'
+        officeEmail:
+          type:
+          - string
+          - 'null'
+          description: The creditor's office email address (company-level contact).
+        otherUsers:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.ContactUser'
+          description: Other users linked to this creditor account (excludes the onboarding user).
+      additionalProperties: false
+      description: 'Contact information for a client, including the original onboarding user,
+
+        the company office email, and all other users linked to the creditor.'
+    Debitura.Web.ReferralPartnerApi.Models.Cases.GetCasesResponse:
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData_2'
+        cases:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.CaseItem'
+        summary:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.CasesSummary'
+      additionalProperties: false
+      description: Response model for listing cases linked to a referral partner
+    Debitura.Web.ReferralPartnerApi.Models.Cases.ContactUser:
+      type: object
+      properties:
+        email:
+          type:
+          - string
+          - 'null'
+        name:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+      description: A user contact associated with a creditor.
+    Debitura.Web.ReferralPartnerApi.Models.Cases.CaseDebtorInfo:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          description: Debtor display name (company name, or person name if individual).
+        country:
+          type:
+          - string
+          - 'null'
+          description: Debtor's country (full name, e.g. "United Kingdom", "Denmark").
+      additionalProperties: false
+      description: Debtor info for the case.
+    Debitura.Domain.Model.Base.PageData_2:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          description: Total number of records for the query (filtered or all as applicable).
+          format: int32
+        pageSize:
+          type: integer
+          description: How many records are returned per page.
+          format: int32
+        currentPage:
+          type: integer
+          description: Which page number is being shown, calculated from the number of skipped items.
+          format: int32
+        responseCount:
+          type: integer
+          description: How many records are present in the current page.
+          format: int32
+        totalPages:
+          type: integer
+          description: Total number of pages available given Debitura.Domain.Model.Base.PageData.TotalResults and Debitura.Domain.Model.Base.PageData.PageSize.
+          format: int32
+          readOnly: true
+      additionalProperties: false
+      description: Paging metadata describing a paged result set.
+    Debitura.Web.ReferralPartnerApi.Models.Cases.CasesSummary:
+      type: object
+      properties:
+        totalCases:
+          type: integer
+          format: int32
+        casesThisMonth:
+          type: integer
+          format: int32
+        byLifecycle:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.LifecycleBreakdown'
+      additionalProperties: false
   securitySchemes:
     ApiKey:
       type: apiKey

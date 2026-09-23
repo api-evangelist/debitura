@@ -1,13 +1,7 @@
 openapi: 3.2.0
 info:
   title: Debitura Customer Payments API
-  description: 'Welcome to the Debitura Customer API, your gateway to seamlessly integrating your debt collection workflow with our platform. Debitura connects customers with trusted debt collection firms specializing in pre-legal debt recovery. With this API, you can easily upload cases, track their status, and manage your debt collection process efficiently. For any support or inquiries, please reach out to us at contact@debitura.com. To setup an API key, log into your Debitura account and go here: https://app.debitura.com/CreditorApiKey
-
-
-    📖 Full documentation, guides, and integration walkthroughs: https://docs.debitura.com/clients
-
-
-    NOTE: if you''re representing a platform and want to provide this feature for your customers, you need a different API. Please contact us.'
+  description: Welcome to the Debitura Customer API, your gateway to seamlessly integrating your debt collection workflow with our platform.
   contact:
     name: Debitura Support
     url: https://www.debitura.com/integration/debt-collection-api
@@ -86,6 +80,8 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      operationId: getPayments
+      x-operation-id-source: derived
   /Payments/{id}:
     get:
       tags:
@@ -136,6 +132,8 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto'
+      operationId: getPaymentsById
+      x-operation-id-source: derived
 components:
   schemas:
     Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto:
@@ -177,6 +175,58 @@ components:
           - 'null'
         invoice:
           $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentRelatedInvoiceDto'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentRelatedInvoiceDto:
+      required:
+      - reference
+      - status
+      type: object
+      properties:
+        status:
+          type:
+          - string
+          - 'null'
+        reference:
+          type:
+          - string
+          - 'null'
+        invoiceId:
+          type: string
+          format: uuid
+      additionalProperties: false
+    Debitura.Web.ExternalCustomerAPI.Models.Payments.Dtos.PaymentListApiDTO:
+      required:
+      - page
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
+        payments:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto'
+      additionalProperties: false
+    Debitura.Domain.Model.Base.PageData:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        currentPage:
+          type: integer
+          format: int32
+        responseCount:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int32
+          readOnly: true
       additionalProperties: false
     Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
@@ -220,58 +270,6 @@ components:
           description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
       description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
-    Debitura.Domain.Model.Base.PageData:
-      type: object
-      properties:
-        totalResults:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-        currentPage:
-          type: integer
-          format: int32
-        responseCount:
-          type: integer
-          format: int32
-        totalPages:
-          type: integer
-          format: int32
-          readOnly: true
-      additionalProperties: false
-    Debitura.Web.ExternalCustomerAPI.Models.Payments.Dtos.PaymentListApiDTO:
-      required:
-      - page
-      type: object
-      properties:
-        page:
-          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
-        payments:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentDto'
-      additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Payments.PaymentRelatedInvoiceDto:
-      required:
-      - reference
-      - status
-      type: object
-      properties:
-        status:
-          type:
-          - string
-          - 'null'
-        reference:
-          type:
-          - string
-          - 'null'
-        invoiceId:
-          type: string
-          format: uuid
-      additionalProperties: false
   securitySchemes:
     ApiKey:
       type: apiKey
