@@ -110,41 +110,6 @@ paths:
       description: Production
 components:
   schemas:
-    Debitura.Web.ExternalApi.Contracts.V1.Users.CollectionPartnerUserDto:
-      type: object
-      properties:
-        id:
-          type: string
-          description: The user's unique ID. Use this as `assignedUserId` in POST /cases/{id}/start.
-          format: uuid
-        name:
-          type:
-          - string
-          - 'null'
-          description: The user's full name.
-        email:
-          type:
-          - string
-          - 'null'
-          description: The user's email address.
-      additionalProperties: false
-      description: 'A user belonging to the authenticated collection partner''s team.
-
-        Use the Debitura.Web.ExternalApi.Contracts.V1.Users.CollectionPartnerUserDto.Id as the `assignedUserId` when starting a case via POST /cases/{id}/start.'
-    Debitura.Web.ExternalApi.Contracts.V1.Users.UserListDto:
-      required:
-      - page
-      type: object
-      properties:
-        page:
-          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
-        users:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Users.CollectionPartnerUserDto'
-      additionalProperties: false
     Microsoft.AspNetCore.Mvc.ProblemDetails:
       type: object
       properties:
@@ -170,26 +135,6 @@ components:
           - string
           - 'null'
       additionalProperties: {}
-    Debitura.Domain.Model.Base.PageData:
-      type: object
-      properties:
-        totalResults:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-        currentPage:
-          type: integer
-          format: int32
-        responseCount:
-          type: integer
-          format: int32
-        totalPages:
-          type: integer
-          format: int32
-          readOnly: true
-      additionalProperties: false
     Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
@@ -232,6 +177,61 @@ components:
           description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
       description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Domain.Model.Base.PageData:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        currentPage:
+          type: integer
+          format: int32
+        responseCount:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int32
+          readOnly: true
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Users.UserListDto:
+      required:
+      - page
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
+        users:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Users.CollectionPartnerUserDto'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Users.CollectionPartnerUserDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The user's unique ID. Use this as `assignedUserId` in POST /cases/{id}/start.
+          format: uuid
+        name:
+          type:
+          - string
+          - 'null'
+          description: The user's full name.
+        email:
+          type:
+          - string
+          - 'null'
+          description: The user's email address.
+      additionalProperties: false
+      description: 'A user belonging to the authenticated collection partner''s team.
+
+        Use the Debitura.Web.ExternalApi.Contracts.V1.Users.CollectionPartnerUserDto.Id as the `assignedUserId` when starting a case via POST /cases/{id}/start.'
   securitySchemes:
     ApiKey:
       type: apiKey

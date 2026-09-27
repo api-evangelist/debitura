@@ -128,18 +128,49 @@ components:
       - 4
       type: integer
       format: int32
-    Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobStatusResponse:
+    Debitura.Domain.Model.PartnerIngest.PartnerIngestEventType:
+      enum:
+      - 0
+      type: integer
+      format: int32
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
-        status:
-          $ref: '#/components/schemas/Debitura.Domain.Model.AsyncJobs.AsyncJobStatus'
-        rowsTotal:
-          type: integer
-          format: int32
-        rowsSucceeded:
-          type: integer
-          format: int32
-        rowsFailed:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobRequest:
+      type: object
+      properties:
+        rows:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobRow'
+          description: 'The list of events to enqueue (max recommended: 1000 rows per call).'
+      additionalProperties: false
+    Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        rowsQueued:
           type: integer
           format: int32
       additionalProperties: false
@@ -169,52 +200,21 @@ components:
           - 'null'
           description: Your system's reference for this event (optional, for idempotency tracking).
       additionalProperties: false
-    Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobRequest:
+    Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobStatusResponse:
       type: object
       properties:
-        rows:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobRow'
-          description: 'The list of events to enqueue (max recommended: 1000 rows per call).'
-      additionalProperties: false
-    Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobResponse:
-      type: object
-      properties:
-        jobId:
-          type: string
-          format: uuid
-        rowsQueued:
+        status:
+          $ref: '#/components/schemas/Debitura.Domain.Model.AsyncJobs.AsyncJobStatus'
+        rowsTotal:
+          type: integer
+          format: int32
+        rowsSucceeded:
+          type: integer
+          format: int32
+        rowsFailed:
           type: integer
           format: int32
       additionalProperties: false
-    Debitura.Domain.Model.PartnerIngest.PartnerIngestEventType:
-      enum:
-      - 0
-      type: integer
-      format: int32
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
-      type: object
-      properties:
-        type:
-          type:
-          - string
-          - 'null'
-          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
-        message:
-          type:
-          - string
-          - 'null'
-          description: A human-readable description of the error.
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
-      additionalProperties: false
-      description: Represents a business error in the API response.
     Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:

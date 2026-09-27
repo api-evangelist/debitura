@@ -768,109 +768,105 @@ paths:
       x-operation-id-source: derived
 components:
   schemas:
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO:
+    Debitura.Web.ReferralPartnerApi.Models.Clients.ConflictResponse:
       type: object
       properties:
-        businessErrors:
+        type:
           type:
-          - array
+          - string
           - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: List of business errors that must be resolved before the case can be created.
-        signingHandoff:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto'
+          description: The type of conflict that occurred
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable description of the conflict
+        data:
+          description: 'Additional payload for the conflict. Shape depends on Debitura.Web.ReferralPartnerApi.Models.Clients.ConflictResponse.Type:
+
+            <list type="bullet"><item><description>`ClientExistsNeedsLinking` → Debitura.Web.ReferralPartnerApi.Models.Clients.ClientExistsNeedsLinkingResponse (ExternalTenantId + OnboardingLinks.Url only — never contains PII).</description></item><item><description>`ClientAlreadyLinkedToAnotherPartner` → Debitura.Web.ReferralPartnerApi.Models.Clients.ClientAlreadyLinkedResponse (ExternalTenantId only — never contains PII).</description></item><item><description>Other conflict types may omit this field entirely.</description></item></list>'
       additionalProperties: false
-      description: Response returned when business rule violations prevent case creation.
-    Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationFailure:
+      description: Response returned when a conflict occurs during client creation
+    Debitura.Web.ReferralPartnerApi.Models.Clients.KycStatus:
+      enum:
+      - NotRequired
+      - Pending
+      - Verified
+      type: string
+      description: "KYC (Know Your Customer) verification status for a client linked to a referral partner.\nCaptures three distinct states that a simple boolean cannot express.\n            \nWire format is LOCKED to snake_case string values (\"not_required\", \"pending\", \"verified\")\nvia Newtonsoft.Json StringEnumConverter with SnakeCaseNamingStrategy. The host serializer\nfor this API is Newtonsoft.Json (AddNewtonsoftJson in Program.cs), so a System.Text.Json\nJsonStringEnumConverter attribute would be silently ignored — hence the explicit Newtonsoft\nconverter here.\n            \nThe System.Text.Json JsonConverter attribute is declared in addition so that consumers\n(and our own integration tests) who parse responses using System.Text.Json can deserialize\nthe string form back into this enum. The Newtonsoft converter is what actually controls\noutbound wire format on this host."
+    Debitura.Web.ReferralPartnerApi.Models.Clients.ClientUserDto:
+      required:
+      - email
+      - name
       type: object
       properties:
-        caseIndex:
-          type: integer
-          description: Zero-based index of the failed case in the original Cases array.
-          format: int32
-        creditorReference:
-          type:
-          - string
-          - 'null'
-          description: 'Creditor reference from the failed case, if provided.
-
-            Helps consumers identify which specific case failed.'
-        errorType:
-          type:
-          - string
-          - 'null'
-          description: "Machine-readable error type code for programmatic error handling.\nEnables API consumers to handle different failure scenarios without parsing error messages.\n            \n\n<b>Possible values:</b><list type=\"bullet\"><item><term>Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationErrorTypes.NoPartnerAvailable</term><description>No collection partner available for the debtor's jurisdiction.\nThe debtor is in a country/region where Debitura does not yet have collection partner coverage.\nConsider resubmitting with debtors in supported jurisdictions.</description></item><item><term>Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationErrorTypes.ValidationError</term><description>The request failed field-level validation.\nCheck the Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationFailure.ValidationErrors property for detailed field-specific errors.\nCommon causes: missing required fields, invalid formats, business rule violations.</description></item><item><term>Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationErrorTypes.DuplicateReference</term><description>The provided CreditorReference already exists for this creditor or is duplicated in the current request.\nCreditorReference must be unique per creditor.</description></item><item><term>Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationErrorTypes.IdempotencyViolation</term><description>The client has already been created in a previous API call.\nCases are not created on repeated calls to maintain idempotency.\nThis is informational - the original operation already succeeded.</description></item><item><term>Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationErrorTypes.UnexpectedError</term><description>An unexpected system error occurred during case creation.\nThis is a catch-all for errors not covered by other types.\nContact Debitura support if this error persists.</description></item></list>\nNull if the error type cannot be determined or is not applicable."
-        errorMessage:
-          type:
-          - string
-          - 'null'
-          description: High-level error message explaining why the case creation failed.
-        validationErrors:
-          type:
-          - object
-          - 'null'
-          additionalProperties:
-            type: array
-            items:
-              type: string
-          description: 'Detailed field-level validation errors if the failure was due to validation.
-
-            Null if the failure was due to other reasons (e.g., no partner match).'
-        signingHandoff:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto'
-      additionalProperties: false
-      description: Represents a failed case creation attempt during multi-case client creation.
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto:
-      type: object
-      properties:
-        combinedSigningUrl:
-          type:
-          - string
-          - 'null'
-          description: 'Single signing entry URL that walks the creditor through every
-
-            pending step (SDCA upgrade → PoA → JPA → KYC) on the Creditors app
-
-            and returns to the partner-supplied returnUrl when done.'
-      additionalProperties: false
-      description: "Partner-facing handoff metadata for a creditor's pending signing chain.\nReturned on POST /cases responses (422 with pending-signing errors,\nor 200 with AllowPendingContracts=true when signings remain).\n            \nDesigned as an envelope so future fields (expiration, suggested email\ncopy, etc.) can be added without polluting the parent DTO."
-    Debitura.Domain.Services.CaseValidation.CaseValidationLeanDto:
-      type: object
-      properties:
-        needsInfo:
+        name:
+          minLength: 1
+          type: string
+        email:
+          minLength: 1
+          type: string
+          format: email
+        isOnboardingUser:
           type: boolean
-          description: 'True when the latest validation run requires creditor action.
+          description: 'Marks this user as the one going through onboarding.
 
-            Reads Debitura.Domain.Model.Receiveables.Invoices.Invoice.ValidationNeedsInfo directly.'
+            Defaults to false. Exactly ONE user must have this set to true.'
       additionalProperties: false
-      description: 'Lean validation summary exposed on list endpoints of the External Customer API
-
-        and Collection Partner API. Contains only Debitura.Domain.Services.CaseValidation.CaseValidationLeanDto.NeedsInfo — no join required.
-
-        Derived purely from free Debitura.Domain.Model.Receiveables.Invoices.Invoice columns.
-
-
-        When Debitura.Domain.Services.CaseValidation.CaseValidationLeanDto.NeedsInfo is `true`, callers should invoke
-
-        `GET /cases/{id}/validation` to retrieve the full item-level breakdown
-
-        (Debitura.Domain.Services.CaseValidation.CaseValidationStatusDto).'
-    Debitura.Web.ReferralPartnerApi.Models.Clients.UserDto:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.AssignedUserDto:
       type: object
       properties:
-        id:
-          type: integer
-          format: int32
         email:
           type:
           - string
           - 'null'
-        firstName:
+          description: The assigned user's email address.
+        name:
           type:
           - string
           - 'null'
-        lastName:
+          description: The assigned user's full name.
+      additionalProperties: false
+      description: Represents the creditor team member assigned to a case.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDivisionDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the division
+          format: uuid
+        name:
+          type:
+          - string
+          - 'null'
+          description: Name of the division
+      additionalProperties: false
+      description: 'Creditor division information for external partner APIs.
+
+        Represents a specific division or department within a creditor organization.'
+    Debitura.Web.ReferralPartnerApi.Models.Clients.SubmitKycVerificationRequest:
+      required:
+      - directorDateOfBirth
+      - directorFullName
+      - directorHomeAddress
+      type: object
+      properties:
+        directorFullName:
+          maxLength: 500
+          minLength: 1
+          type: string
+        directorHomeAddress:
+          maxLength: 1000
+          minLength: 1
+          type: string
+        directorDateOfBirth:
+          type: string
+          format: date
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Clients.OnboardingLinksDto:
+      type: object
+      properties:
+        url:
           type:
           - string
           - 'null'
@@ -933,185 +929,149 @@ components:
       description: 'Creditor (client) information for external partner APIs.
 
         Represents the party that the debtor owes money to.'
-    Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode:
-      enum:
-      - 0
-      - 1
-      type: integer
-      description: Controls which surveys are generated for cases assigned to this collection partner.
-      format: int32
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.CollectionPartnerDto:
+    Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationFailure:
       type: object
       properties:
-        name:
+        caseIndex:
+          type: integer
+          description: Zero-based index of the failed case in the original Cases array.
+          format: int32
+        creditorReference:
           type:
           - string
           - 'null'
-        officeEmail:
+          description: 'Creditor reference from the failed case, if provided.
+
+            Helps consumers identify which specific case failed.'
+        errorType:
           type:
           - string
           - 'null'
-        officePhone:
+          description: "Machine-readable error type code for programmatic error handling.\nEnables API consumers to handle different failure scenarios without parsing error messages.\n            \n\n<b>Possible values:</b><list type=\"bullet\"><item><term>Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationErrorTypes.NoPartnerAvailable</term><description>No collection partner available for the debtor's jurisdiction.\nThe debtor is in a country/region where Debitura does not yet have collection partner coverage.\nConsider resubmitting with debtors in supported jurisdictions.</description></item><item><term>Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationErrorTypes.ValidationError</term><description>The request failed field-level validation.\nCheck the Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationFailure.ValidationErrors property for detailed field-specific errors.\nCommon causes: missing required fields, invalid formats, business rule violations.</description></item><item><term>Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationErrorTypes.DuplicateReference</term><description>The provided CreditorReference already exists for this creditor or is duplicated in the current request.\nCreditorReference must be unique per creditor.</description></item><item><term>Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationErrorTypes.IdempotencyViolation</term><description>The client has already been created in a previous API call.\nCases are not created on repeated calls to maintain idempotency.\nThis is informational - the original operation already succeeded.</description></item><item><term>Debitura.Web.ReferralPartnerApi.Models.Clients.CaseCreationErrorTypes.UnexpectedError</term><description>An unexpected system error occurred during case creation.\nThis is a catch-all for errors not covered by other types.\nContact Debitura support if this error persists.</description></item></list>\nNull if the error type cannot be determined or is not applicable."
+        errorMessage:
           type:
           - string
           - 'null'
-        publicSite:
+          description: High-level error message explaining why the case creation failed.
+        validationErrors:
           type:
-          - string
+          - object
           - 'null'
-        surveyCadenceMode:
-          $ref: '#/components/schemas/Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode'
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: 'Detailed field-level validation errors if the failure was due to validation.
+
+            Null if the failure was due to other reasons (e.g., no partner match).'
+        signingHandoff:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto'
       additionalProperties: false
-      description: V1 Collection Partner DTO for external partner APIs
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      description: Represents a failed case creation attempt during multi-case client creation.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.DebtorDto:
+      required:
+      - name
+      - type
       type: object
       properties:
-        error:
-          type:
-          - string
-          - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
-      additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
-    Debitura.Web.ReferralPartnerApi.Models.Clients.CreditorDto:
-      type: object
-      properties:
-        id:
+        type:
+          minLength: 1
           type: string
-          format: uuid
-        companyName:
+          description: 'Debtor type. Valid values: "Company" or "Person"'
+          example: Company
+        name:
+          minLength: 1
+          type: string
+          description: Debtor name (company name or person's full name)
+          example: Pacific Trading LLC
+        contactPerson:
           type:
           - string
           - 'null'
-        officeEmail:
-          type:
-          - string
-          - 'null'
-        country:
-          type:
-          - string
-          - 'null'
-        address:
-          type:
-          - string
-          - 'null'
-        city:
-          type:
-          - string
-          - 'null'
-        zipCode:
-          type:
-          - string
-          - 'null'
+          description: Contact person at the company (required for companies, not used for persons)
+          example: John Smith
         companyRegistrationNumber:
           type:
           - string
           - 'null'
-      additionalProperties: false
-    Debitura.Domain.Model.Creditors.CreditorKycVerifications.CreditorKycVerificationStatus:
-      enum:
-      - Processing
-      - Completed
-      type: string
-      description: "Partner/staff-settable review status for a Debitura.Domain.Model.Creditors.CreditorKycVerifications.CreditorKycVerification record.\nDistinct from the ReferralPartnerApi `KycStatus` enum, which describes\nwhether a client has submitted KYC data at all — this enum describes whether data that has\nalready been submitted has since been reviewed by the collection partner or Debitura staff.\n            \nThe unset/not-yet-reviewed state is represented by a null\nDebitura.Domain.Model.Creditors.CreditorKycVerifications.CreditorKycVerification.VerificationStatus column, not a third enum value here.\nA fresh KYC resubmission (a new row via `CreditorKycVerificationService.CreateAsync`)\nnaturally leaves this column unset, resetting review status by design.\n            \nWire format is locked to named string values (\"Processing\", \"Completed\") via Newtonsoft.Json\nStringEnumConverter — every host this enum is exposed on (CollectionPartnerApi, CoreApi,\nReferralPartnerApi) uses Newtonsoft (AddNewtonsoftJson in Program.cs), so a System.Text.Json\nJsonStringEnumConverter attribute alone would be silently ignored; both are declared so\nSTJ-based consumers (and our own tests) can also deserialize the string form."
-    Debitura.Web.ReferralPartnerApi.Models.Clients.ClientCreatedResponse:
-      type: object
-      properties:
-        externalTenantId:
+          description: Company registration number (VAT number, CVR, org number, etc.)
+          example: 47-1234567
+        address:
           type:
           - string
           - 'null'
-        onboardingDone:
-          type: boolean
-        onboardingLinks:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.OnboardingLinksDto'
-        client:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.CreditorDto'
-        users:
+          description: Street address
+          example: 123 Market Street, Suite 400
+        zipCode:
           type:
-          - array
+          - string
           - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.UserDto'
-        isAttributedClient:
-          type: boolean
-        dateLinked:
-          type: string
-          format: date-time
-        caseStats:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.ClientCaseStats'
-        kycStatus:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.KycStatus'
-        kycVerification:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.KycVerificationDto'
-        caseResults:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.MultiCaseResult'
-      additionalProperties: false
-    Debitura.Web.ReferralPartnerApi.Models.Clients.ClientCaseStats:
-      type: object
-      properties:
-        casesTotal:
-          type: integer
-          format: int32
-        casesClosed:
-          type: integer
-          format: int32
-        earningsUsd:
-          type: number
-          format: double
-      additionalProperties: false
-    Debitura.Web.ReferralPartnerApi.Models.Clients.KycStatus:
-      enum:
-      - NotRequired
-      - Pending
-      - Verified
-      type: string
-      description: "KYC (Know Your Customer) verification status for a client linked to a referral partner.\nCaptures three distinct states that a simple boolean cannot express.\n            \nWire format is LOCKED to snake_case string values (\"not_required\", \"pending\", \"verified\")\nvia Newtonsoft.Json StringEnumConverter with SnakeCaseNamingStrategy. The host serializer\nfor this API is Newtonsoft.Json (AddNewtonsoftJson in Program.cs), so a System.Text.Json\nJsonStringEnumConverter attribute would be silently ignored — hence the explicit Newtonsoft\nconverter here.\n            \nThe System.Text.Json JsonConverter attribute is declared in addition so that consumers\n(and our own integration tests) who parse responses using System.Text.Json can deserialize\nthe string form back into this enum. The Newtonsoft converter is what actually controls\noutbound wire format on this host."
-    Debitura.Web.ReferralPartnerApi.Models.Clients.ClientDeletableResponse:
-      type: object
-      properties:
-        isDeletable:
-          type: boolean
-          description: True if the client can be safely deleted.
-        blockers:
+          description: Postal/ZIP code
+          example: '94105'
+        city:
           type:
-          - array
+          - string
           - 'null'
-          items:
-            type: string
-          description: List of reasons why the client cannot be deleted (empty if IsDeletable is true).
-      additionalProperties: false
-      description: Response indicating whether a client can be deleted.
-    Debitura.Web.ReferralPartnerApi.Models.Clients.ClientUserDto:
-      required:
-      - email
-      - name
-      type: object
-      properties:
-        name:
-          minLength: 1
-          type: string
+          description: City name
+          example: San Francisco
+        state:
+          type:
+          - string
+          - 'null'
+          description: State/region/province name
+          example: California
+        stateAlpha2:
+          type:
+          - string
+          - 'null'
+          description: 'US state: two-letter code (e.g., "CA"), ISO 3166-2 format (e.g., "US-CA"), or full name (e.g., "California")'
+          example: CA
+        countryAlpha2:
+          type:
+          - string
+          - 'null'
+          description: Country code (ISO 3166-1 alpha-2 format)
+          example: US
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country name
+          example: United States
         email:
-          minLength: 1
-          type: string
-          format: email
-        isOnboardingUser:
-          type: boolean
-          description: 'Marks this user as the one going through onboarding.
+          type:
+          - string
+          - 'null'
+          description: Email address for debtor contact
+          example: accounts@pacifictrading.com
+        phone:
+          type:
+          - string
+          - 'null'
+          description: Phone number (include country code)
+          example: +1 415 555 0123
+      additionalProperties: false
+      description: 'V1 Debtor DTO for external partner APIs.
 
-            Defaults to false. Exactly ONE user must have this set to true.'
+        The debtor is the party that owes the debt.'
+    Debitura.Web.ReferralPartnerApi.Models.Clients.ClientsSummary:
+      type: object
+      properties:
+        totalClients:
+          type: integer
+          format: int32
+        attributedClients:
+          type: integer
+          format: int32
+        onboardingComplete:
+          type: integer
+          format: int32
+        onboardingPending:
+          type: integer
+          format: int32
+        totalCases:
+          type: integer
+          format: int32
       additionalProperties: false
     Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto:
       type: object
@@ -1283,29 +1243,6 @@ components:
           $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceAllocationOutstandingDto'
       additionalProperties: false
       description: V1 Invoice DTO for external partner APIs
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceAllocationOutstandingDto:
-      type: object
-      properties:
-        principal:
-          type: number
-          format: double
-        interest:
-          type: number
-          format: double
-        reminderFees:
-          type: number
-          format: double
-        collectionFees:
-          type: number
-          format: double
-      additionalProperties: false
-      description: 'Additive external-API read model. Per-bucket outstanding on the debt ledger, produced by
-
-        the payment allocation engine (bucket total minus Σ active stored allocations — never re-derived
-
-        from a model). Mirrors the internal
-
-        `Debitura.Domain.Model.Receiveables.InvoiceEconomics.EconomicalAllocationOutstanding` shape.'
     Debitura.Web.ReferralPartnerApi.Models.Clients.ClientDetailsDto:
       required:
       - country
@@ -1356,25 +1293,153 @@ components:
           - string
           - 'null'
       additionalProperties: false
-    Debitura.Web.ReferralPartnerApi.Models.Clients.ConflictResponse:
+    Debitura.Web.ReferralPartnerApi.Models.Clients.ClientCaseStats:
       type: object
       properties:
-        type:
-          type:
-          - string
-          - 'null'
-          description: The type of conflict that occurred
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable description of the conflict
-        data:
-          description: 'Additional payload for the conflict. Shape depends on Debitura.Web.ReferralPartnerApi.Models.Clients.ConflictResponse.Type:
-
-            <list type="bullet"><item><description>`ClientExistsNeedsLinking` → Debitura.Web.ReferralPartnerApi.Models.Clients.ClientExistsNeedsLinkingResponse (ExternalTenantId + OnboardingLinks.Url only — never contains PII).</description></item><item><description>`ClientAlreadyLinkedToAnotherPartner` → Debitura.Web.ReferralPartnerApi.Models.Clients.ClientAlreadyLinkedResponse (ExternalTenantId only — never contains PII).</description></item><item><description>Other conflict types may omit this field entirely.</description></item></list>'
+        casesTotal:
+          type: integer
+          format: int32
+        casesClosed:
+          type: integer
+          format: int32
+        earningsUsd:
+          type: number
+          format: double
       additionalProperties: false
-      description: Response returned when a conflict occurs during client creation
+    Debitura.Web.ReferralPartnerApi.Models.Clients.CreditorDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyName:
+          type:
+          - string
+          - 'null'
+        officeEmail:
+          type:
+          - string
+          - 'null'
+        country:
+          type:
+          - string
+          - 'null'
+        address:
+          type:
+          - string
+          - 'null'
+        city:
+          type:
+          - string
+          - 'null'
+        zipCode:
+          type:
+          - string
+          - 'null'
+        companyRegistrationNumber:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Clients.KycVerificationDto:
+      type: object
+      properties:
+        directorFullName:
+          type:
+          - string
+          - 'null'
+        directorHomeAddress:
+          type:
+          - string
+          - 'null'
+        directorDateOfBirth:
+          type: string
+          format: date
+        dateCreated:
+          type: string
+          format: date-time
+        verificationStatus:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Creditors.CreditorKycVerifications.CreditorKycVerificationStatus'
+        verificationStatusUpdatedAt:
+          type:
+          - string
+          - 'null'
+          description: When Debitura.Web.ReferralPartnerApi.Models.Clients.KycVerificationDto.VerificationStatus was last set. Null until set.
+          format: date-time
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Clients.UserDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        email:
+          type:
+          - string
+          - 'null'
+        firstName:
+          type:
+          - string
+          - 'null'
+        lastName:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Clients.ClientCreatedResponse:
+      type: object
+      properties:
+        externalTenantId:
+          type:
+          - string
+          - 'null'
+        onboardingDone:
+          type: boolean
+        onboardingLinks:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.OnboardingLinksDto'
+        client:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.CreditorDto'
+        users:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.UserDto'
+        isAttributedClient:
+          type: boolean
+        dateLinked:
+          type: string
+          format: date-time
+        caseStats:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.ClientCaseStats'
+        kycStatus:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.KycStatus'
+        kycVerification:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.KycVerificationDto'
+        caseResults:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.MultiCaseResult'
+      additionalProperties: false
+    Debitura.Domain.Services.CaseValidation.CaseValidationLeanDto:
+      type: object
+      properties:
+        needsInfo:
+          type: boolean
+          description: 'True when the latest validation run requires creditor action.
+
+            Reads Debitura.Domain.Model.Receiveables.Invoices.Invoice.ValidationNeedsInfo directly.'
+      additionalProperties: false
+      description: 'Lean validation summary exposed on list endpoints of the External Customer API
+
+        and Collection Partner API. Contains only Debitura.Domain.Services.CaseValidation.CaseValidationLeanDto.NeedsInfo — no join required.
+
+        Derived purely from free Debitura.Domain.Model.Receiveables.Invoices.Invoice columns.
+
+
+        When Debitura.Domain.Services.CaseValidation.CaseValidationLeanDto.NeedsInfo is `true`, callers should invoke
+
+        `GET /cases/{id}/validation` to retrieve the full item-level breakdown
+
+        (Debitura.Domain.Services.CaseValidation.CaseValidationStatusDto).'
     Debitura.Web.ReferralPartnerApi.Models.Clients.CreateClientRequest:
       required:
       - client
@@ -1443,64 +1508,6 @@ components:
             countryAlpha2: PT
             email: billing@acme‑corp.com
             phone: +351 123 456 789
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.AssignedUserDto:
-      type: object
-      properties:
-        email:
-          type:
-          - string
-          - 'null'
-          description: The assigned user's email address.
-        name:
-          type:
-          - string
-          - 'null'
-          description: The assigned user's full name.
-      additionalProperties: false
-      description: Represents the creditor team member assigned to a case.
-    Debitura.Web.ReferralPartnerApi.Models.Clients.ClientsSummary:
-      type: object
-      properties:
-        totalClients:
-          type: integer
-          format: int32
-        attributedClients:
-          type: integer
-          format: int32
-        onboardingComplete:
-          type: integer
-          format: int32
-        onboardingPending:
-          type: integer
-          format: int32
-        totalCases:
-          type: integer
-          format: int32
-      additionalProperties: false
-    Debitura.Web.ReferralPartnerApi.Models.Clients.GetClientsResponse:
-      type: object
-      properties:
-        page:
-          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
-        summary:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.ClientsSummary'
-        clients:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.ClientCreatedResponse'
-          description: List of linked clients
-      additionalProperties: false
-      description: Response model for listing clients linked to a referral partner
-    Debitura.Web.ReferralPartnerApi.Models.Clients.OnboardingLinksDto:
-      type: object
-      properties:
-        url:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
     Debitura.Web.ReferralPartnerApi.Models.Clients.MultiCaseResult:
       type: object
       properties:
@@ -1526,157 +1533,12 @@ components:
       description: 'Result of creating multiple cases during client creation.
 
         Groups successful and failed case creation attempts.'
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BankAccountDto:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Bank account identifier
-          format: int32
-        label:
-          type:
-          - string
-          - 'null'
-          description: User-friendly label (e.g., "Main EUR Account")
-        scheme:
-          type:
-          - string
-          - 'null'
-          description: 'Account scheme: IBAN, SWIFT, or LOCAL'
-        currencyCode:
-          type:
-          - string
-          - 'null'
-          description: Currency code (ISO 4217)
-        bankCountryCode:
-          type:
-          - string
-          - 'null'
-          description: Bank country code (ISO Alpha-2)
-        accountHolderName:
-          type:
-          - string
-          - 'null'
-          description: Account holder name (beneficiary)
-        iban:
-          type:
-          - string
-          - 'null'
-          description: IBAN (for IBAN scheme accounts)
-        bic:
-          type:
-          - string
-          - 'null'
-          description: BIC/SWIFT code (for IBAN and SWIFT scheme accounts)
-        accountNumber:
-          type:
-          - string
-          - 'null'
-          description: Account number (for SWIFT and LOCAL scheme accounts)
-        localIdentifier:
-          type:
-          - string
-          - 'null'
-          description: Local identifier (for LOCAL scheme accounts, e.g., sort code + account number)
-        localIdentifierType:
-          type:
-          - string
-          - 'null'
-          description: Type of local identifier (e.g., "Sort Code", "Routing Number")
-        bankName:
-          type:
-          - string
-          - 'null'
-          description: Bank name (optional)
-        bankAddress:
-          type:
-          - string
-          - 'null'
-          description: Bank address (optional)
-        bankCity:
-          type:
-          - string
-          - 'null'
-          description: Bank city (optional)
-        bankZipCode:
-          type:
-          - string
-          - 'null'
-          description: Bank zip/postal code (optional)
-        bankState:
-          type:
-          - string
-          - 'null'
-          description: Bank state/region (optional)
-      additionalProperties: false
-      description: 'Bank account information for partner API.
-
-        Full details provided as partners need this to:
-
-        1. Provide payment instructions to debtors (when debtor pays client directly)
-
-        2. Execute payouts to clients (when partner receives payment and pays out remainder)'
-    Debitura.Web.ReferralPartnerApi.Models.Clients.SubmitKycVerificationRequest:
-      required:
-      - directorDateOfBirth
-      - directorFullName
-      - directorHomeAddress
-      type: object
-      properties:
-        directorFullName:
-          maxLength: 500
-          minLength: 1
-          type: string
-        directorHomeAddress:
-          maxLength: 1000
-          minLength: 1
-          type: string
-        directorDateOfBirth:
-          type: string
-          format: date
-      additionalProperties: false
-    Debitura.Web.ReferralPartnerApi.Models.Clients.KycVerificationDto:
-      type: object
-      properties:
-        directorFullName:
-          type:
-          - string
-          - 'null'
-        directorHomeAddress:
-          type:
-          - string
-          - 'null'
-        directorDateOfBirth:
-          type: string
-          format: date
-        dateCreated:
-          type: string
-          format: date-time
-        verificationStatus:
-          $ref: '#/components/schemas/Debitura.Domain.Model.Creditors.CreditorKycVerifications.CreditorKycVerificationStatus'
-        verificationStatusUpdatedAt:
-          type:
-          - string
-          - 'null'
-          description: When Debitura.Web.ReferralPartnerApi.Models.Clients.KycVerificationDto.VerificationStatus was last set. Null until set.
-          format: date-time
-      additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.CreditorDivisionDto:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique identifier for the division
-          format: uuid
-        name:
-          type:
-          - string
-          - 'null'
-          description: Name of the division
-      additionalProperties: false
-      description: 'Creditor division information for external partner APIs.
-
-        Represents a specific division or department within a creditor organization.'
+    Debitura.Domain.Model.Creditors.CreditorKycVerifications.CreditorKycVerificationStatus:
+      enum:
+      - Processing
+      - Completed
+      type: string
+      description: "Partner/staff-settable review status for a Debitura.Domain.Model.Creditors.CreditorKycVerifications.CreditorKycVerification record.\nDistinct from the ReferralPartnerApi `KycStatus` enum, which describes\nwhether a client has submitted KYC data at all — this enum describes whether data that has\nalready been submitted has since been reviewed by the collection partner or Debitura staff.\n            \nThe unset/not-yet-reviewed state is represented by a null\nDebitura.Domain.Model.Creditors.CreditorKycVerifications.CreditorKycVerification.VerificationStatus column, not a third enum value here.\nA fresh KYC resubmission (a new row via `CreditorKycVerificationService.CreateAsync`)\nnaturally leaves this column unset, resetting review status by design.\n            \nWire format is locked to named string values (\"Processing\", \"Completed\") via Newtonsoft.Json\nStringEnumConverter — every host this enum is exposed on (CollectionPartnerApi, CoreApi,\nReferralPartnerApi) uses Newtonsoft (AddNewtonsoftJson in Program.cs), so a System.Text.Json\nJsonStringEnumConverter attribute alone would be silently ignored; both are declared so\nSTJ-based consumers (and our own tests) can also deserialize the string form."
     Debitura.Domain.Model.Base.PageData:
       type: object
       properties:
@@ -1703,112 +1565,51 @@ components:
           readOnly: true
       additionalProperties: false
       description: Paging metadata describing a paged result set.
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.DebtorDto:
-      required:
-      - name
-      - type
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceAllocationOutstandingDto:
       type: object
       properties:
-        type:
-          minLength: 1
-          type: string
-          description: 'Debtor type. Valid values: "Company" or "Person"'
-          example: Company
-        name:
-          minLength: 1
-          type: string
-          description: Debtor name (company name or person's full name)
-          example: Pacific Trading LLC
-        contactPerson:
-          type:
-          - string
-          - 'null'
-          description: Contact person at the company (required for companies, not used for persons)
-          example: John Smith
-        companyRegistrationNumber:
-          type:
-          - string
-          - 'null'
-          description: Company registration number (VAT number, CVR, org number, etc.)
-          example: 47-1234567
-        address:
-          type:
-          - string
-          - 'null'
-          description: Street address
-          example: 123 Market Street, Suite 400
-        zipCode:
-          type:
-          - string
-          - 'null'
-          description: Postal/ZIP code
-          example: '94105'
-        city:
-          type:
-          - string
-          - 'null'
-          description: City name
-          example: San Francisco
-        state:
-          type:
-          - string
-          - 'null'
-          description: State/region/province name
-          example: California
-        stateAlpha2:
-          type:
-          - string
-          - 'null'
-          description: 'US state: two-letter code (e.g., "CA"), ISO 3166-2 format (e.g., "US-CA"), or full name (e.g., "California")'
-          example: CA
-        countryAlpha2:
-          type:
-          - string
-          - 'null'
-          description: Country code (ISO 3166-1 alpha-2 format)
-          example: US
-        country:
-          type:
-          - string
-          - 'null'
-          description: Country name
-          example: United States
-        email:
-          type:
-          - string
-          - 'null'
-          description: Email address for debtor contact
-          example: accounts@pacifictrading.com
-        phone:
-          type:
-          - string
-          - 'null'
-          description: Phone number (include country code)
-          example: +1 415 555 0123
+        principal:
+          type: number
+          format: double
+        interest:
+          type: number
+          format: double
+        reminderFees:
+          type: number
+          format: double
+        collectionFees:
+          type: number
+          format: double
       additionalProperties: false
-      description: 'V1 Debtor DTO for external partner APIs.
+      description: 'Additive external-API read model. Per-bucket outstanding on the debt ledger, produced by
 
-        The debtor is the party that owes the debt.'
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+        the payment allocation engine (bucket total minus Σ active stored allocations — never re-derived
+
+        from a model). Mirrors the internal
+
+        `Debitura.Domain.Model.Receiveables.InvoiceEconomics.EconomicalAllocationOutstanding` shape.'
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:
-        type:
+        error:
           type:
           - string
           - 'null'
-          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
         message:
           type:
           - string
           - 'null'
-          description: A human-readable description of the error.
-        solutionUrl:
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
           type:
-          - string
+          - array
           - 'null'
-          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
-      description: Represents a business error in the API response.
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
     Debitura.Web.ExternalApi.Contracts.V1.Cases.Requests.CreateCollectionCaseRequestApiViewModel:
       required:
       - currencyCode
@@ -1940,6 +1741,205 @@ components:
           - 'null'
           description: "Optional: URL the creditor user should land on after completing any\npending signing chain (SDCA upgrade / PoA / JPA / KYC) on the\nDebitura Creditors app. Embedded, URL-encoded, into\n`BusinessErrorResponseApiDTO.SigningHandoff.CombinedSigningUrl`\n(on 422 with pending signings) and\n`InvoiceDto.SigningHandoff.CombinedSigningUrl` (on 200 when\n`AllowPendingContracts=true` with signings remaining).\n            \nMust be an absolute http(s) URL. Values that fail validation\n(relative URLs, non-http schemes, header-injection characters) are\nsilently dropped — the combined URL is still emitted but without\nthe returnUrl query parameter, and the Creditors app falls back to\nits own safe in-app default landing.\n            \nAdditive. Existing integrations\nthat omit this field see the same behaviour as before."
       additionalProperties: false
+    Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode:
+      enum:
+      - 0
+      - 1
+      type: integer
+      description: Controls which surveys are generated for cases assigned to this collection partner.
+      format: int32
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto:
+      type: object
+      properties:
+        combinedSigningUrl:
+          type:
+          - string
+          - 'null'
+          description: 'Single signing entry URL that walks the creditor through every
+
+            pending step (SDCA upgrade → PoA → JPA → KYC) on the Creditors app
+
+            and returns to the partner-supplied returnUrl when done.'
+      additionalProperties: false
+      description: "Partner-facing handoff metadata for a creditor's pending signing chain.\nReturned on POST /cases responses (422 with pending-signing errors,\nor 200 with AllowPendingContracts=true when signings remain).\n            \nDesigned as an envelope so future fields (expiration, suggested email\ncopy, etc.) can be added without polluting the parent DTO."
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ReferralPartnerApi.Models.Clients.ClientDeletableResponse:
+      type: object
+      properties:
+        isDeletable:
+          type: boolean
+          description: True if the client can be safely deleted.
+        blockers:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: List of reasons why the client cannot be deleted (empty if IsDeletable is true).
+      additionalProperties: false
+      description: Response indicating whether a client can be deleted.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BankAccountDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Bank account identifier
+          format: int32
+        label:
+          type:
+          - string
+          - 'null'
+          description: User-friendly label (e.g., "Main EUR Account")
+        scheme:
+          type:
+          - string
+          - 'null'
+          description: 'Account scheme: IBAN, SWIFT, or LOCAL'
+        currencyCode:
+          type:
+          - string
+          - 'null'
+          description: Currency code (ISO 4217)
+        bankCountryCode:
+          type:
+          - string
+          - 'null'
+          description: Bank country code (ISO Alpha-2)
+        accountHolderName:
+          type:
+          - string
+          - 'null'
+          description: Account holder name (beneficiary)
+        iban:
+          type:
+          - string
+          - 'null'
+          description: IBAN (for IBAN scheme accounts)
+        bic:
+          type:
+          - string
+          - 'null'
+          description: BIC/SWIFT code (for IBAN and SWIFT scheme accounts)
+        accountNumber:
+          type:
+          - string
+          - 'null'
+          description: Account number (for SWIFT and LOCAL scheme accounts)
+        localIdentifier:
+          type:
+          - string
+          - 'null'
+          description: Local identifier (for LOCAL scheme accounts, e.g., sort code + account number)
+        localIdentifierType:
+          type:
+          - string
+          - 'null'
+          description: Type of local identifier (e.g., "Sort Code", "Routing Number")
+        bankName:
+          type:
+          - string
+          - 'null'
+          description: Bank name (optional)
+        bankAddress:
+          type:
+          - string
+          - 'null'
+          description: Bank address (optional)
+        bankCity:
+          type:
+          - string
+          - 'null'
+          description: Bank city (optional)
+        bankZipCode:
+          type:
+          - string
+          - 'null'
+          description: Bank zip/postal code (optional)
+        bankState:
+          type:
+          - string
+          - 'null'
+          description: Bank state/region (optional)
+      additionalProperties: false
+      description: 'Bank account information for partner API.
+
+        Full details provided as partners need this to:
+
+        1. Provide payment instructions to debtors (when debtor pays client directly)
+
+        2. Execute payouts to clients (when partner receives payment and pays out remainder)'
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO:
+      type: object
+      properties:
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: List of business errors that must be resolved before the case can be created.
+        signingHandoff:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.SigningHandoffDto'
+      additionalProperties: false
+      description: Response returned when business rule violations prevent case creation.
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.CollectionPartnerDto:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+        officeEmail:
+          type:
+          - string
+          - 'null'
+        officePhone:
+          type:
+          - string
+          - 'null'
+        publicSite:
+          type:
+          - string
+          - 'null'
+        surveyCadenceMode:
+          $ref: '#/components/schemas/Debitura.Domain.Model.CollectionPartnerLogics.CollectionPartners.SurveyCadenceMode'
+      additionalProperties: false
+      description: V1 Collection Partner DTO for external partner APIs
+    Debitura.Web.ReferralPartnerApi.Models.Clients.GetClientsResponse:
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
+        summary:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.ClientsSummary'
+        clients:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Clients.ClientCreatedResponse'
+          description: List of linked clients
+      additionalProperties: false
+      description: Response model for listing clients linked to a referral partner
   securitySchemes:
     ApiKey:
       type: apiKey

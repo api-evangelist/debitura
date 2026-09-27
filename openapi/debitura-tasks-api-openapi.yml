@@ -99,38 +99,6 @@ paths:
       x-operation-id-source: derived
 components:
   schemas:
-    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskListDto:
-      required:
-      - page
-      type: object
-      properties:
-        page:
-          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
-        tasks:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto'
-      additionalProperties: false
-      description: Paged list of tasks, returned by `GET /tasks`.
-    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskActionDto:
-      type: object
-      properties:
-        method:
-          type:
-          - string
-          - 'null'
-          description: HTTP method to use, e.g. `"POST"`.
-        path:
-          type:
-          - string
-          - 'null'
-          description: 'Path template for the resolving call, e.g. `"/cases/{caseId}/chats"`.
-
-            Relative to the API''s base URL.'
-      additionalProperties: false
-      description: "A machine-readable hint pointing at the existing API call that resolves a task, e.g.\n`{ \"method\": \"POST\", \"path\": \"/cases/{caseId}/chats\" }` for a chat-driven task.\n            \nPath uses the same `{param}` placeholder style as this API's own\ndocumented routes — substitute in the real IDs before calling."
     Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto:
       type: object
       properties:
@@ -211,26 +179,21 @@ components:
           $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskActionDto'
       additionalProperties: false
       description: "A creditor-facing action item (\"task\") — something the platform needs the client to do\nbefore a case can proceed (e.g. reply to a chat, sign a contract, assign a bank account).\n            \nEvery task carries a Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.SolutionUrl — an absolute link identical to the one used\ninside the Creditor app — so a human can resolve any task in one click, even task types that\nare not yet directly API-actionable. Tasks that ARE directly API-actionable additionally carry\na non-null Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto.Action pointing at the exact API call that resolves them."
-    Debitura.Domain.Model.Base.PageData:
+    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskListDto:
+      required:
+      - page
       type: object
       properties:
-        totalResults:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-        currentPage:
-          type: integer
-          format: int32
-        responseCount:
-          type: integer
-          format: int32
-        totalPages:
-          type: integer
-          format: int32
-          readOnly: true
+        page:
+          $ref: '#/components/schemas/Debitura.Domain.Model.Base.PageData'
+        tasks:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskDto'
       additionalProperties: false
+      description: Paged list of tasks, returned by `GET /tasks`.
     Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
@@ -251,6 +214,23 @@ components:
           description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
       description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Tasks.TaskActionDto:
+      type: object
+      properties:
+        method:
+          type:
+          - string
+          - 'null'
+          description: HTTP method to use, e.g. `"POST"`.
+        path:
+          type:
+          - string
+          - 'null'
+          description: 'Path template for the resolving call, e.g. `"/cases/{caseId}/chats"`.
+
+            Relative to the API''s base URL.'
+      additionalProperties: false
+      description: "A machine-readable hint pointing at the existing API call that resolves a task, e.g.\n`{ \"method\": \"POST\", \"path\": \"/cases/{caseId}/chats\" }` for a chat-driven task.\n            \nPath uses the same `{param}` placeholder style as this API's own\ndocumented routes — substitute in the real IDs before calling."
     Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:
@@ -273,6 +253,26 @@ components:
           description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
       description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Domain.Model.Base.PageData:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        currentPage:
+          type: integer
+          format: int32
+        responseCount:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int32
+          readOnly: true
+      additionalProperties: false
   securitySchemes:
     ApiKey:
       type: apiKey

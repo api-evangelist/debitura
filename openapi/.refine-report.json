@@ -28,7 +28,7 @@
     "debitura-reporting-api-openapi.yml"
   ],
   "archived": [
-    "deleted 3 superseded output(s) from the previous generation"
+    "deleted 2 superseded output(s) from the previous generation"
   ],
   "errors": [],
   "warnings": [],
@@ -45,8 +45,8 @@
     "tag 'WebhookEvents' spans 2 source specs (debitura-collection-partner-api.json, debitura-customer-api.json): per-path servers applied",
     "tag 'Webhooks' spans 3 source specs (debitura-collection-partner-api.json, debitura-customer-api.json, debitura-referral-partner-api.json): per-path servers applied",
     "tag 'Coverage' spans 2 source specs (debitura-customer-api.json, debitura-referral-partner-api.json): per-path servers applied",
-    "superseded outputs removed: debitura-o-auth-api-openapi.yml, debitura-test-cases-api-openapi.yml, debitura-webhook-events-api-openapi.yml",
-    "apis.yml register: written (+3 apis, 20 total)"
+    "superseded outputs removed: debitura-test-cases-api-openapi.yml, debitura-webhook-events-api-openapi.yml",
+    "apis.yml register: written (+2 apis, 20 total)"
   ],
   "skipped": [
     "debitura-cases-api-openapi.yml: previously refined output, superseded by openapi/_original/",
@@ -58,7 +58,7 @@
     "debitura-ingestionjobs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "debitura-managedcases-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "debitura-me-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "debitura-o-auth-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "debitura-oauth-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "debitura-payments-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "debitura-previewcases-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "debitura-referralpartners-api-openapi.yml: previously refined output, superseded by openapi/_original/",

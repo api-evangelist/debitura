@@ -1020,33 +1020,6 @@ paths:
       description: Production
 components:
   schemas:
-    Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest:
-      type: object
-      properties:
-        url:
-          maxLength: 1024
-          minLength: 0
-          type:
-          - string
-          - 'null'
-          format: uri
-        events:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-        isActive:
-          type:
-          - boolean
-          - 'null'
-        regenerateSecret:
-          type: boolean
-        isTestMode:
-          type:
-          - boolean
-          - 'null'
-      additionalProperties: false
     Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest:
       required:
       - events
@@ -1066,6 +1039,26 @@ components:
         isTestMode:
           type: boolean
       additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
     Debitura.Domain.Model.Webhooks.Dtos.WebhookDto:
       type: object
       properties:
@@ -1101,26 +1094,33 @@ components:
         isTestMode:
           type: boolean
       additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+    Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest:
       type: object
       properties:
-        type:
+        url:
+          maxLength: 1024
+          minLength: 0
           type:
           - string
           - 'null'
-          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
-        message:
+          format: uri
+        events:
           type:
-          - string
+          - array
           - 'null'
-          description: A human-readable description of the error.
-        solutionUrl:
+          items:
+            type: string
+        isActive:
           type:
-          - string
+          - boolean
           - 'null'
-          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+        regenerateSecret:
+          type: boolean
+        isTestMode:
+          type:
+          - boolean
+          - 'null'
       additionalProperties: false
-      description: Represents a business error in the API response.
     Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:
@@ -1143,17 +1143,15 @@ components:
           description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
       description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
-    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto:
-      required:
-      - sinceUtc
+    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayResultDto:
       type: object
       properties:
-        sinceUtc:
-          type: string
-          description: Replay all case.created events since this timestamp (UTC).
-          format: date-time
+        eventsReplayed:
+          type: integer
+          description: Number of events that were re-enqueued for delivery.
+          format: int32
       additionalProperties: false
-      description: Request to replay events from a specific timestamp.
+      description: Result of a webhook event replay operation.
     Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.TestResultDto:
       type: object
       properties:
@@ -1186,77 +1184,17 @@ components:
           description: The test event payload that was sent.
       additionalProperties: false
       description: Result of a webhook test delivery.
-    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayResultDto:
+    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto:
+      required:
+      - sinceUtc
       type: object
       properties:
-        eventsReplayed:
-          type: integer
-          description: Number of events that were re-enqueued for delivery.
-          format: int32
+        sinceUtc:
+          type: string
+          description: Replay all case.created events since this timestamp (UTC).
+          format: date-time
       additionalProperties: false
-      description: Result of a webhook event replay operation.
-    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookResponse:
-      type: object
-      properties:
-        eventType:
-          type:
-          - string
-          - 'null'
-        enqueuedCount:
-          type: integer
-          format: int32
-        message:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
-    Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest_2:
-      type: object
-      properties:
-        url:
-          maxLength: 1024
-          minLength: 0
-          type:
-          - string
-          - 'null'
-          description: 'The new HTTPS URL where webhook events will be delivered.
-
-            Optional — only provide if changing the URL.'
-          format: uri
-        events:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          description: 'Updated list of event types to subscribe to.
-
-            Optional — only provide if changing the events.
-
-            Note: Not supported by the ExternalCustomerAPI — that endpoint returns 400 if this field is set.'
-        isActive:
-          type:
-          - boolean
-          - 'null'
-          description: 'Set to true to enable the webhook, false to disable it.
-
-            Optional — only provide if changing the active status.'
-        regenerateSecret:
-          type: boolean
-          description: 'Set to true to regenerate the webhook secret.
-
-            A new secret will be returned in the response.'
-        isTestMode:
-          type:
-          - boolean
-          - 'null'
-          description: 'When set, updates the classification of the subscription.
-
-            True maps to `DataClassification.Test`; false maps to `DataClassification.Production`.
-
-            Omit to leave the current classification unchanged.'
-      additionalProperties: false
-      description: Request to update an existing webhook subscription.
+      description: Request to replay events from a specific timestamp.
     Debitura.Domain.Model.Webhooks.Dtos.CreateWebhookRequest_2:
       required:
       - events
@@ -1286,47 +1224,6 @@ components:
             Defaults to false (Production classification).'
       additionalProperties: false
       description: Request to create a new webhook subscription.
-    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookRequest:
-      required:
-      - eventType
-      type: object
-      properties:
-        eventType:
-          minLength: 1
-          type: string
-          description: The webhook event type to trigger (e.g. "case.updated", "client.linked")
-        caseId:
-          type:
-          - string
-          - 'null'
-          description: Required for case.created, case.updated, and case.closed events
-          format: uuid
-        externalTenantId:
-          type:
-          - string
-          - 'null'
-          description: Required for client.* events (client.linked, client.link_declined, client.onboarding.*)
-        oldLifecycle:
-          type:
-          - string
-          - 'null'
-          description: 'Optional override for case.updated: the "from" lifecycle (defaults to current case lifecycle)'
-        newLifecycle:
-          type:
-          - string
-          - 'null'
-          description: 'Optional override for case.updated: the "to" lifecycle (defaults to "Closed")'
-        closeCode:
-          type:
-          - string
-          - 'null'
-          description: 'Optional override for case.closed: the close code (defaults to "Paid")'
-        closeComment:
-          type:
-          - string
-          - 'null'
-          description: 'Optional override for case.closed: a close comment'
-      additionalProperties: false
     Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2:
       type: object
       properties:
@@ -1378,6 +1275,109 @@ components:
             Computed as `Classification != DataClassification.Production`.'
       additionalProperties: false
       description: Represents a webhook subscription configuration.
+    Debitura.Domain.Model.Webhooks.Dtos.UpdateWebhookRequest_2:
+      type: object
+      properties:
+        url:
+          maxLength: 1024
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          description: 'The new HTTPS URL where webhook events will be delivered.
+
+            Optional — only provide if changing the URL.'
+          format: uri
+        events:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: 'Updated list of event types to subscribe to.
+
+            Optional — only provide if changing the events.
+
+            Note: Not supported by the ExternalCustomerAPI — that endpoint returns 400 if this field is set.'
+        isActive:
+          type:
+          - boolean
+          - 'null'
+          description: 'Set to true to enable the webhook, false to disable it.
+
+            Optional — only provide if changing the active status.'
+        regenerateSecret:
+          type: boolean
+          description: 'Set to true to regenerate the webhook secret.
+
+            A new secret will be returned in the response.'
+        isTestMode:
+          type:
+          - boolean
+          - 'null'
+          description: 'When set, updates the classification of the subscription.
+
+            True maps to `DataClassification.Test`; false maps to `DataClassification.Production`.
+
+            Omit to leave the current classification unchanged.'
+      additionalProperties: false
+      description: Request to update an existing webhook subscription.
+    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookRequest:
+      required:
+      - eventType
+      type: object
+      properties:
+        eventType:
+          minLength: 1
+          type: string
+          description: The webhook event type to trigger (e.g. "case.updated", "client.linked")
+        caseId:
+          type:
+          - string
+          - 'null'
+          description: Required for case.created, case.updated, and case.closed events
+          format: uuid
+        externalTenantId:
+          type:
+          - string
+          - 'null'
+          description: Required for client.* events (client.linked, client.link_declined, client.onboarding.*)
+        oldLifecycle:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.updated: the "from" lifecycle (defaults to current case lifecycle)'
+        newLifecycle:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.updated: the "to" lifecycle (defaults to "Closed")'
+        closeCode:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.closed: the close code (defaults to "Paid")'
+        closeComment:
+          type:
+          - string
+          - 'null'
+          description: 'Optional override for case.closed: a close comment'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookResponse:
+      type: object
+      properties:
+        eventType:
+          type:
+          - string
+          - 'null'
+        enqueuedCount:
+          type: integer
+          format: int32
+        message:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
   securitySchemes:
     ApiKey:
       type: apiKey

@@ -170,37 +170,34 @@ components:
       description: 'Simplified debtor information for case preview.
 
         Only includes the minimum fields required for partner routing and eligibility checking.'
-    Debitura.Web.ReferralPartnerApi.Models.Cases.PendingActionDto:
+    Debitura.Web.ReferralPartnerApi.Models.Cases.PendingActionType:
+      enum:
+      - SdcaUpgrade
+      - PoA
+      - Jpa
+      - Kyc
+      type: string
+      description: "Type of action that may need to be completed by the creditor before\n(or as part of) submitting cases via the referral partner API.\nNew values may be added in future API versions — clients should treat\nunknown values as informational and not crash.\n            \nWire format is LOCKED to NAMED STRING values (e.g. `\"PoA\"`,\n`\"Kyc\"`) via Newtonsoft.Json.Converters.StringEnumConverter. The host serializer\nfor this API is Newtonsoft.Json (`AddNewtonsoftJson` in\n`Program.cs`), so a `System.Text.Json``JsonStringEnumConverter` attribute would be silently ignored —\nhence the explicit Newtonsoft converter here.\n            \nNumeric values below mirror `Domain.CombinedSigningStep`\n(SdcaUpgrade=1, PoA=2, Jpa=3, Kyc=4, Done=5) by convention, but they\nare an internal implementation detail. Clients MUST consume the string\nnames; the numbers are not part of the public contract.\n            \nRenumbering or removing already-released values is forbidden — see\n`Debitura.Wiki/engineering/development-philosophy/backend-standards.md`\n(line 102: \"Never renumber or remove released enum values\").\n            \nThe System.Text.Json.Serialization.JsonStringEnumConverter attribute is\ndeclared in addition so that consumers (and our own integration tests)\nwho parse responses using `System.Text.Json` can deserialize the\nstring form back into this enum. The Newtonsoft converter is what\nactually controls outbound wire format on this host."
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
         type:
-          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.PendingActionType'
-        collectionPartnerId:
           type:
           - string
           - 'null'
-          description: 'The collection partner this action is scoped to, when applicable.
-
-            Set for partner-specific actions (PoA, KYC). Null for actions that
-
-            are not partner-scoped (e.g. SDCA upgrade, which is platform-wide).'
-          format: uuid
-        dueDate:
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
           type:
           - string
           - 'null'
-          description: 'Optional deadline by which the action must be completed (UTC).
-
-            Reserved for orchestrator-generated payloads (the orchestrator
-
-            endpoint), where SDCA-upgrade entries can include their refresh
-
-            deadline. Always null on the `/cases/preview` endpoint, since
-
-            preview is creditor-less and SDCA-upgrade is not surfaced there.'
-          format: date-time
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
-      description: "A single pending action that may need to be completed before cases\ncan be successfully submitted. Returned as part of the structured\nPendingActions array on the /cases/preview response.\n            \nAdditive: this complements (does not replace) the existing\nRequiresKycVerification boolean — old API consumers can continue to\nrely on RequiresKycVerification as before."
+      description: Represents a business error in the API response.
     Debitura.Web.ExternalApi.Contracts.V1.Cases.PricingPreviewDto:
       type: object
       properties:
@@ -360,6 +357,59 @@ components:
           type: Company
           countryAlpha2: PT
         dueDate: '2026-04-22'
+    Debitura.Web.ReferralPartnerApi.Models.Cases.PendingActionDto:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Cases.PendingActionType'
+        collectionPartnerId:
+          type:
+          - string
+          - 'null'
+          description: 'The collection partner this action is scoped to, when applicable.
+
+            Set for partner-specific actions (PoA, KYC). Null for actions that
+
+            are not partner-scoped (e.g. SDCA upgrade, which is platform-wide).'
+          format: uuid
+        dueDate:
+          type:
+          - string
+          - 'null'
+          description: 'Optional deadline by which the action must be completed (UTC).
+
+            Reserved for orchestrator-generated payloads (the orchestrator
+
+            endpoint), where SDCA-upgrade entries can include their refresh
+
+            deadline. Always null on the `/cases/preview` endpoint, since
+
+            preview is creditor-less and SDCA-upgrade is not surfaced there.'
+          format: date-time
+      additionalProperties: false
+      description: "A single pending action that may need to be completed before cases\ncan be successfully submitted. Returned as part of the structured\nPendingActions array on the /cases/preview response.\n            \nAdditive: this complements (does not replace) the existing\nRequiresKycVerification boolean — old API consumers can continue to\nrely on RequiresKycVerification as before."
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
     Debitura.Web.ExternalApi.Contracts.V1.Cases.JurisdictionDto:
       type: object
       properties:
@@ -384,56 +434,6 @@ components:
           description: ISO 3166-2 state/region code (only for countries with state-level routing like the US).
       additionalProperties: false
       description: Geographic jurisdiction information for the case.
-    Debitura.Web.ReferralPartnerApi.Models.Cases.PendingActionType:
-      enum:
-      - SdcaUpgrade
-      - PoA
-      - Jpa
-      - Kyc
-      type: string
-      description: "Type of action that may need to be completed by the creditor before\n(or as part of) submitting cases via the referral partner API.\nNew values may be added in future API versions — clients should treat\nunknown values as informational and not crash.\n            \nWire format is LOCKED to NAMED STRING values (e.g. `\"PoA\"`,\n`\"Kyc\"`) via Newtonsoft.Json.Converters.StringEnumConverter. The host serializer\nfor this API is Newtonsoft.Json (`AddNewtonsoftJson` in\n`Program.cs`), so a `System.Text.Json``JsonStringEnumConverter` attribute would be silently ignored —\nhence the explicit Newtonsoft converter here.\n            \nNumeric values below mirror `Domain.CombinedSigningStep`\n(SdcaUpgrade=1, PoA=2, Jpa=3, Kyc=4, Done=5) by convention, but they\nare an internal implementation detail. Clients MUST consume the string\nnames; the numbers are not part of the public contract.\n            \nRenumbering or removing already-released values is forbidden — see\n`Debitura.Wiki/engineering/development-philosophy/backend-standards.md`\n(line 102: \"Never renumber or remove released enum values\").\n            \nThe System.Text.Json.Serialization.JsonStringEnumConverter attribute is\ndeclared in addition so that consumers (and our own integration tests)\nwho parse responses using `System.Text.Json` can deserialize the\nstring form back into this enum. The Newtonsoft converter is what\nactually controls outbound wire format on this host."
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
-      type: object
-      properties:
-        type:
-          type:
-          - string
-          - 'null'
-          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
-        message:
-          type:
-          - string
-          - 'null'
-          description: A human-readable description of the error.
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
-      additionalProperties: false
-      description: Represents a business error in the API response.
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
-      type: object
-      properties:
-        error:
-          type:
-          - string
-          - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
-      additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
   securitySchemes:
     ApiKey:
       type: apiKey
