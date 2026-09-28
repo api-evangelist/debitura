@@ -16,36 +16,65 @@ deployment:
 tools_count: 16
 tools:
 - name: ping
-  description: ''
+  description: Verify the connection to Debitura and show which creditor account the API key belongs to.
+    Call this first to confirm the integration is set up correctly.
 - name: list_cases
-  description: ''
+  description: 'List the creditor''s debt collection cases with pagination, status filtering, and sorting.
+    Returns compact case summaries: reference, debtor name + country, amounts, lifecycle, partner, key
+    dates. Use get_case for full detail on a specific c'
 - name: get_case
-  description: ''
+  description: Fetch one collection case in full detail. Look it up by Debitura case ID (GUID), by your
+    own creditor reference (e.g. invoice number), or by the Debitura case reference shown in the portal.
+    Provide exactly one of the three identifiers.
 - name: get_case_activity
-  description: ''
+  description: 'Fetch the chronological timeline of a case — what has happened so far: status changes,
+    partner actions, communications, and payments. Returns an envelope `{ items, currentEngagementPhase
+    }`: `items` is the chronological event list, and `cur'
 - name: get_case_messages
-  description: ''
+  description: 'Read the chat conversation on a case between you and the collection partner handling it.
+    Each message includes: senderName, role (Creditor / Partner / Managed by partner), sentAt (UTC), message.
+    See the debitura://glossary/chat-roles resour'
 - name: get_case_payments
-  description: ''
+  description: List every payment recorded on a case — money recovered so far.
 - name: get_case_contract_status
-  description: ''
+  description: Check which contracts (e.g. debt collection agreement, power of attorney) are signed or
+    still blocking a case, including signing URLs for any outstanding documents.
 - name: preview_case
-  description: ''
+  description: 'Dry-run a collection case BEFORE creating it: returns eligibility, the assigned collection
+    partner, pricing (success fee), and any contracts that would need signing. Nothing is persisted. ALWAYS
+    call this before create_case and show the use'
 - name: list_team_members
-  description: ''
+  description: List the team members on the creditor's Debitura account. Use this to resolve a valid sender
+    (userId or email) before calling send_case_message, or a case owner for create_case.
 - name: list_case_files
-  description: ''
+  description: 'List all documents attached to a case: file name, document type, description, upload date,
+    and a time-limited SAS download URL. Each file also carries downloadUrlExpiresAt (UTC) — when the
+    download URL stops working, so a cached URL can be'
 - name: get_account_summary
-  description: ''
+  description: 'Return a count of cases per lifecycle stage for the creditor''s account. Useful for a
+    quick portfolio overview without listing all cases. Stages: PendingContractSigning, PendingVerificationInternal,
+    PendingVerification, NeedsAdditionalDetail'
 - name: list_tasks
-  description: ''
+  description: 'List every open task (action-item) across your whole account — things the platform needs
+    you to do before a case (or your account) can proceed: reply to a chat, sign a contract, assign a
+    bank account, and so on. Use get_case_tasks instead t'
 - name: get_case_tasks
-  description: ''
+  description: 'List the open tasks (action-items) attached to one specific case — same data as list_tasks,
+    scoped to a single case. Use this when you''re already working a specific case and want just its outstanding
+    tasks.  Note: account-level tasks that a'
 - name: create_case
-  description: ''
+  description: 'Submit a debt collection case to Debitura. This is a LEGAL AND FINANCIAL ACTION: a collection
+    partner starts recovery against the debtor, and contractual fees apply on success.  Required workflow
+    — never skip it: 1. Call preview_case first'
 - name: upload_case_file
-  description: ''
+  description: 'Attach a document to a case (invoice copy, contract, correspondence, proof of delivery).
+    Max 25 MB. Allowed extensions: .pdf, .xls, .xlsx, .csv, .txt, .jpg, .jpeg, .png, .gif. Provide the
+    file content base64-encoded.'
 - name: send_case_message
-  description: ''
+  description: 'Send a chat message on a case to the collection partner handling it. The partner is notified
+    by email. The message is attributed to a named team member, so a sender is REQUIRED: pass the sender''s
+    userId or email from list_team_members. Ask'
 tools_source: live tools/list via initialize handshake, 2026-09-11 (signals/audit_mcp_authorship.py --probe)
 authorship: provider
+descriptions_source: live tools/list (authorship probe or saved capture); filled by backfill-tools-from-authorship.py
+  --descriptions, 2026-09-28
