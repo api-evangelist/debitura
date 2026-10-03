@@ -417,113 +417,6 @@ paths:
       x-operation-id-source: derived
 components:
   schemas:
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
-      type: object
-      properties:
-        type:
-          type:
-          - string
-          - 'null'
-          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
-        message:
-          type:
-          - string
-          - 'null'
-          description: A human-readable description of the error.
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
-      additionalProperties: false
-      description: Represents a business error in the API response.
-    Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionCountryDto:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int32
-        name:
-          type:
-          - string
-          - 'null'
-        alpha2:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Divisions.UpdateDivisionRequestDto:
-      required:
-      - city
-      - companyName
-      - countryCode
-      type: object
-      properties:
-        companyName:
-          maxLength: 200
-          minLength: 0
-          type: string
-        registrationNumber:
-          maxLength: 50
-          minLength: 0
-          type:
-          - string
-          - 'null'
-        address:
-          type:
-          - string
-          - 'null'
-        zipCode:
-          maxLength: 50
-          minLength: 0
-          type:
-          - string
-          - 'null'
-        state:
-          type:
-          - string
-          - 'null'
-        city:
-          minLength: 1
-          type: string
-        countryCode:
-          maxLength: 2
-          minLength: 2
-          type: string
-        officeEmail:
-          maxLength: 250
-          minLength: 0
-          type:
-          - string
-          - 'null'
-          format: email
-        officePhone:
-          maxLength: 50
-          minLength: 0
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
-    Debitura.Domain.Model.Base.PageData:
-      type: object
-      properties:
-        totalResults:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-        currentPage:
-          type: integer
-          format: int32
-        responseCount:
-          type: integer
-          format: int32
-        totalPages:
-          type: integer
-          format: int32
-          readOnly: true
-      additionalProperties: false
     Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:
@@ -546,57 +439,6 @@ components:
           description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
       description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
-    Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        companyName:
-          type:
-          - string
-          - 'null'
-        registrationNumber:
-          type:
-          - string
-          - 'null'
-        address:
-          type:
-          - string
-          - 'null'
-        zipCode:
-          type:
-          - string
-          - 'null'
-        state:
-          type:
-          - string
-          - 'null'
-        city:
-          type:
-          - string
-          - 'null'
-        country:
-          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionCountryDto'
-        officeEmail:
-          type:
-          - string
-          - 'null'
-        officePhone:
-          type:
-          - string
-          - 'null'
-        isArchived:
-          type: boolean
-        createdUtc:
-          type: string
-          format: date-time
-        updatedUtc:
-          type:
-          - string
-          - 'null'
-          format: date-time
-      additionalProperties: false
     Debitura.Web.ExternalApi.Contracts.V1.Divisions.CreateDivisionRequestDto:
       required:
       - city
@@ -649,6 +491,92 @@ components:
           - string
           - 'null'
       additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionCountryDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type:
+          - string
+          - 'null'
+        alpha2:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyName:
+          type:
+          - string
+          - 'null'
+        registrationNumber:
+          type:
+          - string
+          - 'null'
+        address:
+          type:
+          - string
+          - 'null'
+        zipCode:
+          type:
+          - string
+          - 'null'
+        state:
+          type:
+          - string
+          - 'null'
+        city:
+          type:
+          - string
+          - 'null'
+        country:
+          $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionCountryDto'
+        officeEmail:
+          type:
+          - string
+          - 'null'
+        officePhone:
+          type:
+          - string
+          - 'null'
+        isArchived:
+          type: boolean
+        createdUtc:
+          type: string
+          format: date-time
+        updatedUtc:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      additionalProperties: false
     Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionListDto:
       required:
       - page
@@ -662,6 +590,78 @@ components:
           - 'null'
           items:
             $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Divisions.DivisionDto'
+      additionalProperties: false
+    Debitura.Domain.Model.Base.PageData:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        currentPage:
+          type: integer
+          format: int32
+        responseCount:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int32
+          readOnly: true
+      additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Divisions.UpdateDivisionRequestDto:
+      required:
+      - city
+      - companyName
+      - countryCode
+      type: object
+      properties:
+        companyName:
+          maxLength: 200
+          minLength: 0
+          type: string
+        registrationNumber:
+          maxLength: 50
+          minLength: 0
+          type:
+          - string
+          - 'null'
+        address:
+          type:
+          - string
+          - 'null'
+        zipCode:
+          maxLength: 50
+          minLength: 0
+          type:
+          - string
+          - 'null'
+        state:
+          type:
+          - string
+          - 'null'
+        city:
+          minLength: 1
+          type: string
+        countryCode:
+          maxLength: 2
+          minLength: 2
+          type: string
+        officeEmail:
+          maxLength: 250
+          minLength: 0
+          type:
+          - string
+          - 'null'
+          format: email
+        officePhone:
+          maxLength: 50
+          minLength: 0
+          type:
+          - string
+          - 'null'
       additionalProperties: false
   securitySchemes:
     ApiKey:

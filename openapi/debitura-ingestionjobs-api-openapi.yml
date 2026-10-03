@@ -119,6 +119,16 @@ paths:
       x-operation-id-source: derived
 components:
   schemas:
+    Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        rowsQueued:
+          type: integer
+          format: int32
+      additionalProperties: false
     Debitura.Domain.Model.AsyncJobs.AsyncJobStatus:
       enum:
       - 0
@@ -128,31 +138,6 @@ components:
       - 4
       type: integer
       format: int32
-    Debitura.Domain.Model.PartnerIngest.PartnerIngestEventType:
-      enum:
-      - 0
-      type: integer
-      format: int32
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
-      type: object
-      properties:
-        type:
-          type:
-          - string
-          - 'null'
-          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
-        message:
-          type:
-          - string
-          - 'null'
-          description: A human-readable description of the error.
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
-      additionalProperties: false
-      description: Represents a business error in the API response.
     Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobRequest:
       type: object
       properties:
@@ -164,16 +149,28 @@ components:
             $ref: '#/components/schemas/Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobRow'
           description: 'The list of events to enqueue (max recommended: 1000 rows per call).'
       additionalProperties: false
-    Debitura.Web.CollectionPartnerApi.Controllers.CreateIngestionJobResponse:
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:
-        jobId:
-          type: string
-          format: uuid
-        rowsQueued:
-          type: integer
-          format: int32
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
     Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobRow:
       type: object
       properties:
@@ -200,6 +197,26 @@ components:
           - 'null'
           description: Your system's reference for this event (optional, for idempotency tracking).
       additionalProperties: false
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
+      type: object
+      properties:
+        type:
+          type:
+          - string
+          - 'null'
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
+          type:
+          - string
+          - 'null'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
+      additionalProperties: false
+      description: Represents a business error in the API response.
     Debitura.Web.CollectionPartnerApi.Controllers.IngestionJobStatusResponse:
       type: object
       properties:
@@ -215,28 +232,11 @@ components:
           type: integer
           format: int32
       additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
-      type: object
-      properties:
-        error:
-          type:
-          - string
-          - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
-      additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Domain.Model.PartnerIngest.PartnerIngestEventType:
+      enum:
+      - 0
+      type: integer
+      format: int32
   securitySchemes:
     ApiKey:
       type: apiKey

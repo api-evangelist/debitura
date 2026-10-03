@@ -172,64 +172,6 @@ paths:
       description: Production
 components:
   schemas:
-    Debitura.Web.CollectionPartnerApi.Models.Webhooks.WebhookEventDto:
-      type: object
-      properties:
-        id:
-          type: string
-          description: 'Unique identifier for this event record.
-
-            Use this ID to replay the event via `POST /webhooks/events/{id}/replay`.'
-          format: uuid
-        subscriptionId:
-          type: string
-          description: The webhook subscription this event was dispatched to.
-          format: uuid
-        caseId:
-          type:
-          - string
-          - 'null'
-          description: The collection case this event relates to.
-          format: uuid
-        eventType:
-          type:
-          - string
-          - 'null'
-          description: The event type (e.g. "case.assigned", "case.updated", "case.closed", "payment.created", "chat.created").
-        payload:
-          type:
-          - string
-          - 'null'
-          description: The full JSON payload that was (or will be) delivered.
-        createdAt:
-          type: string
-          description: When this event was first recorded (UTC).
-          format: date-time
-        deliveredAt:
-          type:
-          - string
-          - 'null'
-          description: 'When the event was successfully delivered (UTC).
-
-            Null if delivery has not yet succeeded.'
-          format: date-time
-        attemptCount:
-          type: integer
-          description: Number of delivery attempts made so far.
-          format: int32
-        lastResponseCode:
-          type:
-          - integer
-          - 'null'
-          description: HTTP status code returned by the subscriber endpoint on the last attempt.
-          format: int32
-        lastError:
-          type:
-          - string
-          - 'null'
-          description: Error message from the last failed delivery attempt. Null on successful delivery.
-      additionalProperties: false
-      description: Represents a recorded webhook delivery event.
     Debitura.Web.CollectionPartnerApi.Models.Webhooks.ReplayEventResultDto:
       type: object
       properties:
@@ -290,6 +232,64 @@ components:
           description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
       description: Represents a business error in the API response.
+    Debitura.Web.CollectionPartnerApi.Models.Webhooks.WebhookEventDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 'Unique identifier for this event record.
+
+            Use this ID to replay the event via `POST /webhooks/events/{id}/replay`.'
+          format: uuid
+        subscriptionId:
+          type: string
+          description: The webhook subscription this event was dispatched to.
+          format: uuid
+        caseId:
+          type:
+          - string
+          - 'null'
+          description: The collection case this event relates to.
+          format: uuid
+        eventType:
+          type:
+          - string
+          - 'null'
+          description: The event type (e.g. "case.assigned", "case.updated", "case.closed", "payment.created", "chat.created").
+        payload:
+          type:
+          - string
+          - 'null'
+          description: The full JSON payload that was (or will be) delivered.
+        createdAt:
+          type: string
+          description: When this event was first recorded (UTC).
+          format: date-time
+        deliveredAt:
+          type:
+          - string
+          - 'null'
+          description: 'When the event was successfully delivered (UTC).
+
+            Null if delivery has not yet succeeded.'
+          format: date-time
+        attemptCount:
+          type: integer
+          description: Number of delivery attempts made so far.
+          format: int32
+        lastResponseCode:
+          type:
+          - integer
+          - 'null'
+          description: HTTP status code returned by the subscriber endpoint on the last attempt.
+          format: int32
+        lastError:
+          type:
+          - string
+          - 'null'
+          description: Error message from the last failed delivery attempt. Null on successful delivery.
+      additionalProperties: false
+      description: Represents a recorded webhook delivery event.
     Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayEventResultDto:
       type: object
       properties:
