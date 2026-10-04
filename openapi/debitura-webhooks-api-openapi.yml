@@ -1020,6 +1020,28 @@ paths:
       description: Production
 components:
   schemas:
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
     Debitura.Domain.Model.Webhooks.Dtos.WebhookDto:
       type: object
       properties:
@@ -1082,28 +1104,6 @@ components:
           - boolean
           - 'null'
       additionalProperties: false
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
-      type: object
-      properties:
-        error:
-          type:
-          - string
-          - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
-      additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
     Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
@@ -1143,17 +1143,6 @@ components:
         isTestMode:
           type: boolean
       additionalProperties: false
-    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto:
-      required:
-      - sinceUtc
-      type: object
-      properties:
-        sinceUtc:
-          type: string
-          description: Replay all case.created events since this timestamp (UTC).
-          format: date-time
-      additionalProperties: false
-      description: Request to replay events from a specific timestamp.
     Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.TestResultDto:
       type: object
       properties:
@@ -1186,6 +1175,17 @@ components:
           description: The test event payload that was sent.
       additionalProperties: false
       description: Result of a webhook test delivery.
+    Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Requests.ReplayRequestDto:
+      required:
+      - sinceUtc
+      type: object
+      properties:
+        sinceUtc:
+          type: string
+          description: Replay all case.created events since this timestamp (UTC).
+          format: date-time
+      additionalProperties: false
+      description: Request to replay events from a specific timestamp.
     Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayResultDto:
       type: object
       properties:
@@ -1195,6 +1195,21 @@ components:
           format: int32
       additionalProperties: false
       description: Result of a webhook event replay operation.
+    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookResponse:
+      type: object
+      properties:
+        eventType:
+          type:
+          - string
+          - 'null'
+        enqueuedCount:
+          type: integer
+          format: int32
+        message:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
     Debitura.Domain.Model.Webhooks.Dtos.WebhookDto_2:
       type: object
       properties:
@@ -1363,21 +1378,6 @@ components:
             Defaults to false (Production classification).'
       additionalProperties: false
       description: Request to create a new webhook subscription.
-    Debitura.Web.ReferralPartnerApi.Models.Webhooks.TriggerTestWebhookResponse:
-      type: object
-      properties:
-        eventType:
-          type:
-          - string
-          - 'null'
-        enqueuedCount:
-          type: integer
-          format: int32
-        message:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
   securitySchemes:
     ApiKey:
       type: apiKey

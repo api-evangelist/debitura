@@ -135,28 +135,22 @@ paths:
       x-operation-id-source: derived
 components:
   schemas:
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+    Debitura.Web.ReferralPartnerApi.Models.AccessTokens.CreateAccessTokenRequest:
+      required:
+      - externalTenantId
       type: object
       properties:
-        error:
-          type:
-          - string
-          - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
+        externalTenantId:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: 'The partner''s external identifier for the client/tenant.
+
+            This must match an active ReferralPartnerClientLink.'
       additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+      description: 'Request to generate a short-lived access token for accessing the Customer API
+
+        on behalf of a linked client.'
     Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
@@ -207,22 +201,28 @@ components:
           description: Token type - always "Bearer" for JWT tokens.
       additionalProperties: false
       description: Response containing a short-lived JWT bearer token for accessing the Customer API.
-    Debitura.Web.ReferralPartnerApi.Models.AccessTokens.CreateAccessTokenRequest:
-      required:
-      - externalTenantId
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:
-        externalTenantId:
-          maxLength: 255
-          minLength: 1
-          type: string
-          description: 'The partner''s external identifier for the client/tenant.
-
-            This must match an active ReferralPartnerClientLink.'
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
-      description: 'Request to generate a short-lived access token for accessing the Customer API
-
-        on behalf of a linked client.'
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
   securitySchemes:
     ApiKey:
       type: apiKey

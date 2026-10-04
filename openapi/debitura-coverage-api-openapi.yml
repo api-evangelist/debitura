@@ -285,6 +285,32 @@ paths:
       description: Production
 components:
   schemas:
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.PowerOfAttorneyStatusApiDTO:
+      type: object
+      properties:
+        signed:
+          type: boolean
+          description: Whether PoA has been signed for this partner
+        requiresResigning:
+          type: boolean
+          description: Whether PoA needs to be re-signed (new version available)
+        invalidationReason:
+          type:
+          - string
+          - 'null'
+          description: Why re-signing is required (if applicable)
+        termsUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to download signed PoA document (null if not signed)
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to sign or re-sign PoA (null if fully signed and valid)
+      additionalProperties: false
+      description: Power of Attorney status (shared DTO for check-eligibility and coverage endpoints).
     Debitura.Web.ExternalCustomerAPI.Models.Coverages.PartnerCoverageApiDTO:
       type: object
       properties:
@@ -325,32 +351,6 @@ components:
           description: Why re-signing is required (if applicable)
       additionalProperties: false
       description: Partner coverage details including conditions and PoA status.
-    Debitura.Web.ExternalCustomerAPI.Models.Coverages.PowerOfAttorneyStatusApiDTO:
-      type: object
-      properties:
-        signed:
-          type: boolean
-          description: Whether PoA has been signed for this partner
-        requiresResigning:
-          type: boolean
-          description: Whether PoA needs to be re-signed (new version available)
-        invalidationReason:
-          type:
-          - string
-          - 'null'
-          description: Why re-signing is required (if applicable)
-        termsUrl:
-          type:
-          - string
-          - 'null'
-          description: URL to download signed PoA document (null if not signed)
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: URL to sign or re-sign PoA (null if fully signed and valid)
-      additionalProperties: false
-      description: Power of Attorney status (shared DTO for check-eligibility and coverage endpoints).
     Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:
@@ -373,45 +373,6 @@ components:
           description: Canonical structured error array. Consumers should migrate to reading this field.
       additionalProperties: false
       description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
-    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
-      type: object
-      properties:
-        type:
-          type:
-          - string
-          - 'null'
-          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
-        message:
-          type:
-          - string
-          - 'null'
-          description: A human-readable description of the error.
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
-      additionalProperties: false
-      description: Represents a business error in the API response.
-    Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityResponseApiDTO:
-      type: object
-      properties:
-        isEligible:
-          type: boolean
-          description: Whether a collection partner is available for this case
-        jurisdiction:
-          $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.JurisdictionInfoApiDTO'
-        partner:
-          $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.PartnerInfoApiDTO'
-        powerOfAttorneyStatus:
-          $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.PowerOfAttorneyStatusApiDTO'
-        errorMessage:
-          type:
-          - string
-          - 'null'
-          description: Error message if IsEligible = false
-      additionalProperties: false
-      description: Response for case eligibility check - returns exact partner + PoA status.
     Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityRequestApiDTO:
       required:
       - amount
@@ -474,6 +435,25 @@ components:
           - 'null'
       additionalProperties: false
       description: Jurisdiction information
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityResponseApiDTO:
+      type: object
+      properties:
+        isEligible:
+          type: boolean
+          description: Whether a collection partner is available for this case
+        jurisdiction:
+          $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.JurisdictionInfoApiDTO'
+        partner:
+          $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.PartnerInfoApiDTO'
+        powerOfAttorneyStatus:
+          $ref: '#/components/schemas/Debitura.Web.ExternalCustomerAPI.Models.Coverages.PowerOfAttorneyStatusApiDTO'
+        errorMessage:
+          type:
+          - string
+          - 'null'
+          description: Error message if IsEligible = false
+      additionalProperties: false
+      description: Response for case eligibility check - returns exact partner + PoA status.
     Debitura.Web.ExternalCustomerAPI.Models.Coverages.PartnerInfoApiDTO:
       type: object
       properties:
@@ -526,24 +506,26 @@ components:
       description: 'Coverage information for a single jurisdiction.
 
         BREAKING CHANGE: Partners is now an array - may contain multiple partners with different conditions.'
-    Debitura.Web.ReferralPartnerApi.Models.Coverages.PartnerCoverageApiDTO:
+    Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
-        partnerId:
-          type: string
-          format: uuid
-        partnerName:
+        type:
           type:
           - string
           - 'null'
-        conditions:
+          description: The type of business error (e.g., "MissingDebtCollectionContract", "MissingPowerOfAttorney", "NoPartnerAvailable").
+        message:
           type:
           - string
           - 'null'
-          description: 'Human-readable description of when this partner applies.
-
-            Examples: "All cases", "B2B cases only", "Amount ≥ €1,000"'
+          description: A human-readable description of the error.
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
+      description: Represents a business error in the API response.
     Debitura.Web.ReferralPartnerApi.Models.Coverages.CoverageItemApiDTO:
       type: object
       properties:
@@ -575,6 +557,24 @@ components:
           - 'null'
           items:
             $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Coverages.PartnerCoverageApiDTO'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.Coverages.PartnerCoverageApiDTO:
+      type: object
+      properties:
+        partnerId:
+          type: string
+          format: uuid
+        partnerName:
+          type:
+          - string
+          - 'null'
+        conditions:
+          type:
+          - string
+          - 'null'
+          description: 'Human-readable description of when this partner applies.
+
+            Examples: "All cases", "B2B cases only", "Amount ≥ €1,000"'
       additionalProperties: false
   securitySchemes:
     ApiKey:
