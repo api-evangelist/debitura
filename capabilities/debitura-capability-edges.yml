@@ -1,0 +1,70 @@
+slug: debitura
+provider: Debitura
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Software & Technology
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 5
+edges:
+- tag: Webhooks
+  spec_file: debitura-webhooks-api-openapi.yml
+  capability_id: BC-4270.80
+  capability_id_l1: BC-4270
+  capability_name: Webhook & Event Subscription Management
+  confidence: 0.92
+  evidence: GET /webhooks — List all webhook subscriptions for the authenticated collection partner; POST
+    /webhooks — Create a new webhook subscription; POST /webhooks/{id}/test — Send a test event to the
+    webhook endpoint
+  reason: Full CRUD over webhook subscriptions plus test-event dispatch, with CreateWebhookRequest/UpdateWebhookRequest
+    schemas. This is unambiguously lifecycle management of outbound webhook/event subscriptions for API
+    consumers.
+- tag: Cases
+  spec_file: debitura-cases-api-openapi.yml
+  capability_id: BC-200.30
+  capability_id_l1: BC-200
+  capability_name: Accounts Receivable Management
+  confidence: 0.85
+  evidence: GET /cases getCases List collection cases; POST /cases/{id}/payments postCasesByIdPayments
+    Create a payment on a case; Debitura.Web.ExternalApi.Contracts.V1.Cases.InvoiceDto
+  reason: Operations manage debt-collection cases against creditor invoices, including case payments,
+    fees and closure — receivables collection, which maps to Accounts Receivable Management (customer
+    invoicing, collections, cash application).
+- tag: Webhook Events
+  spec_file: debitura-webhook-events-api-openapi.yml
+  capability_id: BC-4270.80
+  capability_id_l1: BC-4270
+  capability_name: Webhook & Event Subscription Management
+  confidence: 0.82
+  evidence: GET /webhooks/events — List webhook events dispatched for a case; POST /webhooks/events/{id}/replay
+    — Replay a specific webhook event
+  reason: Operations expose the dispatched-event log and redelivery of individual events (WebhookEventDto,
+    ReplayEventResultDto), which is exactly outbound webhook event delivery reliability on the developer
+    platform rather than any debt-collection business function.
+- tag: ManagedCases
+  spec_file: debitura-managedcases-api-openapi.yml
+  capability_id: BC-200.30
+  capability_id_l1: BC-200
+  capability_name: Accounts Receivable Management
+  confidence: 0.8
+  evidence: '''Create case as managing partner'', ''Fetch managed case payments'', ''Record a payment
+    on a test case (managing partner)''; schemas ''Cases.CreditorDto'', ''Cases.InvoiceDto'', ''Payments.PaymentRelatedInvoiceDto'''
+  reason: Debt-collection case lifecycle with creditor, invoice and payment objects — i.e. collections
+    on outstanding receivables and application of recovered cash, which is Accounts Receivable Management
+    (collections) in the cross-industry taxonomy.
+- tag: Payments
+  spec_file: debitura-payments-api-openapi.yml
+  capability_id: BC-200.30
+  capability_id_l1: BC-200
+  capability_name: Accounts Receivable Management
+  confidence: 0.7
+  evidence: '''List payments'', ''Fetch payment by ID''; schemas ''Payments.PaymentDto'', ''Payments.PaymentRelatedInvoiceDto'''
+  reason: Read access to payments recovered against collection cases, linked to invoices — cash application
+    against outstanding receivables. Confidence moderated because the surface is read-only and thinly
+    described.

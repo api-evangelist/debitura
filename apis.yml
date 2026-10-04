@@ -447,5 +447,8 @@ x-refine-exempt:
     so two thirds of them pointed at a host that does not serve them. The specs are registered whole,
     exactly as Debitura publishes them, until the splitter can carry per-operation servers. See api-evangelist/roadmap#6.
 common:
+- type: CapabilityMap
+  url: capabilities/debitura-capability-edges.yml
+  name: Debitura Business Capability Map
 - type: Website
   url: https://debitura.com
