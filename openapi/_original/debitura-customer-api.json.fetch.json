@@ -1,0 +1,12 @@
+{
+ "url": "https://customer-api.debitura.com/swagger/v1/swagger.json",
+ "requested_url": "https://customer-api.debitura.com/swagger/v1/swagger.json",
+ "status": 200,
+ "content_type": "application/json;charset=utf-8",
+ "bytes": 304514,
+ "sha256": "4f9b5bb5655d3d0c489a603c36745c01af2f6366ba2c94a692845c1108207bd5",
+ "fetched_at": "2026-10-04",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "equivalent",
+ "note": "Re-fetched from the provider by verify-openapi-sources.py; the provider's current document describes the same operations (Jaccard 1.0), but the bytes differ, so the archive is an earlier or reformatted copy."
+}

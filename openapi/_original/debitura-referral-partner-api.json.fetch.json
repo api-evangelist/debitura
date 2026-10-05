@@ -1,0 +1,12 @@
+{
+ "url": "https://referral-api.debitura.com/swagger/v1/swagger.json",
+ "requested_url": "https://referral-api.debitura.com/swagger/v1/swagger.json",
+ "status": 200,
+ "content_type": "application/json;charset=utf-8",
+ "bytes": 251734,
+ "sha256": "739ec08894782998087b6b7b2b1a1d985a3ebd033a81b577f598371a60549c39",
+ "fetched_at": "2026-10-04",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "equivalent",
+ "note": "Re-fetched from the provider by verify-openapi-sources.py; the provider's current document describes the same operations (Jaccard 1.0), but the bytes differ, so the archive is an earlier or reformatted copy."
+}
