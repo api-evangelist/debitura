@@ -23,7 +23,7 @@ deliveryModel:
   generated: '2026-08-28'
   method: derived
 created: '2026-08-01'
-modified: '2026-09-16'
+modified: '2026-10-06'
 specificationVersion: '0.23'
 tags:
 - Debt Collection
@@ -447,6 +447,8 @@ x-refine-exempt:
     so two thirds of them pointed at a host that does not serve them. The specs are registered whole,
     exactly as Debitura publishes them, until the splitter can carry per-operation servers. See api-evangelist/roadmap#6.
 common:
+- url: https://www.debitura.com/blog
+  type: Blog
 - type: CapabilityMap
   url: capabilities/debitura-capability-edges.yml
   name: Debitura Business Capability Map
