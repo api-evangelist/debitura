@@ -1,0 +1,14 @@
+{
+  "repo": "debitura",
+  "feeds": [
+    {
+      "source": "https://www.debitura.com/blog",
+      "feed_url": "https://www.debitura.com/blog",
+      "title": "",
+      "saved": 0,
+      "method": "none"
+    }
+  ],
+  "post_count": 0,
+  "fetched": "2026-10-10T13:15:00Z"
+}
