@@ -120,12 +120,6 @@ components:
           description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
       description: Represents a business error in the API response.
-    Debitura.Domain.Model.ReferralPartners.Enums.InvoicingTriggerMode:
-      enum:
-      - PayWhenPaid
-      - ConfirmedPipeline
-      type: string
-      description: "Controls what condition triggers a referral partner's payout to become \"ready to invoice\"\nDebitura for their referral fee. Per-partner override; see Debitura.Domain.Model.ReferralPartners.ReferralPartner.InvoicingTriggerMode.\n            \nThis enum is also returned directly on the ReferralPartnerApi `GET /me` response\n(`ReferralPartnerResponse.InvoicingTriggerMode`). Wire format is locked to named\nPascalCase string values (\"PayWhenPaid\", \"ConfirmedPipeline\") via Newtonsoft.Json\nStringEnumConverter — that host uses Newtonsoft (AddNewtonsoftJson in Program.cs), so a\nSystem.Text.Json JsonStringEnumConverter attribute alone would be silently ignored; both\nare declared so STJ-based consumers (and our own tests) can also deserialize the string form."
     Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
       type: object
       properties:
@@ -209,6 +203,12 @@ components:
           $ref: '#/components/schemas/Debitura.Domain.Model.ReferralPartners.Enums.InvoicingTriggerMode'
       additionalProperties: false
       description: Response containing referral partner information including styling configuration.
+    Debitura.Domain.Model.ReferralPartners.Enums.InvoicingTriggerMode:
+      enum:
+      - PayWhenPaid
+      - ConfirmedPipeline
+      type: string
+      description: "Controls what condition triggers a referral partner's payout to become \"ready to invoice\"\nDebitura for their referral fee. Per-partner override; see Debitura.Domain.Model.ReferralPartners.ReferralPartner.InvoicingTriggerMode.\n            \nThis enum is also returned directly on the ReferralPartnerApi `GET /me` response\n(`ReferralPartnerResponse.InvoicingTriggerMode`). Wire format is locked to named\nPascalCase string values (\"PayWhenPaid\", \"ConfirmedPipeline\") via Newtonsoft.Json\nStringEnumConverter — that host uses Newtonsoft (AddNewtonsoftJson in Program.cs), so a\nSystem.Text.Json JsonStringEnumConverter attribute alone would be silently ignored; both\nare declared so STJ-based consumers (and our own tests) can also deserialize the string form."
   securitySchemes:
     ApiKey:
       type: apiKey

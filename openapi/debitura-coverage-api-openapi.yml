@@ -285,156 +285,6 @@ paths:
       description: Production
 components:
   schemas:
-    Debitura.Web.ExternalCustomerAPI.Models.Coverages.PowerOfAttorneyStatusApiDTO:
-      type: object
-      properties:
-        signed:
-          type: boolean
-          description: Whether PoA has been signed for this partner
-        requiresResigning:
-          type: boolean
-          description: Whether PoA needs to be re-signed (new version available)
-        invalidationReason:
-          type:
-          - string
-          - 'null'
-          description: Why re-signing is required (if applicable)
-        termsUrl:
-          type:
-          - string
-          - 'null'
-          description: URL to download signed PoA document (null if not signed)
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: URL to sign or re-sign PoA (null if fully signed and valid)
-      additionalProperties: false
-      description: Power of Attorney status (shared DTO for check-eligibility and coverage endpoints).
-    Debitura.Web.ExternalCustomerAPI.Models.Coverages.PartnerCoverageApiDTO:
-      type: object
-      properties:
-        partnerId:
-          type: string
-          format: uuid
-        partnerName:
-          type:
-          - string
-          - 'null'
-        conditions:
-          type:
-          - string
-          - 'null'
-          description: 'Human-readable description of when this partner applies.
-
-            Examples: "All cases", "B2B cases only", "B2C cases ≥ €1000"'
-        signed:
-          type: boolean
-          description: Whether Power of Attorney has been signed for this partner
-        termsUrl:
-          type:
-          - string
-          - 'null'
-          description: URL to download signed PoA document (null if not signed)
-        solutionUrl:
-          type:
-          - string
-          - 'null'
-          description: URL to sign or re-sign PoA (null if fully signed and valid)
-        requiresResigning:
-          type: boolean
-          description: Whether PoA needs to be re-signed (new version available)
-        invalidationReason:
-          type:
-          - string
-          - 'null'
-          description: Why re-signing is required (if applicable)
-      additionalProperties: false
-      description: Partner coverage details including conditions and PoA status.
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
-      type: object
-      properties:
-        error:
-          type:
-          - string
-          - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
-      additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
-    Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityRequestApiDTO:
-      required:
-      - amount
-      - countryAlpha2
-      - currencyCode
-      - debtorType
-      type: object
-      properties:
-        countryAlpha2:
-          minLength: 1
-          type: string
-          description: Debtor country (2-letter ISO code, e.g., "DK", "US", "DE")
-        stateAlpha2:
-          type:
-          - string
-          - 'null'
-          description: US state code for US debtors (e.g., "CA", "NY"). Required if CountryAlpha2 = "US"
-        debtorType:
-          minLength: 1
-          type: string
-          description: 'Debtor type: "Company" or "Private"'
-        amount:
-          maximum: 1.7976931348623157e+308
-          minimum: 0.01
-          type: number
-          description: Amount to recover in specified currency
-          format: double
-        currencyCode:
-          minLength: 1
-          type: string
-          description: Currency code (e.g., "USD", "EUR", "DKK")
-      additionalProperties: false
-      description: Request for checking case eligibility and getting partner/PoA status.
-      example:
-        countryAlpha2: PL
-        debtorType: Company
-        amount: 2500
-        currencyCode: EUR
-    Debitura.Web.ExternalCustomerAPI.Models.Coverages.JurisdictionInfoApiDTO:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int32
-        name:
-          type:
-          - string
-          - 'null'
-        country:
-          type:
-          - string
-          - 'null'
-        countryAlpha2:
-          type:
-          - string
-          - 'null'
-        usStateAlpha2:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
-      description: Jurisdiction information
     Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityResponseApiDTO:
       type: object
       properties:
@@ -506,6 +356,118 @@ components:
       description: 'Coverage information for a single jurisdiction.
 
         BREAKING CHANGE: Partners is now an array - may contain multiple partners with different conditions.'
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.JurisdictionInfoApiDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type:
+          - string
+          - 'null'
+        country:
+          type:
+          - string
+          - 'null'
+        countryAlpha2:
+          type:
+          - string
+          - 'null'
+        usStateAlpha2:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+      description: Jurisdiction information
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.PartnerCoverageApiDTO:
+      type: object
+      properties:
+        partnerId:
+          type: string
+          format: uuid
+        partnerName:
+          type:
+          - string
+          - 'null'
+        conditions:
+          type:
+          - string
+          - 'null'
+          description: 'Human-readable description of when this partner applies.
+
+            Examples: "All cases", "B2B cases only", "B2C cases ≥ €1000"'
+        signed:
+          type: boolean
+          description: Whether Power of Attorney has been signed for this partner
+        termsUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to download signed PoA document (null if not signed)
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to sign or re-sign PoA (null if fully signed and valid)
+        requiresResigning:
+          type: boolean
+          description: Whether PoA needs to be re-signed (new version available)
+        invalidationReason:
+          type:
+          - string
+          - 'null'
+          description: Why re-signing is required (if applicable)
+      additionalProperties: false
+      description: Partner coverage details including conditions and PoA status.
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.PowerOfAttorneyStatusApiDTO:
+      type: object
+      properties:
+        signed:
+          type: boolean
+          description: Whether PoA has been signed for this partner
+        requiresResigning:
+          type: boolean
+          description: Whether PoA needs to be re-signed (new version available)
+        invalidationReason:
+          type:
+          - string
+          - 'null'
+          description: Why re-signing is required (if applicable)
+        termsUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to download signed PoA document (null if not signed)
+        solutionUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to sign or re-sign PoA (null if fully signed and valid)
+      additionalProperties: false
+      description: Power of Attorney status (shared DTO for check-eligibility and coverage endpoints).
     Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
@@ -526,6 +488,62 @@ components:
           description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
       description: Represents a business error in the API response.
+    Debitura.Web.ExternalCustomerAPI.Models.Coverages.CaseEligibilityRequestApiDTO:
+      required:
+      - amount
+      - countryAlpha2
+      - currencyCode
+      - debtorType
+      type: object
+      properties:
+        countryAlpha2:
+          minLength: 1
+          type: string
+          description: Debtor country (2-letter ISO code, e.g., "DK", "US", "DE")
+        stateAlpha2:
+          type:
+          - string
+          - 'null'
+          description: US state code for US debtors (e.g., "CA", "NY"). Required if CountryAlpha2 = "US"
+        debtorType:
+          minLength: 1
+          type: string
+          description: 'Debtor type: "Company" or "Private"'
+        amount:
+          maximum: 1.7976931348623157e+308
+          minimum: 0.01
+          type: number
+          description: Amount to recover in specified currency
+          format: double
+        currencyCode:
+          minLength: 1
+          type: string
+          description: Currency code (e.g., "USD", "EUR", "DKK")
+      additionalProperties: false
+      description: Request for checking case eligibility and getting partner/PoA status.
+      example:
+        countryAlpha2: PL
+        debtorType: Company
+        amount: 2500
+        currencyCode: EUR
+    Debitura.Web.ReferralPartnerApi.Models.Coverages.PartnerCoverageApiDTO:
+      type: object
+      properties:
+        partnerId:
+          type: string
+          format: uuid
+        partnerName:
+          type:
+          - string
+          - 'null'
+        conditions:
+          type:
+          - string
+          - 'null'
+          description: 'Human-readable description of when this partner applies.
+
+            Examples: "All cases", "B2B cases only", "Amount ≥ €1,000"'
+      additionalProperties: false
     Debitura.Web.ReferralPartnerApi.Models.Coverages.CoverageItemApiDTO:
       type: object
       properties:
@@ -557,24 +575,6 @@ components:
           - 'null'
           items:
             $ref: '#/components/schemas/Debitura.Web.ReferralPartnerApi.Models.Coverages.PartnerCoverageApiDTO'
-      additionalProperties: false
-    Debitura.Web.ReferralPartnerApi.Models.Coverages.PartnerCoverageApiDTO:
-      type: object
-      properties:
-        partnerId:
-          type: string
-          format: uuid
-        partnerName:
-          type:
-          - string
-          - 'null'
-        conditions:
-          type:
-          - string
-          - 'null'
-          description: 'Human-readable description of when this partner applies.
-
-            Examples: "All cases", "B2B cases only", "Amount ≥ €1,000"'
       additionalProperties: false
   securitySchemes:
     ApiKey:

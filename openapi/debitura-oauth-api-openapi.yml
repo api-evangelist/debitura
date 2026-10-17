@@ -135,22 +135,6 @@ paths:
       x-operation-id-source: derived
 components:
   schemas:
-    Debitura.Web.ReferralPartnerApi.Models.AccessTokens.CreateAccessTokenRequest:
-      required:
-      - externalTenantId
-      type: object
-      properties:
-        externalTenantId:
-          maxLength: 255
-          minLength: 1
-          type: string
-          description: 'The partner''s external identifier for the client/tenant.
-
-            This must match an active ReferralPartnerClientLink.'
-      additionalProperties: false
-      description: 'Request to generate a short-lived access token for accessing the Customer API
-
-        on behalf of a linked client.'
     Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
@@ -171,6 +155,44 @@ components:
           description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
       description: Represents a business error in the API response.
+    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type:
+          - string
+          - 'null'
+          description: Short human-readable error label (legacy field — preserved for backward compatibility).
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable error description (legacy field — preserved for backward compatibility).
+        businessErrors:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
+          description: Canonical structured error array. Consumers should migrate to reading this field.
+      additionalProperties: false
+      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
+    Debitura.Web.ReferralPartnerApi.Models.AccessTokens.CreateAccessTokenRequest:
+      required:
+      - externalTenantId
+      type: object
+      properties:
+        externalTenantId:
+          maxLength: 255
+          minLength: 1
+          type: string
+          description: 'The partner''s external identifier for the client/tenant.
+
+            This must match an active ReferralPartnerClientLink.'
+      additionalProperties: false
+      description: 'Request to generate a short-lived access token for accessing the Customer API
+
+        on behalf of a linked client.'
     Debitura.Web.ReferralPartnerApi.Models.AccessTokens.AccessTokenResponse:
       type: object
       properties:
@@ -201,28 +223,6 @@ components:
           description: Token type - always "Bearer" for JWT tokens.
       additionalProperties: false
       description: Response containing a short-lived JWT bearer token for accessing the Customer API.
-    Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto:
-      type: object
-      properties:
-        error:
-          type:
-          - string
-          - 'null'
-          description: Short human-readable error label (legacy field — preserved for backward compatibility).
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable error description (legacy field — preserved for backward compatibility).
-        businessErrors:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO'
-          description: Canonical structured error array. Consumers should migrate to reading this field.
-      additionalProperties: false
-      description: "Generic structured error response for API endpoints.\n            \nDual-write design: existing fields (Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Error / Debitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.Message etc.)\nare preserved for backward compatibility alongside the canonical\nDebitura.Web.ExternalApi.Contracts.V1.Errors.ApiErrorResponseDto.BusinessErrors array, allowing consumers to migrate at their own pace."
   securitySchemes:
     ApiKey:
       type: apiKey

@@ -172,24 +172,6 @@ paths:
       description: Production
 components:
   schemas:
-    Debitura.Web.CollectionPartnerApi.Models.Webhooks.ReplayEventResultDto:
-      type: object
-      properties:
-        eventId:
-          type: string
-          description: The ID of the event that was replayed.
-          format: uuid
-        subscriptionId:
-          type: string
-          description: The subscription the event was re-enqueued to.
-          format: uuid
-        eventType:
-          type:
-          - string
-          - 'null'
-          description: The event type that was replayed (e.g. "case.updated").
-      additionalProperties: false
-      description: Result of replaying a specific webhook event.
     Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
@@ -290,6 +272,24 @@ components:
           description: Error message from the last failed delivery attempt. Null on successful delivery.
       additionalProperties: false
       description: Represents a recorded webhook delivery event.
+    Debitura.Web.CollectionPartnerApi.Models.Webhooks.ReplayEventResultDto:
+      type: object
+      properties:
+        eventId:
+          type: string
+          description: The ID of the event that was replayed.
+          format: uuid
+        subscriptionId:
+          type: string
+          description: The subscription the event was re-enqueued to.
+          format: uuid
+        eventType:
+          type:
+          - string
+          - 'null'
+          description: The event type that was replayed (e.g. "case.updated").
+      additionalProperties: false
+      description: Result of replaying a specific webhook event.
     Debitura.Web.ExternalCustomerAPI.Models.Webhooks.Dtos.ReplayEventResultDto:
       type: object
       properties:

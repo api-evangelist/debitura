@@ -106,28 +106,6 @@ components:
       description: 'Response model for the filter-options endpoint, providing distinct filter values
 
         available for the authenticated referral partner''s cases and earnings.'
-    Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.FilterOptionCarveoutPartner:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
-    Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.FilterOptionCountry:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int32
-        name:
-          type:
-          - string
-          - 'null'
-      additionalProperties: false
     Debitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorApiDTO:
       type: object
       properties:
@@ -148,6 +126,28 @@ components:
           description: "A URL where the user can resolve this <i>specific</i> error (e.g., sign a contract).\n            \n\nPartners who want a <b>single URL</b> that walks the user through every pending\nsigning in one chain — instead of forwarding one URL per\n`BusinessErrorApiDTO` — should use\nDebitura.Web.ExternalApi.Contracts.V1.Cases.BusinessErrorResponseApiDTO.SigningHandoff's `CombinedSigningUrl`.\nThe two are complementary: `SolutionUrl` is granular per-error;\n`CombinedSigningUrl` is the chain-walking alternative for signing-related errors."
       additionalProperties: false
       description: Represents a business error in the API response.
+    Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.FilterOptionCountry:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
+    Debitura.Web.ReferralPartnerApi.Models.ReferralPartners.FilterOptionCarveoutPartner:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type:
+          - string
+          - 'null'
+      additionalProperties: false
   securitySchemes:
     ApiKey:
       type: apiKey
