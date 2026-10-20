@@ -21,7 +21,22 @@ tools:
 - name: list_cases
   description: 'List the creditor''s debt collection cases with pagination, status filtering, and sorting.
     Returns compact case summaries: reference, debtor name + country, amounts, lifecycle, partner, key
-    dates. Use get_case for full detail on a specific c'
+    dates. Use get_case for full detail on a specific case.
+
+
+    Lifecycle values (statuses filter and output):
+
+    `PendingContractSigning` · `PendingVerificationInternal` · `PendingVerification` · `NeedsAdditionalDetails`
+    · `Leads` · `LeadsQuoteGiven` · `Active` · `Paused` · `Closed` · `Merged`
+
+
+    Sortable fields: `DateCreated` · `DateUpdated` · `DateFinished` · `DateCollectionStarted` · `DueDate`
+    · `Date` · `GrossAmount` · `Remainder` · `InterestFees` · `CollectionFees`
+
+    Sort format: `Field:asc` or `Field:desc`, e.g. `GrossAmount:desc`
+
+
+    Note: results include the creditor''s own test cases; the `isTestCase` flag on each case marks them.'
 - name: get_case
   description: Fetch one collection case in full detail. Look it up by Debitura case ID (GUID), by your
     own creditor reference (e.g. invoice number), or by the Debitura case reference shown in the portal.
@@ -29,11 +44,12 @@ tools:
 - name: get_case_activity
   description: 'Fetch the chronological timeline of a case — what has happened so far: status changes,
     partner actions, communications, and payments. Returns an envelope `{ items, currentEngagementPhase
-    }`: `items` is the chronological event list, and `cur'
+    }`: `items` is the chronological event list, and `currentEngagementPhase` is the case''s current engagement
+    phase ("Pre-legal", "Legal", or "Enforcement"; null when no active engagement exists).'
 - name: get_case_messages
   description: 'Read the chat conversation on a case between you and the collection partner handling it.
     Each message includes: senderName, role (Creditor / Partner / Managed by partner), sentAt (UTC), message.
-    See the debitura://glossary/chat-roles resour'
+    See the debitura://glossary/chat-roles resource for what each role means.'
 - name: get_case_payments
   description: List every payment recorded on a case — money recovered so far.
 - name: get_case_contract_status
@@ -42,30 +58,70 @@ tools:
 - name: preview_case
   description: 'Dry-run a collection case BEFORE creating it: returns eligibility, the assigned collection
     partner, pricing (success fee), and any contracts that would need signing. Nothing is persisted. ALWAYS
-    call this before create_case and show the use'
+    call this before create_case and show the user the pricing and requirements.'
 - name: list_team_members
   description: List the team members on the creditor's Debitura account. Use this to resolve a valid sender
     (userId or email) before calling send_case_message, or a case owner for create_case.
 - name: list_case_files
   description: 'List all documents attached to a case: file name, document type, description, upload date,
     and a time-limited SAS download URL. Each file also carries downloadUrlExpiresAt (UTC) — when the
-    download URL stops working, so a cached URL can be'
+    download URL stops working, so a cached URL can be refreshed in time. Use upload_case_file to attach
+    new documents.'
 - name: get_account_summary
   description: 'Return a count of cases per lifecycle stage for the creditor''s account. Useful for a
     quick portfolio overview without listing all cases. Stages: PendingContractSigning, PendingVerificationInternal,
-    PendingVerification, NeedsAdditionalDetail'
+    PendingVerification, NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed, Merged.
+    Note: these counts include the creditor''s own test cases; list_cases exposes the `isTestCase` flag
+    that marks them.'
 - name: list_tasks
   description: 'List every open task (action-item) across your whole account — things the platform needs
     you to do before a case (or your account) can proceed: reply to a chat, sign a contract, assign a
-    bank account, and so on. Use get_case_tasks instead t'
+    bank account, and so on. Use get_case_tasks instead to scope this to one case.
+
+
+    Tasks auto-resolve once the underlying condition clears — e.g. replying to a case''s chat makes its
+    ReplyToChat task disappear on its own. Treat this as a live work queue, not a log: a task seen on
+    one call may no longer be open on the next.
+
+
+    Every task carries a solutionUrl — an absolute link a human can open to resolve it in one click, whatever
+    the type. Some types (today: ReplyToChat, ClientInputRequired, MoreInfoNeeded) additionally carry
+    a non-null `action` pointing at the exact API call that resolves them — for those, call send_case_message
+    with the task''s caseId instead of sending a human to solutionUrl. Tasks without an action rely on
+    solutionUrl alone.
+
+
+    Task types: Generic, ReplyToChat, SelectQuoteWinner, ReviewPartner, ClientInputRequired, SignContract,
+    MoreInfoNeeded, AssignBankAccount, CaseValidationNeedsInfo.'
 - name: get_case_tasks
   description: 'List the open tasks (action-items) attached to one specific case — same data as list_tasks,
     scoped to a single case. Use this when you''re already working a specific case and want just its outstanding
-    tasks.  Note: account-level tasks that a'
+    tasks.
+
+
+    Note: account-level tasks that aren''t tied to any one case (e.g. SignContract, AssignBankAccount
+    — these block the whole account, not one case) never appear here; use list_tasks to see those.
+
+
+    See list_tasks for the full task model (auto-resolve, solutionUrl, action).'
 - name: create_case
   description: 'Submit a debt collection case to Debitura. This is a LEGAL AND FINANCIAL ACTION: a collection
-    partner starts recovery against the debtor, and contractual fees apply on success.  Required workflow
-    — never skip it: 1. Call preview_case first'
+    partner starts recovery against the debtor, and contractual fees apply on success.
+
+
+    Required workflow — never skip it:
+
+    1. Call preview_case first and show the user the pricing, assigned partner, and any contracts that
+    need signing.
+
+    2. Ask the user to explicitly confirm submission.
+
+    3. Only then call this tool. NEVER call it without the user''s explicit confirmation in this conversation.
+
+
+    Submission is idempotent: the server sends a unique Idempotency-Key and safely retries transient network
+    failures without risk of duplicate cases. A 422 response is a business rejection — read its payload
+    (it may contain signing URLs for required contracts, or duplicate-reference details).'
 - name: upload_case_file
   description: 'Attach a document to a case (invoice copy, contract, correspondence, proof of delivery).
     Max 25 MB. Allowed extensions: .pdf, .xls, .xlsx, .csv, .txt, .jpg, .jpeg, .png, .gif. Provide the
@@ -73,7 +129,8 @@ tools:
 - name: send_case_message
   description: 'Send a chat message on a case to the collection partner handling it. The partner is notified
     by email. The message is attributed to a named team member, so a sender is REQUIRED: pass the sender''s
-    userId or email from list_team_members. Ask'
+    userId or email from list_team_members. Ask the user who the message should be sent as if it is not
+    obvious.'
 tools_source: live tools/list via initialize handshake, 2026-09-11 (signals/audit_mcp_authorship.py --probe)
 authorship: provider
 descriptions_source: live tools/list (authorship probe or saved capture); filled by backfill-tools-from-authorship.py
