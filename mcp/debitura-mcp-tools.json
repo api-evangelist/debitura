@@ -1,0 +1,844 @@
+{
+  "endpoint": "https://mcp.debitura.com/mcp",
+  "captured": "2026-10-20",
+  "method": "initialize + tools/list (anonymous, no tool called; roadmap#992)",
+  "protocol_version": "2025-06-18",
+  "server_info": {
+    "name": "debitura",
+    "version": "1.0.0",
+    "title": "Debitura — Cross-Border Debt Collection"
+  },
+  "result": {
+    "tools": [
+      {
+        "name": "ping",
+        "title": "Test Connection",
+        "description": "Verify the connection to Debitura and show which creditor account the API key belongs to. Call this first to confirm the integration is set up correctly.",
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "annotations": {
+          "title": "Test Connection",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "list_cases",
+        "title": "List Cases",
+        "description": "List the creditor's debt collection cases with pagination, status filtering, and sorting. Returns compact case summaries: reference, debtor name + country, amounts, lifecycle, partner, key dates. Use get_case for full detail on a specific case.\n\nLifecycle values (statuses filter and output):\n`PendingContractSigning` · `PendingVerificationInternal` · `PendingVerification` · `NeedsAdditionalDetails` · `Leads` · `LeadsQuoteGiven` · `Active` · `Paused` · `Closed` · `Merged`\n\nSortable fields: `DateCreated` · `DateUpdated` · `DateFinished` · `DateCollectionStarted` · `DueDate` · `Date` · `GrossAmount` · `Remainder` · `InterestFees` · `CollectionFees`\nSort format: `Field:asc` or `Field:desc`, e.g. `GrossAmount:desc`\n\nNote: results include the creditor's own test cases; the `isTestCase` flag on each case marks them.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "page": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number, starting from 1 (default 1)"
+            },
+            "pageSize": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Results per page (default 10, max 100)"
+            },
+            "statuses": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "PendingContractSigning",
+                  "PendingVerificationInternal",
+                  "PendingVerification",
+                  "NeedsAdditionalDetails",
+                  "Leads",
+                  "LeadsQuoteGiven",
+                  "Active",
+                  "Paused",
+                  "Closed",
+                  "Merged"
+                ]
+              },
+              "description": "Filter by lifecycle status. Values: PendingContractSigning, PendingVerificationInternal, PendingVerification, NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed, Merged"
+            },
+            "sort": {
+              "type": "string",
+              "description": "Sort expression: Field:asc or Field:desc. Valid fields: DateCreated, DateUpdated, DateFinished, DateCollectionStarted, DueDate, Date, GrossAmount, Remainder, InterestFees, CollectionFees. Example: GrossAmount:desc"
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "List Cases",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "get_case",
+        "title": "Get Case",
+        "description": "Fetch one collection case in full detail. Look it up by Debitura case ID (GUID), by your own creditor reference (e.g. invoice number), or by the Debitura case reference shown in the portal. Provide exactly one of the three identifiers.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Debitura case ID (GUID)"
+            },
+            "creditorReference": {
+              "type": "string",
+              "description": "Your own reference for the case (e.g. invoice number)"
+            },
+            "caseReference": {
+              "type": "string",
+              "description": "Debitura case reference as shown in the portal"
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Get Case",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "get_case_activity",
+        "title": "Get Case Activity",
+        "description": "Fetch the chronological timeline of a case — what has happened so far: status changes, partner actions, communications, and payments. Returns an envelope `{ items, currentEngagementPhase }`: `items` is the chronological event list, and `currentEngagementPhase` is the case's current engagement phase (\"Pre-legal\", \"Legal\", or \"Enforcement\"; null when no active engagement exists).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Debitura case ID (GUID)"
+            }
+          },
+          "required": [
+            "caseId"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Get Case Activity",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "get_case_messages",
+        "title": "Get Case Messages",
+        "description": "Read the chat conversation on a case between you and the collection partner handling it. Each message includes: senderName, role (Creditor / Partner / Managed by partner), sentAt (UTC), message. See the debitura://glossary/chat-roles resource for what each role means.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Debitura case ID (GUID)"
+            }
+          },
+          "required": [
+            "caseId"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Get Case Messages",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "get_case_payments",
+        "title": "Get Case Payments",
+        "description": "List every payment recorded on a case — money recovered so far.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Debitura case ID (GUID)"
+            }
+          },
+          "required": [
+            "caseId"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Get Case Payments",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "get_case_contract_status",
+        "title": "Get Case Contract Status",
+        "description": "Check which contracts (e.g. debt collection agreement, power of attorney) are signed or still blocking a case, including signing URLs for any outstanding documents.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Debitura case ID (GUID)"
+            }
+          },
+          "required": [
+            "caseId"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Get Case Contract Status",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "preview_case",
+        "title": "Preview Case (Pricing & Eligibility)",
+        "description": "Dry-run a collection case BEFORE creating it: returns eligibility, the assigned collection partner, pricing (success fee), and any contracts that would need signing. Nothing is persisted. ALWAYS call this before create_case and show the user the pricing and requirements.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "amountToRecover": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Total principal amount. Omit when sending claimLines"
+            },
+            "amountToRecoverOver6Months": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Cumulative principal more than 180 days overdue"
+            },
+            "amountToRecoverOver12Months": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Cumulative principal more than 365 days overdue"
+            },
+            "amountToRecoverOver24Months": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Cumulative principal more than 730 days overdue"
+            },
+            "claimLines": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "dueDate": {
+                    "type": "string",
+                    "description": "Invoice due date (ISO 8601)"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Outstanding balance after payments and credit notes"
+                  },
+                  "reference": {
+                    "type": "string",
+                    "description": "Optional invoice reference; must be unique within the claim"
+                  }
+                },
+                "required": [
+                  "dueDate",
+                  "amount"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "maxItems": 1000,
+              "description": "Unpaid invoices making up the claim. Use instead of amountToRecover and age buckets; Debitura derives the total and aging."
+            },
+            "currencyCode": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "description": "ISO 4217 currency code, e.g. \"EUR\", \"USD\", \"DKK\""
+            },
+            "debtorType": {
+              "type": "string",
+              "enum": [
+                "Company",
+                "Private"
+              ],
+              "description": "Company (B2B) or Private individual (B2C)"
+            },
+            "debtorCountryAlpha2": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "description": "Debtor country, ISO 3166-1 alpha-2, e.g. \"DE\", \"US\""
+            },
+            "debtorStateAlpha2": {
+              "type": "string",
+              "description": "US state code, e.g. \"CA\" — REQUIRED when the debtor is in the United States"
+            },
+            "dueDate": {
+              "type": "string",
+              "description": "Invoice due date (ISO 8601) — used to compute debt age for pricing"
+            }
+          },
+          "required": [
+            "currencyCode",
+            "debtorType",
+            "debtorCountryAlpha2"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Preview Case (Pricing & Eligibility)",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "list_team_members",
+        "title": "List Team Members",
+        "description": "List the team members on the creditor's Debitura account. Use this to resolve a valid sender (userId or email) before calling send_case_message, or a case owner for create_case.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "page": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (default 1)"
+            },
+            "pageSize": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Results per page"
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "List Team Members",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "list_case_files",
+        "title": "List Case Files",
+        "description": "List all documents attached to a case: file name, document type, description, upload date, and a time-limited SAS download URL. Each file also carries downloadUrlExpiresAt (UTC) — when the download URL stops working, so a cached URL can be refreshed in time. Use upload_case_file to attach new documents.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Debitura case ID (GUID)"
+            }
+          },
+          "required": [
+            "caseId"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "List Case Files",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "get_account_summary",
+        "title": "Get Account Summary",
+        "description": "Return a count of cases per lifecycle stage for the creditor's account. Useful for a quick portfolio overview without listing all cases. Stages: PendingContractSigning, PendingVerificationInternal, PendingVerification, NeedsAdditionalDetails, Leads, LeadsQuoteGiven, Active, Paused, Closed, Merged. Note: these counts include the creditor's own test cases; list_cases exposes the `isTestCase` flag that marks them.",
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "annotations": {
+          "title": "Get Account Summary",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "list_tasks",
+        "title": "List Tasks",
+        "description": "List every open task (action-item) across your whole account — things the platform needs you to do before a case (or your account) can proceed: reply to a chat, sign a contract, assign a bank account, and so on. Use get_case_tasks instead to scope this to one case.\n\nTasks auto-resolve once the underlying condition clears — e.g. replying to a case's chat makes its ReplyToChat task disappear on its own. Treat this as a live work queue, not a log: a task seen on one call may no longer be open on the next.\n\nEvery task carries a solutionUrl — an absolute link a human can open to resolve it in one click, whatever the type. Some types (today: ReplyToChat, ClientInputRequired, MoreInfoNeeded) additionally carry a non-null `action` pointing at the exact API call that resolves them — for those, call send_case_message with the task's caseId instead of sending a human to solutionUrl. Tasks without an action rely on solutionUrl alone.\n\nTask types: Generic, ReplyToChat, SelectQuoteWinner, ReviewPartner, ClientInputRequired, SignContract, MoreInfoNeeded, AssignBankAccount, CaseValidationNeedsInfo.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "Open",
+                "Solved"
+              ],
+              "description": "Filter by task status. \"Open\" (default) or \"Solved\"."
+            },
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Generic",
+                  "ReplyToChat",
+                  "SelectQuoteWinner",
+                  "ReviewPartner",
+                  "ClientInputRequired",
+                  "SignContract",
+                  "MoreInfoNeeded",
+                  "AssignBankAccount",
+                  "CaseValidationNeedsInfo"
+                ]
+              },
+              "description": "Restrict to specific task types, e.g. [\"ReplyToChat\", \"SignContract\"]. Valid values: Generic, ReplyToChat, SelectQuoteWinner, ReviewPartner, ClientInputRequired, SignContract, MoreInfoNeeded, AssignBankAccount, CaseValidationNeedsInfo"
+            },
+            "page": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number, starting from 1 (default 1)"
+            },
+            "pageSize": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Results per page (default 10, max 100)"
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "List Tasks",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "get_case_tasks",
+        "title": "Get Case Tasks",
+        "description": "List the open tasks (action-items) attached to one specific case — same data as list_tasks, scoped to a single case. Use this when you're already working a specific case and want just its outstanding tasks.\n\nNote: account-level tasks that aren't tied to any one case (e.g. SignContract, AssignBankAccount — these block the whole account, not one case) never appear here; use list_tasks to see those.\n\nSee list_tasks for the full task model (auto-resolve, solutionUrl, action).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Debitura case ID (GUID)"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "Open",
+                "Solved"
+              ],
+              "description": "Filter by task status. \"Open\" (default) or \"Solved\"."
+            },
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Generic",
+                  "ReplyToChat",
+                  "SelectQuoteWinner",
+                  "ReviewPartner",
+                  "ClientInputRequired",
+                  "SignContract",
+                  "MoreInfoNeeded",
+                  "AssignBankAccount",
+                  "CaseValidationNeedsInfo"
+                ]
+              },
+              "description": "Restrict to specific task types, e.g. [\"ReplyToChat\", \"SignContract\"]. Valid values: Generic, ReplyToChat, SelectQuoteWinner, ReviewPartner, ClientInputRequired, SignContract, MoreInfoNeeded, AssignBankAccount, CaseValidationNeedsInfo"
+            }
+          },
+          "required": [
+            "caseId"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Get Case Tasks",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "create_case",
+        "title": "Create Collection Case",
+        "description": "Submit a debt collection case to Debitura. This is a LEGAL AND FINANCIAL ACTION: a collection partner starts recovery against the debtor, and contractual fees apply on success.\n\nRequired workflow — never skip it:\n1. Call preview_case first and show the user the pricing, assigned partner, and any contracts that need signing.\n2. Ask the user to explicitly confirm submission.\n3. Only then call this tool. NEVER call it without the user's explicit confirmation in this conversation.\n\nSubmission is idempotent: the server sends a unique Idempotency-Key and safely retries transient network failures without risk of duplicate cases. A 422 response is a business rejection — read its payload (it may contain signing URLs for required contracts, or duplicate-reference details).",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "amountToRecover": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Total principal amount. Omit when sending claimLines"
+            },
+            "amountToRecoverOver6Months": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Cumulative principal more than 180 days overdue"
+            },
+            "amountToRecoverOver12Months": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Cumulative principal more than 365 days overdue"
+            },
+            "amountToRecoverOver24Months": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Cumulative principal more than 730 days overdue"
+            },
+            "claimLines": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "dueDate": {
+                    "type": "string",
+                    "description": "Invoice due date (ISO 8601)"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Outstanding balance after payments and credit notes"
+                  },
+                  "reference": {
+                    "type": "string",
+                    "description": "Optional invoice reference; must be unique within the claim"
+                  }
+                },
+                "required": [
+                  "dueDate",
+                  "amount"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "maxItems": 1000,
+              "description": "Unpaid invoices making up the claim. Use instead of amountToRecover and age buckets; Debitura derives the total and aging."
+            },
+            "currencyCode": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "description": "ISO 4217 currency code, e.g. \"EUR\""
+            },
+            "debtor": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "Company",
+                    "Private"
+                  ],
+                  "description": "Company (B2B) or Private individual (B2C)"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Company name or person's full name"
+                },
+                "contactPerson": {
+                  "type": "string",
+                  "description": "Contact person (companies only)"
+                },
+                "companyRegistrationNumber": {
+                  "type": "string",
+                  "description": "Company registration number (VAT/CVR/org number)"
+                },
+                "address": {
+                  "type": "string",
+                  "description": "Street address — required by the API"
+                },
+                "zipCode": {
+                  "type": "string",
+                  "description": "Postal/ZIP code"
+                },
+                "city": {
+                  "type": "string",
+                  "description": "City — required by the API"
+                },
+                "countryAlpha2": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 2,
+                  "description": "Country (ISO 3166-1 alpha-2)"
+                },
+                "stateAlpha2": {
+                  "type": "string",
+                  "description": "US state code, e.g. \"CA\" — REQUIRED for United States debtors"
+                },
+                "email": {
+                  "type": "string",
+                  "description": "Debtor email"
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Debtor phone incl. country code"
+                }
+              },
+              "required": [
+                "type",
+                "name",
+                "address",
+                "city",
+                "countryAlpha2"
+              ],
+              "additionalProperties": false,
+              "description": "The debtor the claim is against"
+            },
+            "date": {
+              "type": "string",
+              "description": "Invoice date (ISO 8601, e.g. 2026-03-01) — required by the API"
+            },
+            "dueDate": {
+              "type": "string",
+              "description": "Case due date (ISO 8601). When omitted with claimLines, Debitura uses the oldest line due date."
+            },
+            "claimDescription": {
+              "type": "string",
+              "description": "Description of the claim (what the debt is for)"
+            },
+            "comments": {
+              "type": "string",
+              "description": "Context for the collection partner, e.g. payment history or prior communication"
+            },
+            "creditorReference": {
+              "type": "string",
+              "maxLength": 50,
+              "description": "RECOMMENDED: your own reference (e.g. invoice number). Helps avoid business duplicates and lets you look the case up later."
+            },
+            "assignedUserEmail": {
+              "type": "string",
+              "description": "Email of the team member to own the case (use list_team_members to find valid team members)"
+            },
+            "allowPendingContracts": {
+              "type": "boolean",
+              "description": "Accept the case even if contracts (SDCA/POA) are unsigned — it waits in PendingContractSigning with signing URLs returned"
+            },
+            "isTest": {
+              "type": "boolean",
+              "description": "Create as test data (persisted but excluded from production metrics)"
+            },
+            "tag": {
+              "type": "string",
+              "description": "Optional tag for grouping test data"
+            }
+          },
+          "required": [
+            "currencyCode",
+            "debtor",
+            "date"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Create Collection Case",
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "openWorldHint": false,
+          "idempotentHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "upload_case_file",
+        "title": "Upload Case File",
+        "description": "Attach a document to a case (invoice copy, contract, correspondence, proof of delivery). Max 25 MB. Allowed extensions: .pdf, .xls, .xlsx, .csv, .txt, .jpg, .jpeg, .png, .gif. Provide the file content base64-encoded.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Debitura case ID (GUID)"
+            },
+            "fileName": {
+              "type": "string",
+              "description": "File name including extension, e.g. \"invoice-1042.pdf\""
+            },
+            "contentBase64": {
+              "type": "string",
+              "description": "File content, base64-encoded"
+            },
+            "contentType": {
+              "type": "string",
+              "description": "MIME type, e.g. \"application/pdf\" (inferred from extension if omitted)"
+            },
+            "description": {
+              "type": "string",
+              "description": "Short description of the document"
+            },
+            "documentType": {
+              "type": "string",
+              "enum": [
+                "OriginalInvoice",
+                "AccountStatement",
+                "Contract",
+                "TermsAndConditions",
+                "ProofOfDelivery",
+                "Correspondence",
+                "PaymentProof",
+                "CourtDocument",
+                "IdentityDocument",
+                "DebtorDocuments",
+                "CreditorDocuments",
+                "PartnerDocuments",
+                "DemandLetter",
+                "Miscellaneous"
+              ],
+              "description": "Optional document category. Omit when unknown: the file is stored as Not specified (null). Choose OriginalInvoice (invoice / credit note), AccountStatement, Contract, TermsAndConditions, ProofOfDelivery, DemandLetter, Correspondence, PaymentProof, CourtDocument, IdentityDocument, or Miscellaneous (Other). Legacy names remain accepted: DebtorDocuments, CreditorDocuments, PartnerDocuments."
+            }
+          },
+          "required": [
+            "caseId",
+            "fileName",
+            "contentBase64"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Upload Case File",
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "openWorldHint": false,
+          "idempotentHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      },
+      {
+        "name": "send_case_message",
+        "title": "Send Case Message",
+        "description": "Send a chat message on a case to the collection partner handling it. The partner is notified by email. The message is attributed to a named team member, so a sender is REQUIRED: pass the sender's userId or email from list_team_members. Ask the user who the message should be sent as if it is not obvious.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Debitura case ID (GUID)"
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The message to send"
+            },
+            "senderUserId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Team member ID sending the message (from list_team_members)"
+            },
+            "senderEmail": {
+              "type": "string",
+              "description": "Team member email sending the message (alternative to senderUserId)"
+            }
+          },
+          "required": [
+            "caseId",
+            "message"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "annotations": {
+          "title": "Send Case Message",
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "openWorldHint": false,
+          "idempotentHint": false
+        },
+        "execution": {
+          "taskSupport": "forbidden"
+        }
+      }
+    ]
+  }
+}
