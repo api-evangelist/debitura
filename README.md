@@ -64,32 +64,113 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-API Evangelist catalog entry for [Debitura](https://debitura.com) — an API-first international debt
-collection platform for cross-border B2B and B2C receivables.
+Debitura is an API-first international debt collection platform covering cross-border B2B and B2C receivables. It publishes three separate public REST APIs, one per role in the network rather than one API with role-gated endpoints: the Customer API for creditors uploading invoices to collection and tracking cases, the Referral Partner API for platforms embedding collection as a referral and tracking revenue share, and the Collection Partner API for collection agencies operating cases on the platform. All three are OpenAPI 3.0.4, each on its own host, and each authenticates with an API key in the XApiKey header; the Customer API additionally accepts a bearer token, and the Referral Partner API exposes OAuth operations for minting them. Webhooks appear in all three, each with a paired test surface for exercising events before going live. Debitura publishes its own APIs.json at docs.debitura.com, which is how this profile was built.
 
-Debitura publishes three separate public REST APIs, one per role in the network:
+**Areas:** Debt Collection · Accounts Receivable · Debt Recovery · Fintech · Payments · Invoicing · Webhook
 
-| API | Paths | Operations | Schemas |
-|---|---|---|---|
-| [Customer](https://docs.debitura.com/clients) — creditors uploading invoices to collection | 44 | 53 | 81 |
-| [Referral Partner](https://docs.debitura.com/referral-partners) — platforms embedding collection | 17 | 22 | 81 |
-| [Collection Partner](https://docs.debitura.com/collection-partners) — agencies operating cases | 38 | 48 | 68 |
+## Debitura on APIs.io
 
-All three are OpenAPI 3.0.4, each on its own host, authenticating with an API key in the `XApiKey`
-header. Debitura publishes its own [APIs.json](https://docs.debitura.com/apis.json), which is what
-this profile was built from.
+Everything profiled for Debitura is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/debitura/](https://apis.io/providers/debitura/)** — or go straight to one of the APIs or properties below.
 
-## What is in this repo
+### APIs (20)
 
-- `apis.yml` — the APIs.json 0.21 descriptor behind the [APIs.io](https://apis.io) listing
-- `openapi/` — the OpenAPI definitions, harvested from Debitura and split one per tag
-- `openapi/_original/` — the specs exactly as published, kept for provenance
+- [Debitura Cases API](https://apis.io/apis/debitura/debitura-cases-api/) — Cases
+- [Debitura Clients API](https://apis.io/apis/debitura/debitura-clients-api/) — Clients
+- [Debitura Contracts API](https://apis.io/apis/debitura/debitura-contracts-api/) — Debt-collection contract status and signing URLs for your account.
+- [Debitura Coverage API](https://apis.io/apis/debitura/debitura-coverage-api/) — Jurisdiction coverage — query which countries and debt types Debitura can collect in, and check case eligibility.
+- [Debitura Divisions API](https://apis.io/apis/debitura/debitura-divisions-api/) — Divisions
+- [Debitura Filter Options API](https://apis.io/apis/debitura/debitura-filteroptions-api/) — Referral Partners
+- [Debitura Ingestion Jobs API](https://apis.io/apis/debitura/debitura-ingestionjobs-api/) — IngestionJobs
+- [Debitura Managed Cases API](https://apis.io/apis/debitura/debitura-managedcases-api/) — Managed Cases
+- [Debitura Me API](https://apis.io/apis/debitura/debitura-me-api/) — Collection Partner Profile
+- [Debitura Payments API](https://apis.io/apis/debitura/debitura-payments-api/) — Payments
+- [Debitura Preview Cases API](https://apis.io/apis/debitura/debitura-previewcases-api/) — Cases
+- [Debitura Referral Partners API](https://apis.io/apis/debitura/debitura-referralpartners-api/) — Referral Partners
+- [Debitura Reporting API](https://apis.io/apis/debitura/debitura-reporting-api/) — Reporting
+- [Debitura Tasks API](https://apis.io/apis/debitura/debitura-tasks-api/) — Tasks
+- [Debitura Test Webhooks API](https://apis.io/apis/debitura/debitura-testwebhooks-api/) — Test Webhooks
+- [Debitura Users API](https://apis.io/apis/debitura/debitura-users-api/) — Users
+- [Debitura Webhooks API](https://apis.io/apis/debitura/debitura-webhooks-api/) — Manage webhook subscriptions and inspect the delivery event log. Create subscriptions to receive real-time notifications for case lifecycle events,…
+- [Debitura O Auth API](https://apis.io/apis/debitura/debitura-oauth-api/) — The OAuth API from Debitura — 1 operation(s) for oauth.
+- [Debitura Test Cases API](https://apis.io/apis/debitura/debitura-test-cases-api/) — Test Cases
+- [Debitura Webhook Events API](https://apis.io/apis/debitura/debitura-webhook-events-api/) — Webhooks
 
-## This is a catalog entry, not Debitura
+### Published properties
 
-This repo is API Evangelist's profile *about* Debitura. It is not operated by Debitura, and issues
-here do not reach their team — for the product or an API key, go to
-[debitura.com](https://debitura.com) or [docs.debitura.com](https://docs.debitura.com).
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
 
-If something in this profile is wrong or out of date, an issue here is exactly the right place, and
-so is the [APIs.io Inbox](https://github.com/api-search/inbox).
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [debitura](https://apis.io/servers/debitura/debitura/)
+
+#### Collections (3)
+
+Postman and Open Collection request collections.
+
+- [Debitura Collection Partner API](https://apis.io/collections/debitura/open-debitura-collection-partner-api/)
+- [Debitura Customer API](https://apis.io/collections/debitura/open-debitura-customer-api/)
+- [Debitura Referral Partner API](https://apis.io/collections/debitura/open-debitura-referral-partner-api/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://debitura.com)
+- [Blog](https://www.debitura.com/blog)
+
+## API Evangelist rating
+
+**Kin Score 20.1** — emerging · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 70.0 |
+| Contract quality | 53.0 |
+| Contract governance | 0.0 |
+| Operational transparency | 0.0 |
+| Developer ergonomics | 11.9 |
+| Access clarity | 0.0 |
+
+**Agent readiness 34.4** — agent-ready
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | verified |
+| Auth Clarity | bearer (partial credit) |
+| Idempotency | verified |
+| Error Semantics | verified |
+| OpenAPI Examples | — |
+| Rate Limit Signal | — |
+| Event Surface Described | — |
+| Agent Skills | — |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+| Pagination Ratio | — |
+| Operation Distinctiveness | — |
+
+**Regulatory alignment 0.0** — Payments
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/debitura/](https://apis.io/providers/debitura/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Debitura: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/debitura/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
